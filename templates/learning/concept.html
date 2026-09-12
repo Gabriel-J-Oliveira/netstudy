@@ -8,13 +8,35 @@
     <header class="lesson-header"><h1 id="arp-title">Tenho o IPv4. Ainda falta alguma coisa.</h1><p class="subtitle"><strong>Address Resolution Protocol</strong></p></header>
     <blockquote class="key-statement"><strong>ARP permite descobrir qual endereço MAC corresponde a um IPv4 relevante dentro do alcance local.</strong></blockquote>
     <div class="boundary-badge"><strong>ENTRE IPv4 E ETHERNET</strong><span>IPv4 · Camada 3</span><span>MAC / Frame Ethernet · Camada 2</span></div>
-    <p>ARP relaciona uma informação IPv4 a um endereço utilizado pela Ethernet local, por isso aparece justamente na fronteira prática entre o raciocínio de Camada 3 e a entrega de Camada 2.</p>
-    <div class="host-pair"><article class="host-panel"><span class="host-icon" aria-hidden="true">PC</span><h3>PC-A</h3><dl><div><dt>IPv4</dt><dd><code>192.168.10.10</code></dd></div><div><dt>MAC</dt><dd><code>AA:AA:AA:AA:AA:AA</code></dd></div></dl></article><div class="host-intent"><span>quer enviar um frame para</span><code>192.168.10.20</code><span aria-hidden="true">→</span></div><article class="host-panel"><span class="host-icon" aria-hidden="true">PC</span><h3>PC-B</h3><dl><div><dt>IPv4</dt><dd><code>192.168.10.20 ✓</code></dd></div><div><dt>Destination MAC</dt><dd><code>???</code></dd></div></dl></article></div>
+    <div class="host-pair"><article class="host-panel"><span class="host-icon" aria-hidden="true">PC</span><h3>PC-A</h3><dl><div><dt>IPv4</dt><dd><code>192.168.10.10</code></dd></div><div><dt>MAC</dt><dd><code>AA:AA:AA:AA:AA:AA</code></dd></div></dl></article><div class="host-intent"><span>quer enviar um frame para</span><code>192.168.10.20</code><span aria-hidden="true">→</span></div><article class="host-panel"><span class="host-icon" aria-hidden="true">PC</span><h3>PC-B</h3><dl><div><dt>IPv4</dt><dd><code>192.168.10.20 ✓</code></dd></div><div><dt>MAC que PC-A precisa colocar no Destination MAC</dt><dd><code>???</code></dd></div></dl></article></div>
     <div class="mental-mini"><span>IPv4 conhecido</span><b>↓</b><span>MAC necessário</span><b>↓</b><strong>ARP</strong></div>
     <div class="three-part-anchor"><strong>ARP PROCURA.</strong><strong>MAC IDENTIFICA.</strong><strong>FRAME TRANSPORTA.</strong></div>
-    <aside class="thinking-association"><span class="action-label">PENSE ASSIM</span><p>Você sabe para qual destino lógico quer falar, mas ainda precisa descobrir qual identificação Ethernet usar para fazer aquela entrega local.</p></aside>
-    <div class="arp-intro-demo" data-arp-intro data-step="1"><div class="intro-arp-topology"><article><strong>PC-A</strong><code>192.168.10.10</code><code>AA:AA:AA:AA:AA:AA</code></article><b>↓</b><span>SWITCH</span><b>↓</b><article><strong>PC-B</strong><code>192.168.10.20</code><code>BB:BB:BB:BB:BB:BB</code></article></div><div class="intro-arp-sequence"><span>MAC desconhecido</span><b>↓</b><span>ARP Request</span><b>↓</b><span>ARP Reply</span><b>↓</b><span>MAC conhecido</span><b>↓</b><strong>Frame pode ser endereçado</strong></div><p data-arp-intro-message>PC-A conhece o IPv4, mas ainda não conhece o MAC necessário.</p><button type="button" class="btn btn-primary" data-arp-intro-play>Ver acontecer</button><button type="button" class="btn btn-link" data-arp-intro-reset>Reiniciar</button></div>
-    {% include "learning/partials/concept_image.html" with available=image_slots.basic image_path="images/concepts/arp/arp-basic-flow.png" alt="Fluxo visual básico do ARP entre PC-A e PC-B." placeholder="Ilustração complementar — fluxo básico do ARP" %}
+    <div class="arp-problem-builder content-interaction" data-arp-problem-builder>
+      <span class="action-label">MONTE A RELAÇÃO</span>
+      <p>PC-A conhece <code>192.168.10.20</code>, mas precisa preparar uma entrega Ethernet. Selecione um token e depois o espaço correspondente.</p>
+      <div class="problem-token-bank" role="group" aria-label="Informações disponíveis">
+        <button type="button" data-problem-token="ipv4" aria-pressed="false">IPv4 192.168.10.20</button>
+        <button type="button" data-problem-token="mac" aria-pressed="false">MAC de PC-B</button>
+        <button type="button" data-problem-token="arp" aria-pressed="false">ARP</button>
+        <button type="button" data-problem-token="dns" aria-pressed="false">DNS</button>
+        <button type="button" data-problem-token="tcp" aria-pressed="false">porta TCP</button>
+      </div>
+      <div class="problem-slots" aria-label="Relação a completar">
+        <button type="button" data-problem-slot="known"><strong>PC-A já conhece</strong><span>Posicionar token</span></button>
+        <button type="button" data-problem-slot="missing"><strong>Ainda falta</strong><span>Posicionar token</span></button>
+        <button type="button" data-problem-slot="mechanism"><strong>Mecanismo usado</strong><span>Posicionar token</span></button>
+      </div>
+      <div class="problem-builder-controls">
+        <button type="button" class="btn btn-primary" data-problem-check>Verificar relação</button>
+        <button type="button" class="btn btn-link" data-problem-reset>Reiniciar</button>
+      </div>
+      <p class="problem-feedback" data-problem-feedback aria-live="polite"></p>
+      <p class="problem-success" data-problem-success hidden><strong>Correto.</strong> IPv4 conhecido → ARP descobre MAC → Destination MAC pode ser preenchido</p>
+    </div>
+    <details class="opening-diagram">
+      <summary>Ver diagrama ampliado</summary>
+      {% include "learning/partials/concept_image.html" with available=image_slots.basic image_path="images/concepts/arp/arp-basic-flow.png" alt="Fluxo visual básico do ARP entre PC-A e PC-B." placeholder="Ilustração complementar — fluxo básico do ARP" %}
+    </details>
   </section>
 
   <section class="concept-section demo-section" id="arp-process" data-arp-area="02" aria-labelledby="demo-title">

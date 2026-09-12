@@ -46,34 +46,24 @@
   function setupIntroFrame() {
     const root = document.querySelector("[data-intro-frame]");
     if (!root) return;
-    const messages = ["Os dados ainda não estão em uma estrutura Ethernet.", "O host precisa transmitir pela Ethernet.", "Uma estrutura de entrega começa a ser preparada.", "Source MAC identifica a origem.", "Destination MAC identifica quem recebe a entrega local.", "Os dados entram na estrutura.", "O frame está pronto e é transmitido."];
+    const messages = ["PC-A possui dados para transmitir.", "Os dados ainda não estão organizados como frame.", "O frame Ethernet aparece como a estrutura da transmissão.", "Os campos conceituais começam a compor o frame.", "Os endereços do frame ficam visíveis.", "Os dados ficam visíveis dentro da estrutura.", "O frame está pronto para transmissão."];
     const play = root.querySelector("[data-intro-play]");
-    let timers = [];
-    function setStep(step) { root.dataset.step = String(step); root.querySelector("[data-intro-message]").textContent = messages[step - 1]; }
-    function reset() { timers.forEach(window.clearTimeout); timers = []; play.disabled = false; play.textContent = "Ver acontecer"; setStep(1); }
+    const conclusion = root.querySelector("[data-intro-conclusion]");
+    let current = 1;
+    function setStep(step) {
+      current = step;
+      root.dataset.step = String(step);
+      root.querySelector("[data-intro-message]").textContent = messages[step - 1];
+      root.querySelector("[data-intro-current]").textContent = step;
+      conclusion.hidden = step !== messages.length;
+      play.textContent = step === messages.length ? "Reproduzir novamente" : step === 1 ? "▶ Reproduzir" : "Próxima etapa →";
+    }
+    function reset() { setStep(1); }
     play.addEventListener("click", () => {
-      reset(); play.disabled = true; play.textContent = "Acontecendo…";
-      const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 80 : 650;
-      for (let step = 2; step <= 7; step += 1) timers.push(window.setTimeout(() => { setStep(step); if (step === 7) { play.disabled = false; play.textContent = "Ver novamente"; } }, delay * (step - 1)));
+      setStep(current === messages.length ? 1 : current + 1);
     });
     root.querySelector("[data-intro-reset]").addEventListener("click", reset);
     reset();
-  }
-
-  function setupFirstFrameClaims() {
-    const root = document.querySelector("[data-first-frame-claims]");
-    if (!root) return;
-    const selected = new Set();
-    const correct = new Set(["local", "gateway", "ip"]);
-    const buttons = [...root.querySelectorAll("[data-claim]")];
-    const feedback = root.querySelector("[data-claims-feedback]");
-    buttons.forEach((button) => button.addEventListener("click", () => { const key = button.dataset.claim; selected.has(key) ? selected.delete(key) : selected.add(key); button.classList.toggle("is-selected", selected.has(key)); }));
-    root.querySelector("[data-claims-check]").addEventListener("click", () => {
-      const valid = selected.size === correct.size && [...correct].every((key) => selected.has(key));
-      if (!valid) { feedback.textContent = selected.has("intact") ? "Uma entrega Ethernet termina naquele enlace; o mesmo frame não atravessa intacto toda a Internet." : selected.has("remote-mac") ? "O primeiro frame é entregue localmente ao gateway, não diretamente ao MAC do host remoto." : "Considere simultaneamente a entrega Ethernet local, o gateway e o destino IP final."; return; }
-      feedback.textContent = "Correto. O primeiro frame é uma entrega local ao gateway, enquanto o destino IPv4 final pode continuar sendo 8.8.8.8.";
-      buttons.forEach((button) => { button.disabled = true; button.classList.toggle("is-correct", correct.has(button.dataset.claim)); });
-    });
   }
 
   function setupLocalBuilder({ rootSelector, prefix, correct, success, wrong, onSuccess }) {
@@ -563,7 +553,6 @@
 
   setupFieldInspector();
   setupIntroFrame();
-  setupFirstFrameClaims();
   setupInlineBuilders();
   setupDirection();
   setupBuildFrame();

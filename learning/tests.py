@@ -85,6 +85,28 @@ class ProjectAndConceptTests(TestCase):
         self.assertContains(response, 'data-complete-flow', html=False)
         self.assertContains(response, "COMEÇAR CHECKPOINT")
 
+    def test_arp_area_one_uses_accessible_problem_builder_without_timed_intro(self):
+        response = self.client.get(reverse("learning:concept"))
+        self.assertContains(response, 'data-arp-problem-builder', html=False)
+        self.assertContains(response, 'data-problem-token=', count=5, html=False)
+        self.assertContains(response, 'data-problem-slot=', count=3, html=False)
+        self.assertContains(response, "MAC que PC-A precisa colocar no Destination MAC")
+        self.assertContains(response, "IPv4 conhecido → ARP descobre MAC → Destination MAC pode ser preenchido")
+        self.assertContains(response, "Ver diagrama ampliado")
+        self.assertNotContains(response, 'data-arp-intro', html=False)
+        self.assertNotContains(response, "Ver acontecer")
+
+    def test_arp_area_one_assets_drop_obsolete_intro_logic_and_styles(self):
+        javascript = (settings.BASE_DIR / "static" / "js" / "arp-concept.js").read_text(encoding="utf-8")
+        stylesheet = (settings.BASE_DIR / "static" / "css" / "arp-concept.css").read_text(encoding="utf-8")
+        self.assertIn("setupProblemBuilder", javascript)
+        self.assertNotIn("setupIntroDemo", javascript)
+        self.assertNotIn("data-arp-intro", javascript)
+        self.assertIn(".problem-slots", stylesheet)
+        self.assertNotIn(".arp-intro-demo", stylesheet)
+        self.assertNotIn(".intro-arp-sequence", stylesheet)
+        self.assertIn("prefers-reduced-motion", stylesheet)
+
     def test_arp_legacy_rapid_fire_and_twenty_activity_routes_stay_available(self):
         self.assertEqual(self.client.get(reverse("learning:rapid_fire_intro")).status_code, 200)
         response = self.client.post(reverse("learning:begin"), follow=True)
@@ -108,6 +130,30 @@ class ProjectAndConceptTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "O endereço usado pela Ethernet")
         self.assertContains(response, 'aria-current="page">MAC Address</a>', html=False)
+
+    def test_mac_area_one_builds_source_then_asks_for_destination_mac(self):
+        response = self.client.get(reverse("learning:mac_concept"))
+        self.assertContains(response, 'data-mac-frame-builder', html=False)
+        self.assertContains(response, 'data-mac-source-value', html=False)
+        self.assertContains(response, 'data-mac-destination-slot', html=False)
+        self.assertContains(response, 'data-mac-destination-token=', count=4, html=False)
+        self.assertContains(response, "Ainda não preenchido", count=2)
+        self.assertContains(response, "Reproduzir novamente")
+        self.assertContains(response, "Source MAC identifica quem enviou este frame")
+        self.assertContains(response, "MAC não é um “nome universal do computador”")
+        self.assertContains(response, "Ver ilustração complementar")
+
+    def test_mac_area_one_assets_cover_guided_errors_and_accessibility(self):
+        javascript = (settings.BASE_DIR / "static" / "js" / "mac-concept.js").read_text(encoding="utf-8")
+        stylesheet = (settings.BASE_DIR / "static" / "css" / "mac-concept.css").read_text(encoding="utf-8")
+        for fragment in (
+            "setupOpeningFrame", "Um endereço IPv4 não preenche um campo MAC",
+            "Source MAC de PC-A", "porta TCP 443 pertence ao contexto de transporte",
+        ):
+            self.assertIn(fragment, javascript)
+        self.assertIn('aria-pressed', javascript)
+        self.assertIn(".mac-frame-builder", stylesheet)
+        self.assertIn("prefers-reduced-motion", stylesheet)
 
     def test_frame_concept_loads_and_appears_on_home_and_navigation(self):
         home = self.client.get(reverse("learning:home"))
@@ -142,12 +188,40 @@ class ProjectAndConceptTests(TestCase):
     def test_frame_v5d_has_exactly_seven_conceptual_areas(self):
         response = self.client.get(reverse("learning:frame_concept"))
         self.assertContains(response, "OSI · CAMADA 2")
-        self.assertContains(response, "Onde esse frame aparece?")
+        self.assertNotContains(response, "Onde esse frame aparece?")
         self.assertContains(response, 'data-frame-area=', count=7, html=False)
         for number in range(1, 8):
             self.assertContains(response, f"{number:02d} ·")
         self.assertNotContains(response, "08 ·")
         self.assertNotContains(response, "E VLAN?")
+
+    def test_frame_area_one_focuses_on_data_frame_and_transmission(self):
+        response = self.client.get(reverse("learning:frame_concept"))
+        self.assertContains(response, 'data-intro-frame', html=False)
+        self.assertContains(response, "DADOS AINDA NÃO ORGANIZADOS COMO FRAME")
+        self.assertContains(response, "Etapa <b data-intro-current>1</b> de 7", html=False)
+        self.assertContains(response, "▶ Reproduzir")
+        self.assertContains(response, "Dados precisam de uma estrutura Ethernet para serem transmitidos localmente. Essa estrutura é o frame.")
+        for removed in (
+            "HOST → INTERFACE DE REDE", "DESTINO LOCAL ou GATEWAY",
+            "IP destino final", "Switch e gateway aparecerão em conteúdos próprios.",
+        ):
+            self.assertNotContains(response, removed)
+
+    def test_frame_area_one_animation_is_step_controlled_without_timers(self):
+        javascript = (settings.BASE_DIR / "static" / "js" / "frame-concept.js").read_text(encoding="utf-8")
+        stylesheet = (settings.BASE_DIR / "static" / "css" / "frame-concept.css").read_text(encoding="utf-8")
+        self.assertIn("function setupIntroFrame", javascript)
+        self.assertIn('current === messages.length ? 1 : current + 1', javascript)
+        self.assertIn('data-intro-current', javascript)
+        self.assertNotIn("setupFirstFrameClaims", javascript)
+        intro_source = javascript[javascript.index("function setupIntroFrame"):javascript.index("function setupLocalBuilder")]
+        self.assertNotIn("setTimeout", intro_source)
+        self.assertNotIn("setInterval", intro_source)
+        self.assertIn(".intro-process", stylesheet)
+        self.assertIn("@media (max-width: 420px)", stylesheet)
+        self.assertIn("prefers-reduced-motion", stylesheet)
+        self.assertNotIn(".frame-note", stylesheet)
 
     def test_frame_v5d_merges_old_standalone_sections_into_final_architecture(self):
         response = self.client.get(reverse("learning:frame_concept"))

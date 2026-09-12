@@ -23,7 +23,11 @@
 .frame-bar > div:last-child { border-right: 0; }
 .frame-bar small { color: #5a6b80; font-size: .72rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
 .frame-bar code { color: var(--frame-ink); font-size: 1rem; }
-.frame-note { padding-left: 1rem; border-left: 3px solid #afbdcc; font-size: .92rem !important; }
+.intro-process { grid-template-columns: minmax(12rem, 1fr) auto minmax(12rem, 1fr); max-width: 48rem; margin-right: auto; margin-left: auto; }
+.intro-process > strong { padding: 1rem; border: 2px dashed #9aabc0; border-radius: .65rem; color: #60738c; background: #f8fafc; }
+[data-intro-frame][data-step="7"] [data-intro-transmission] { border-style: solid; border-color: var(--frame-green); color: #17663a; background: #eaf7f0; }
+.intro-progress { color: #506176; font-size: .78rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.intro-conclusion { margin: 1rem 0 0 !important; padding: 1rem 1.2rem; border-left: 4px solid var(--frame-green); border-radius: .55rem; color: #17663a !important; background: #eaf7f0; font-weight: 750; }
 .frame-topology { position: relative; display: grid; grid-template-columns: 1fr .5fr auto .5fr 1fr; align-items: center; margin: 3rem 0; }
 .frame-topology article, .build-topology article, .scope-path article { display: flex; flex-direction: column; gap: .3rem; padding: 1.2rem; border: 1px solid var(--frame-line); border-radius: .8rem; background: white; text-align: center; }
 .frame-topology article span, .build-topology article span { color: #6a7a8d; font-size: .72rem; font-weight: 800; text-transform: uppercase; }
@@ -160,6 +164,8 @@ button:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px soli
   .frame-section { padding: 4rem 0; }
   .raw-data-question, .direction-compare, .fixed-scope-compare, .layer-compare, .integration-demo, .known-grid { grid-template-columns: 1fr; }
   .frame-mental-strip, .scope-path { flex-direction: column; }
+  .intro-process { grid-template-columns: 1fr; }
+  .intro-process > span { transform: rotate(90deg); }
   .frame-topology, .build-topology { grid-template-columns: 1fr; gap: .6rem; }
   .frame-topology .wire { width: 3px; height: 1.5rem; justify-self: center; }
   .build-topology > span { text-align: center; transform: rotate(90deg); }
@@ -169,6 +175,12 @@ button:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px soli
   .inspectable-frame button { min-height: 3.5rem; border-right: 0; border-bottom: 1px solid #9cadc0; }
   .packing-stage { min-height: 27rem; }
   .capture-window dl { grid-template-columns: 1fr; }
+}
+@media (max-width: 420px) {
+  .observe-first { padding: 1rem; }
+  .intro-frame-stage { padding: .75rem; }
+  .frame-controls button { width: 100%; }
+  .intro-process article, .intro-process > strong { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }

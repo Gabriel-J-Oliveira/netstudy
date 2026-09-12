@@ -7,6 +7,122 @@
     feedback.textContent = message;
   }
 
+  function setupOpeningFrame() {
+    const root = document.querySelector("[data-mac-frame-builder]");
+    if (!root) return;
+
+    const start = root.querySelector("[data-mac-frame-start]");
+    const replay = root.querySelector("[data-mac-frame-replay]");
+    const choice = root.querySelector("[data-mac-destination-choice]");
+    const tokens = [...root.querySelectorAll("[data-mac-destination-token]")];
+    const slot = root.querySelector("[data-mac-destination-slot]");
+    const sourceField = root.querySelector("[data-mac-source-field]");
+    const sourceValue = root.querySelector("[data-mac-source-value]");
+    const destinationValue = root.querySelector("[data-mac-destination-value]");
+    const frame = root.querySelector("[data-mac-building-frame]");
+    const feedback = root.querySelector("[data-mac-builder-feedback]");
+    const conclusion = root.querySelector("[data-mac-builder-conclusion]");
+    const errorMessages = {
+      "mac-a": "Esse é o Source MAC de PC-A, a origem do frame; ele não representa o destino desta entrega.",
+      ipv4: "Um endereço IPv4 não preenche um campo MAC do frame Ethernet.",
+      tcp: "A porta TCP 443 pertence ao contexto de transporte, não ao endereçamento MAC do frame.",
+    };
+    let selected = null;
+    let complete = false;
+
+    function renderTokens() {
+      tokens.forEach((button) => {
+        const active = button.dataset.macDestinationToken === selected;
+        button.classList.toggle("is-selected", active);
+        button.setAttribute("aria-pressed", String(active));
+        if (complete) button.disabled = true;
+      });
+    }
+
+    function reset() {
+      selected = null;
+      complete = false;
+      root.dataset.state = "idle";
+      root.classList.remove("is-delivering");
+      frame.querySelector(":scope > strong").textContent = "FRAME ETHERNET · INCOMPLETO";
+      sourceValue.textContent = "Ainda não preenchido";
+      destinationValue.textContent = "Ainda não preenchido";
+      sourceField.classList.remove("is-filled");
+      slot.classList.remove("is-filled", "is-correct", "is-wrong");
+      slot.disabled = true;
+      tokens.forEach((button) => {
+        button.disabled = false;
+        button.classList.remove("is-selected", "is-correct", "is-wrong");
+        button.setAttribute("aria-pressed", "false");
+      });
+      start.hidden = false;
+      replay.hidden = true;
+      choice.hidden = true;
+      conclusion.hidden = true;
+      feedback.textContent = "";
+    }
+
+    function begin() {
+      root.dataset.state = "source";
+      sourceValue.textContent = "AA:AA:AA:AA:AA:AA";
+      sourceField.classList.add("is-filled");
+      slot.disabled = false;
+      start.hidden = true;
+      choice.hidden = false;
+      feedback.textContent = "Source MAC preenchido com o MAC de PC-A. Agora complete Destination MAC.";
+      tokens[0].focus();
+    }
+
+    start.addEventListener("click", begin);
+
+    tokens.forEach((button) => button.addEventListener("click", () => {
+      if (complete) return;
+      selected = selected === button.dataset.macDestinationToken ? null : button.dataset.macDestinationToken;
+      slot.classList.remove("is-wrong");
+      feedback.textContent = selected ? "Valor selecionado. Posicione-o em Destination MAC." : "Seleção removida.";
+      renderTokens();
+    }));
+
+    slot.addEventListener("click", () => {
+      if (complete) return;
+      if (!selected) {
+        feedback.textContent = "Selecione primeiro um dos valores disponíveis.";
+        return;
+      }
+      if (selected !== "mac-b") {
+        const wrongToken = tokens.find((button) => button.dataset.macDestinationToken === selected);
+        wrongToken.classList.remove("is-selected");
+        wrongToken.classList.add("is-wrong");
+        wrongToken.setAttribute("aria-pressed", "false");
+        wrongToken.disabled = true;
+        slot.classList.add("is-wrong");
+        feedback.textContent = errorMessages[selected];
+        selected = null;
+        return;
+      }
+
+      complete = true;
+      root.dataset.state = "complete";
+      destinationValue.textContent = "BB:BB:BB:BB:BB:BB";
+      slot.classList.remove("is-wrong");
+      slot.classList.add("is-filled", "is-correct");
+      frame.querySelector(":scope > strong").textContent = "FRAME ETHERNET · COMPLETO";
+      tokens.find((button) => button.dataset.macDestinationToken === "mac-b").classList.add("is-correct");
+      feedback.textContent = "Destination MAC preenchido. Observe a entrega até PC-B.";
+      conclusion.hidden = false;
+      replay.hidden = false;
+      root.classList.add("is-delivering");
+      renderTokens();
+    });
+
+    replay.addEventListener("click", () => {
+      reset();
+      begin();
+    });
+
+    reset();
+  }
+
   function setupExplorer() {
     const root = document.querySelector("[data-mac-explorer]");
     if (!root) return;
@@ -473,6 +589,7 @@
     });
   }
 
+  setupOpeningFrame();
   setupExplorer();
   setupIpconfigProof();
   setupDirection();

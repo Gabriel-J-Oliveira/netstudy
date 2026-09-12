@@ -7,10 +7,37 @@
     <span class="mac-index">01 · O QUE É UM ENDEREÇO MAC?</span><h1 id="mac-title">O endereço usado pela Ethernet</h1>
     <div class="layer-badge"><strong>OSI · CAMADA 2</strong><span>ENLACE DE DADOS</span></div>
     <blockquote class="mac-key">Um endereço MAC é utilizado pela Ethernet para identificar origem e destino durante uma entrega de Camada 2.</blockquote>
-    <div class="mac-hero-flow" aria-label="MAC de PC-A e PC-B dentro de um frame Ethernet"><article><strong>PC-A</strong><code>MAC AA:AA:AA:AA:AA:AA</code></article><b>↓</b><div class="hero-frame"><strong>FRAME ETHERNET</strong><span>Source MAC</span><code>AA:AA:AA:AA:AA:AA</code><span>Destination MAC</span><code>BB:BB:BB:BB:BB:BB</code></div><b>↓</b><article><strong>PC-B</strong><code>MAC BB:BB:BB:BB:BB:BB</code></article></div>
+    <div class="mac-frame-builder" data-mac-frame-builder data-state="idle">
+      <div class="mac-hero-flow" aria-label="Construção de um frame Ethernet de PC-A para PC-B">
+        <article class="mac-builder-host mac-builder-source"><strong>PC-A</strong><span>dados para enviar</span><code>MAC AA:AA:AA:AA:AA:AA</code></article>
+        <b class="mac-builder-arrow" aria-hidden="true">→</b>
+        <div class="hero-frame" data-mac-building-frame>
+          <strong>FRAME ETHERNET · INCOMPLETO</strong>
+          <div class="mac-frame-field" data-mac-source-field><span>Source MAC</span><code data-mac-source-value>Ainda não preenchido</code></div>
+          <button type="button" class="mac-frame-field" data-mac-destination-slot disabled><span>Destination MAC</span><code data-mac-destination-value>Ainda não preenchido</code></button>
+        </div>
+        <b class="mac-builder-arrow" aria-hidden="true">→</b>
+        <article class="mac-builder-host mac-builder-destination"><strong>PC-B</strong><span>deve receber a entrega</span><code>MAC BB:BB:BB:BB:BB:BB</code></article>
+      </div>
+      <div class="mac-builder-controls">
+        <button type="button" class="btn btn-primary" data-mac-frame-start>Iniciar construção</button>
+        <div class="mac-destination-choice" data-mac-destination-choice hidden>
+          <p>Selecione um valor e depois clique em <strong>Destination MAC</strong> para posicioná-lo no frame.</p>
+          <div class="mac-destination-tokens" role="group" aria-label="Valores disponíveis para Destination MAC">
+            <button type="button" data-mac-destination-token="mac-b" aria-pressed="false">BB:BB:BB:BB:BB:BB</button>
+            <button type="button" data-mac-destination-token="mac-a" aria-pressed="false">AA:AA:AA:AA:AA:AA</button>
+            <button type="button" data-mac-destination-token="ipv4" aria-pressed="false">192.168.10.20</button>
+            <button type="button" data-mac-destination-token="tcp" aria-pressed="false">porta TCP 443</button>
+          </div>
+        </div>
+        <p class="mac-builder-feedback" data-mac-builder-feedback aria-live="polite"></p>
+        <p class="mac-builder-conclusion" data-mac-builder-conclusion hidden><strong>Frame entregue.</strong> Source MAC identifica quem enviou este frame. Destination MAC identifica quem deve recebê-lo nesta entrega Ethernet.</p>
+        <button type="button" class="btn btn-outline-primary" data-mac-frame-replay hidden>Reproduzir novamente</button>
+      </div>
+    </div>
     <p class="mac-anchor">MAC aparece dentro do frame Ethernet.</p>
     <div class="mental-note"><div><span>PENSE ASSIM</span><p>O frame é a estrutura da entrega Ethernet; os endereços MAC ajudam a indicar de onde ela veio e para onde está indo naquele contexto local.</p></div><div><span>ONDE A COMPARAÇÃO TERMINA</span><p>MAC não é um “nome universal do computador”. Estamos estudando seu papel no endereçamento Ethernet.</p></div></div>
-    {% include "learning/partials/concept_image.html" with available=image_slots.source_destination image_path="images/concepts/mac/mac-source-destination.png" alt="Ilustração do MAC de origem e do MAC de destino em um frame Ethernet." placeholder="Ilustração complementar — MAC de origem e destino" %}
+    <details class="mac-opening-support"><summary>Ver ilustração complementar</summary>{% include "learning/partials/concept_image.html" with available=image_slots.source_destination image_path="images/concepts/mac/mac-source-destination.png" alt="Ilustração do MAC de origem e do MAC de destino em um frame Ethernet." placeholder="Ilustração complementar — MAC de origem e destino" %}</details>
   </section>
 
   <section class="mac-section" id="mac-format" data-mac-area="02" aria-labelledby="mac-format-title">

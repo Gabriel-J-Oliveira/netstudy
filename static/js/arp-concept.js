@@ -302,15 +302,109 @@
     }
   }
 
-  function setupIntroDemo() {
-    const root = document.querySelector("[data-arp-intro]");
+  function setupProblemBuilder() {
+    const root = document.querySelector("[data-arp-problem-builder]");
     if (!root) return;
-    const messages = ["PC-A conhece o IPv4, mas ainda não conhece o MAC necessário.", "O host envia um ARP Request.", "O dispositivo correspondente envia um ARP Reply.", "O MAC agora é conhecido.", "O frame pode receber o Destination MAC."];
-    let timers = [];
-    const play = root.querySelector("[data-arp-intro-play]");
-    function reset() { timers.forEach(window.clearTimeout); timers = []; root.dataset.step = "1"; root.querySelector("[data-arp-intro-message]").textContent = messages[0]; play.disabled = false; play.textContent = "Ver acontecer"; }
-    play.addEventListener("click", () => { reset(); play.disabled = true; const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 70 : 520; messages.slice(1).forEach((message, index) => timers.push(window.setTimeout(() => { root.dataset.step = String(index + 2); root.querySelector("[data-arp-intro-message]").textContent = message; if (index === 3) { play.disabled = false; play.textContent = "Ver novamente"; } }, delay * (index + 1)))); });
-    root.querySelector("[data-arp-intro-reset]").addEventListener("click", reset); reset();
+
+    const tokens = [...root.querySelectorAll("[data-problem-token]")];
+    const slots = [...root.querySelectorAll("[data-problem-slot]")];
+    const feedback = root.querySelector("[data-problem-feedback]");
+    const success = root.querySelector("[data-problem-success]");
+    const correct = { known: "ipv4", missing: "mac", mechanism: "arp" };
+    const wrongFeedback = {
+      ipv4: "O IPv4 192.168.10.20 é a informação que PC-A já possui.",
+      mac: "O MAC de PC-B é a informação que ainda falta para endereçar o frame.",
+      arp: "ARP é o mecanismo usado para descobrir essa associação.",
+      dns: "DNS relaciona nomes e endereços IP; não fornece o MAC para esta entrega Ethernet.",
+      tcp: "Uma porta TCP identifica um endpoint de aplicação; não resolve a associação IPv4 → MAC.",
+    };
+    const assignments = {};
+    let selected = null;
+    let done = false;
+
+    function tokenLabel(tokenId) {
+      return tokens.find((button) => button.dataset.problemToken === tokenId)?.textContent || "Posicionar token";
+    }
+
+    function render() {
+      tokens.forEach((button) => {
+        const tokenId = button.dataset.problemToken;
+        const assigned = Object.values(assignments).includes(tokenId);
+        button.classList.toggle("is-selected", selected === tokenId);
+        button.setAttribute("aria-pressed", String(selected === tokenId));
+        button.disabled = done || assigned;
+      });
+      slots.forEach((slot) => {
+        const tokenId = assignments[slot.dataset.problemSlot];
+        slot.querySelector("span").textContent = tokenLabel(tokenId);
+        slot.disabled = done;
+      });
+    }
+
+    function clearResult() {
+      slots.forEach((slot) => slot.classList.remove("is-correct", "is-wrong"));
+      success.hidden = true;
+      feedback.textContent = "";
+    }
+
+    tokens.forEach((button) => button.addEventListener("click", () => {
+      if (done) return;
+      selected = selected === button.dataset.problemToken ? null : button.dataset.problemToken;
+      clearResult();
+      render();
+    }));
+
+    slots.forEach((slot) => buttonSlotListener(slot));
+
+    function buttonSlotListener(slot) {
+      slot.addEventListener("click", () => {
+        if (done) return;
+        const slotId = slot.dataset.problemSlot;
+        if (selected) {
+          Object.keys(assignments).forEach((key) => {
+            if (assignments[key] === selected) delete assignments[key];
+          });
+          assignments[slotId] = selected;
+          selected = null;
+        } else {
+          delete assignments[slotId];
+        }
+        clearResult();
+        render();
+      });
+    }
+
+    root.querySelector("[data-problem-check]").addEventListener("click", () => {
+      clearResult();
+      const incomplete = Object.keys(correct).some((slotId) => !assignments[slotId]);
+      if (incomplete) {
+        feedback.textContent = "Complete os três espaços antes de verificar.";
+        return;
+      }
+      const wrongSlot = slots.find((slot) => assignments[slot.dataset.problemSlot] !== correct[slot.dataset.problemSlot]);
+      if (wrongSlot) {
+        wrongSlot.classList.add("is-wrong");
+        feedback.textContent = wrongFeedback[assignments[wrongSlot.dataset.problemSlot]];
+        wrongSlot.focus();
+        return;
+      }
+      done = true;
+      slots.forEach((slot) => slot.classList.add("is-correct"));
+      feedback.textContent = "Relação construída.";
+      success.hidden = false;
+      render();
+    });
+
+    root.querySelector("[data-problem-reset]").addEventListener("click", () => {
+      Object.keys(assignments).forEach((key) => delete assignments[key]);
+      selected = null;
+      done = false;
+      clearResult();
+      render();
+      tokens[0]?.focus();
+    });
+
+    render();
   }
 
   function setupMessageLabeler() {
@@ -406,7 +500,7 @@
   setupScopeExplorer();
   setupTerminalRelation();
   setupConceptImages();
-  setupIntroDemo();
+  setupProblemBuilder();
   setupMessageLabeler();
   setupCacheReuse();
   setupRemoteRequest();

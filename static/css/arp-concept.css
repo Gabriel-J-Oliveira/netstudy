@@ -105,19 +105,33 @@
 .boundary-badge > * { padding:.5rem .75rem; border-radius:999px; background:#eaf3fb; color:#17375f; font-size:.78rem; }
 .three-part-anchor { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:1.5rem 0; }
 .three-part-anchor strong { padding:1rem; border:1px solid #cbd8e3; border-radius:10px; background:#fff; text-align:center; }
-.thinking-association,.arp-intro-demo,.content-interaction { margin:2rem 0; padding:1.4rem; border:1px solid #cfdae5; border-radius:14px; background:#f8fafc; }
-.intro-arp-topology,.intro-arp-sequence { display:flex; align-items:center; justify-content:center; gap:.75rem; flex-wrap:wrap; margin:1rem 0; }
-.intro-arp-topology article { display:grid; gap:.25rem; min-width:190px; padding:1rem; border:1px solid #cbd8e3; border-radius:10px; background:#fff; text-align:center; }
-.intro-arp-sequence span,.intro-arp-sequence strong { padding:.55rem .7rem; border-radius:8px; background:#e8f2fb; }
-.arp-intro-demo .intro-arp-sequence > * { opacity:.2; transition:opacity .2s,transform .2s; }
-.arp-intro-demo[data-step="1"] .intro-arp-sequence > :nth-child(1),.arp-intro-demo[data-step="2"] .intro-arp-sequence > :nth-child(-n+3),.arp-intro-demo[data-step="3"] .intro-arp-sequence > :nth-child(-n+5),.arp-intro-demo[data-step="4"] .intro-arp-sequence > :nth-child(-n+7),.arp-intro-demo[data-step="5"] .intro-arp-sequence > * { opacity:1; }
+.thinking-association,.content-interaction { margin:2rem 0; padding:1.4rem; border:1px solid #cfdae5; border-radius:14px; background:#f8fafc; }
+.arp-problem-builder > p { max-width:760px; color:#475467; }
+.problem-token-bank { display:flex; flex-wrap:wrap; gap:.65rem; margin:1rem 0 1.25rem; }
+.problem-slots { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; }
+.problem-slots button { min-height:94px; border-style:dashed; text-align:left; }
+.problem-slots strong,.problem-slots span { display:block; }
+.problem-slots span { margin-top:.4rem; color:#52657d; overflow-wrap:anywhere; }
+.problem-builder-controls { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1.25rem; }
+.problem-feedback { min-height:1.5rem; margin:.9rem 0 0; color:#475467; font-weight:650; }
+.problem-success { margin:1rem 0 0; padding:1rem; border-left:4px solid #17834f; border-radius:7px; color:#105a38 !important; background:#e7f7ef; }
+.arp-problem-builder button:focus-visible,.opening-diagram summary:focus-visible { outline:3px solid #8fb8ff; outline-offset:3px; }
+.opening-diagram { margin-top:1.5rem; border-top:1px solid #dce3ec; }
+.opening-diagram > summary { padding:1rem 0; color:#274967; cursor:pointer; font-weight:800; }
+.opening-diagram .concept-image-frame { margin-top:.25rem; }
 .network-node.is-correct { outline:4px solid #28a66a; }.network-node.is-wrong { outline:4px solid #c94343; }
 .demo-evidence,.traffic-label-grid,.inline-token-bank,.inline-slots,[data-request-evidence-group],[data-remote-use-group] { display:flex; flex-wrap:wrap; gap:.65rem; margin:1rem 0; }
 .demo-evidence button,.traffic-label-grid button,.content-interaction button { padding:.65rem .8rem; border:1px solid #738aa0; border-radius:7px; background:#fff; }
+.problem-builder-controls .btn-primary { color:#fff; border-color:var(--blue); background:var(--blue); }
+.problem-builder-controls .btn-link { border-color:transparent; background:transparent; }
 .traffic-label-grid { display:grid; grid-template-columns:repeat(2,1fr); }.traffic-label-grid article { display:grid; gap:.75rem; padding:1rem; border:1px solid #cbd8e3; border-radius:10px; }
 .is-correct { border-color:#17834f !important; background:#e7f7ef !important; color:#105a38 !important; }.is-wrong { border-color:#b83030 !important; background:#fff0f0 !important; color:#7b2020 !important; }.is-selected { box-shadow:0 0 0 3px #9ec9f0; }
 .cache-frame-result { display:flex; align-items:center; justify-content:center; gap:.8rem; margin-top:1rem; padding:1rem; border-radius:10px; background:#e8f7ef; }
 .inline-slots button { min-width:220px; border-style:dashed; }.inline-slots strong,.inline-slots span { display:block; }
 .connect-terminal { background:#f5f8fb; }.role-summary { display:grid; grid-template-columns:repeat(2,1fr); gap:.75rem; margin:1.5rem 0; }.role-summary > div { display:flex; justify-content:space-between; gap:1rem; padding:1rem; border:1px solid #cbd8e3; border-radius:10px; background:#fff; }
 .subarea-title { margin-top:3rem !important; }
-@media (max-width:800px) { .three-part-anchor,.traffic-label-grid,.role-summary { grid-template-columns:1fr; }.intro-arp-topology,.intro-arp-sequence,.cache-frame-result { flex-direction:column; } }
+@media (max-width:800px) { .three-part-anchor,.problem-slots,.traffic-label-grid,.role-summary { grid-template-columns:1fr; }.cache-frame-result { flex-direction:column; } }
+@media (max-width:420px) {
+  .host-panel { padding:17px; }.host-panel dl div { align-items:flex-start; flex-direction:column; }.host-panel code { overflow-wrap:anywhere; }
+  .arp-problem-builder { padding:1rem; }.problem-token-bank button,.problem-slots button { width:100%; }.problem-builder-controls .btn { flex:1 1 100%; }
+}

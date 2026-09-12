@@ -1145,20 +1145,22 @@ class SwitchConceptAndCheckpointTests(TestCase):
         response = self.client.get(reverse("learning:switch_concept"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-switch-area=", count=5, html=False)
-        self.assertContains(response, "data-switch-board", count=5, html=False)
-        self.assertContains(response, "switch-board-didactic", count=5, html=False)
-        self.assertContains(response, "data-switch-port=", count=40, html=False)
+        self.assertContains(response, "data-switch-board", count=1, html=False)
+        self.assertContains(response, "switch-board-didactic", count=1, html=False)
+        self.assertContains(response, "data-switch-port=", count=8, html=False)
+        self.assertContains(response, 'data-board-id="switch-concept-shared"', html=False)
+        self.assertContains(response, 'data-scenario="switch-concept-shared"', html=False)
         self.assertContains(response, "Decidir por onde encaminhar o frame")
         self.assertContains(response, "SOURCE MAC + INGRESS PORT → APRENDER")
         self.assertContains(response, "DESTINATION MAC + MAC TABLE → DECIDIR")
-        self.assertContains(response, "RAPID FIRE · 3 PERGUNTAS")
-        self.assertContains(response, "data-rapid-question=", count=3, html=False)
         self.assertContains(response, "show mac address-table")
         self.assertContains(response, "PRIMEIRA VEZ")
         self.assertContains(response, "Esta resposta não recebe pontuação")
+        self.assertNotContains(response, "RAPID FIRE")
+        self.assertNotContains(response, "data-rapid-question")
         self.assertNotContains(response, "data-switch-terminal")
-        self.assertContains(response, "switch-board.js?v=switch-clarity-1")
-        self.assertContains(response, "switch-concept.js?v=switch-clarity-1")
+        self.assertContains(response, "switch-board.js?v=switch-shared-1")
+        self.assertContains(response, "switch-concept.js?v=switch-shared-1")
 
     def test_simplified_buttons_keep_the_javascript_contract(self):
         response = self.client.get(reverse("learning:switch_concept"))
@@ -1166,17 +1168,18 @@ class SwitchConceptAndCheckpointTests(TestCase):
         script_path = settings.BASE_DIR / "static" / "js" / "switch-concept.js"
         script = script_path.read_text(encoding="utf-8")
         selectors = (
-            "data-problem-demo",
-            "data-learning-demo",
-            "data-learning-question",
-            "data-forward-demo",
-            "data-forward-question",
-            "data-unknown-demo",
+            "data-problem-enter",
+            "data-stage-link",
+            "data-learning-source",
+            "data-learning-port",
+            "data-forward-destination",
+            "data-forward-entry",
+            "data-forward-port",
+            "data-flood-confirm",
             "data-later-learning",
-            "data-unknown-question",
             "data-cycle-demo",
+            "data-cycle-next",
             "data-cli-mac-b",
-            "data-switch-rapid-fire",
             "data-switch-reference-button",
             "data-checkpoint-start",
         )
@@ -1184,6 +1187,22 @@ class SwitchConceptAndCheckpointTests(TestCase):
             with self.subTest(selector=selector):
                 self.assertIn(selector, html)
                 self.assertIn(selector, script)
+
+    def test_shared_switch_board_supports_direct_actions_and_responsive_layout(self):
+        board_script = (settings.BASE_DIR / "static" / "js" / "switch-board.js").read_text(encoding="utf-8")
+        concept_script = (settings.BASE_DIR / "static" / "js" / "switch-concept.js").read_text(encoding="utf-8")
+        concept_css = (settings.BASE_DIR / "static" / "css" / "switch-concept.css").read_text(encoding="utf-8")
+        self.assertIn('"switch-concept-shared"', board_script)
+        self.assertNotIn('"switch-clarity-problem"', board_script)
+        self.assertIn("FLOOD_PORTS = [3, 4, 6]", concept_script)
+        self.assertIn("O flooding nunca devolve uma cópia por ela", concept_script)
+        self.assertIn('activeStage === "learning"', concept_script)
+        self.assertIn('activeStage === "forwarding"', concept_script)
+        self.assertNotIn("setupRapidFire", concept_script)
+        self.assertIn("position: sticky", concept_css)
+        self.assertIn("position: static", concept_css)
+        self.assertIn("@media (max-width: 360px)", concept_css)
+        self.assertIn("prefers-reduced-motion", concept_css)
 
     def test_sidebar_home_and_frame_integrate_switch(self):
         route = reverse("learning:switch_concept")

@@ -1,84 +1,72 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Switch Ethernet · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}?v=switch-clarity-1"><link rel="stylesheet" href="{% static 'css/switch-concept.css' %}?v=switch-clarity-1"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}?v=switch-shared-1"><link rel="stylesheet" href="{% static 'css/switch-concept.css' %}?v=switch-shared-1"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}">{% endblock %}
 {% block content %}
 <div class="switch-concept switch-clarity">
-  <section class="switch-area switch-hero" id="switch-role" data-switch-area="01" aria-labelledby="switch-title">
-    <span class="switch-index">01 · O QUE O SWITCH PRECISA FAZER?</span><span class="switch-eyebrow">SWITCH ETHERNET</span>
-    <h1 id="switch-title">Decidir por onde encaminhar o frame</h1>
-    <p class="lead">PC-A está na Gi0/1. PC-B está na Gi0/4. A MAC Address Table começa vazia.</p>
-    <p>PC-A envia um frame com Source MAC AA e Destination MAC BB. Quando ele chega, o switch precisa tomar uma decisão de encaminhamento.</p>
-    <div class="didactic-frame" aria-label="Frame de PC-A para PC-B"><span><small>Source MAC</small><strong>AA</strong></span><span><small>Destination MAC</small><strong>BB</strong></span></div>
-    <div class="simple-mac-table empty-table" aria-label="Tabela MAC vazia"><strong>MAC ADDRESS TABLE</strong><p>Nenhuma associação aprendida.</p></div>
-    {% include "learning/partials/interactive_switch_board.html" with board_id="switch-clarity-problem" board_mode="didactic" board_variant="switch-page" board_scenario="switch-clarity-problem" %}
-    <div class="didactic-action" data-problem-demo><button type="button" class="btn btn-primary">COLOCAR O FRAME NA ENTRADA</button><p data-demo-feedback aria-live="polite">O frame ainda precisa ser interpretado pelo switch.</p></div>
-    <div class="central-question">COMO O SWITCH DESCOBRE A PORTA DE SAÍDA?</div>
-    <p class="transition-copy">Para decidir corretamente, o switch primeiro precisa aprender onde os endereços MAC estão.</p>
-  </section>
+  <div class="switch-learning-layout">
+    <main class="switch-learning-content">
+      <section class="switch-area switch-hero" id="switch-role" data-switch-area="01" data-switch-stage="problem" aria-labelledby="switch-title">
+        <span class="switch-index">01 · O QUE O SWITCH PRECISA FAZER?</span><span class="switch-eyebrow">SWITCH ETHERNET</span>
+        <h1 id="switch-title">Decidir por onde encaminhar o frame</h1>
+        <p class="lead">A tabela MAC começa vazia. Um frame Source AA / Destination BB chega de PC-A pela Gi0/1.</p>
+        <div class="lab-task" data-problem-task><button type="button" class="btn btn-primary" data-problem-enter>COLOCAR O FRAME NA ENTRADA</button><p data-problem-feedback aria-live="polite">O frame ainda não entrou no switch.</p></div>
+        <div class="central-question">COMO O SWITCH DESCOBRE A PORTA DE SAÍDA?</div>
+        <p class="transition-copy">Antes de decidir a saída, observe o que o switch pode aprender na entrada.</p>
+      </section>
 
-  <section class="switch-area" id="switch-learning" data-switch-area="02" aria-labelledby="learning-title">
-    <span class="switch-index">02 · COMO ELE APRENDE?</span>
-    <h2 id="learning-title">Source MAC + porta de entrada</h2>
-    <p>Quando um frame entra, o switch observa o <strong>Source MAC</strong> e a interface que o recebeu.</p>
-    <p>Se um frame com Source CC entra pela Gi0/3, o switch pode aprender diretamente <code>CC → Gi0/3</code>.</p>
-    <div class="learning-equation"><span><small>SOURCE MAC</small><strong>CC</strong></span><b>+</b><span><small>INGRESS PORT</small><strong>Gi0/3</strong></span><b>=</b><span><small>APRENDIZADO</small><strong>CC → Gi0/3</strong></span></div>
-    {% include "learning/partials/interactive_switch_board.html" with board_id="switch-clarity-learning" board_mode="didactic" board_variant="switch-page-learning" board_scenario="switch-clarity-learning" %}
-    <div class="didactic-action" data-learning-demo><button type="button" class="btn btn-primary">VER SOURCE LEARNING</button><p data-demo-feedback aria-live="polite">A tabela começa vazia.</p></div>
-    <div class="simple-mac-table learning-table" data-learning-table><strong>MAC ADDRESS TABLE</strong><p data-learning-entry>Nenhuma associação aprendida.</p></div>
-    <div class="single-question" data-learning-question><span class="action-label label-try">CONFIRME O MECANISMO</span><p>Frame entra pela Gi0/3 com Source MAC CC. O que o switch aprende?</p><div><button type="button" data-learning-answer="correct">CC → Gi0/3</button><button type="button" data-learning-answer="destination">AA → Gi0/3</button><button type="button" data-learning-answer="wrong-port">CC → Gi0/1</button></div><p data-question-feedback aria-live="polite"></p></div>
-    <div class="spine"><strong>SOURCE MAC + INGRESS PORT → APRENDER</strong></div>
-    <p class="transition-copy">Depois de aprender associações, o switch pode usar outra parte do frame para decidir a saída.</p>
-  </section>
+      <section class="switch-area" id="switch-learning" data-switch-area="02" data-switch-stage="learning" aria-labelledby="learning-title">
+        <span class="switch-index">02 · COMO ELE APRENDE?</span>
+        <h2 id="learning-title">Source MAC + porta de entrada</h2>
+        <p>Um frame Source CC entra pela Gi0/3. No laboratório, selecione o campo <strong>Source MAC</strong> e a porta <strong>Gi0/3</strong>.</p>
+        <div class="lab-task" data-learning-task><a class="lab-jump" href="#switch-shared-lab" data-stage-link="learning">ABRIR ESTA ETAPA NO LABORATÓRIO</a><ol class="direct-action-list"><li data-learning-source>Source MAC</li><li data-learning-port>Gi0/3</li></ol><p data-learning-feedback aria-live="polite">Use as duas evidências que chegam juntas ao switch.</p></div>
+        <div class="spine"><strong>SOURCE MAC + INGRESS PORT → APRENDER</strong></div>
+        <p class="transition-copy">Com a localização aprendida, a decisão passa a olhar o destino do frame.</p>
+      </section>
 
-  <section class="switch-area" id="switch-forwarding" data-switch-area="03" aria-labelledby="forward-title">
-    <span class="switch-index">03 · COMO ELE DECIDE A SAÍDA?</span>
-    <h2 id="forward-title">Destination MAC + MAC Address Table</h2>
-    <p>O switch consulta o <strong>Destination MAC</strong> na tabela. O frame está destinado a BB e a tabela contém <code>BB → Gi0/4</code>.</p>
-    <div class="simple-flow" aria-label="Consulta do destino"><span>Destination BB</span><b>↓</b><span>BB → Gi0/4</span><b>↓</b><strong>Somente Gi0/4</strong></div>
-    <div class="simple-mac-table"><strong>MAC ADDRESS TABLE</strong><div><span>MAC</span><span>PORTA</span></div><div><code>AA</code><code>Gi0/1</code></div><div><code>BB</code><code>Gi0/4</code></div></div>
-    {% include "learning/partials/interactive_switch_board.html" with board_id="switch-clarity-known" board_mode="didactic" board_variant="switch-page" board_scenario="switch-clarity-known" %}
-    <div class="didactic-action" data-forward-demo><button type="button" class="btn btn-primary">VER DESTINATION LOOKUP</button><p data-demo-feedback aria-live="polite">Destination BB será procurado na tabela.</p></div>
-    <div class="single-question" data-forward-question><span class="action-label label-try">CONFIRME A SAÍDA</span><p>Destination BB. Tabela: BB → Gi0/4. Por qual porta o frame sai?</p><div><button type="button" data-forward-answer="correct">Gi0/4</button><button type="button" data-forward-answer="ingress">Gi0/1</button><button type="button" data-forward-answer="all">Todas as portas</button></div><p data-question-feedback aria-live="polite"></p></div>
-    <div class="spine"><strong>DESTINATION MAC + MAC TABLE → DECIDIR</strong></div>
-    <p class="transition-copy">A consulta direta funciona quando o destino está na tabela. Mas e quando essa associação ainda não existe?</p>
-  </section>
+      <section class="switch-area" id="switch-forwarding" data-switch-area="03" data-switch-stage="forwarding" aria-labelledby="forward-title">
+        <span class="switch-index">03 · COMO ELE DECIDE A SAÍDA?</span>
+        <h2 id="forward-title">Destination MAC + MAC Address Table</h2>
+        <p>O frame tem Destination BB e a tabela contém BB → Gi0/4. Selecione no laboratório o <strong>Destination MAC</strong>, essa entrada da tabela e a porta indicada.</p>
+        <div class="lab-task" data-forward-task><a class="lab-jump" href="#switch-shared-lab" data-stage-link="forwarding">ABRIR ESTA ETAPA NO LABORATÓRIO</a><ol class="direct-action-list"><li data-forward-destination>Destination BB</li><li data-forward-entry>BB → Gi0/4</li><li data-forward-port>Gi0/4</li></ol><p data-forward-feedback aria-live="polite">Cruze o campo do frame com a associação da tabela.</p></div>
+        <div class="spine"><strong>DESTINATION MAC + MAC TABLE → DECIDIR</strong></div>
+        <p class="transition-copy">A saída direta existe quando a associação está na tabela. Agora observe o caso sem associação.</p>
+      </section>
 
-  <section class="switch-area" id="switch-unknown" data-switch-area="04" aria-labelledby="unknown-title">
-    <span class="switch-index">04 · E SE O DESTINO NÃO ESTIVER NA TABELA?</span>
-    <h2 id="unknown-title">Sem uma porta conhecida, o switch faz flooding</h2>
-    <p>Um frame entra pela Gi0/1 com Destination DD. O switch procura DD na MAC Address Table, mas não encontra essa associação.</p>
-    <div class="unknown-lookup"><span>Destination <strong>DD</strong></span><b>↓</b><span>MAC TABLE: <code>sem DD</code></span><b>↓</b><strong>DESTINO DESCONHECIDO</strong></div>
-    <p>O switch envia cópias pelas demais portas apropriadas. A porta de entrada Gi0/1 fica excluída.</p>
-    {% include "learning/partials/interactive_switch_board.html" with board_id="switch-clarity-unknown" board_mode="didactic" board_variant="switch-page" board_scenario="switch-clarity-unknown" %}
-    <div class="didactic-action" data-unknown-demo><button type="button" class="btn btn-primary">VER UNKNOWN DESTINATION</button><p data-demo-feedback aria-live="polite">Primeiro DD será procurado e não encontrado.</p></div>
-    <div class="reply-learning" data-later-learning><p>Quando um frame com Source DD chegar depois, o switch poderá aprender sua porta e deixar de tratar DD como desconhecido.</p><button type="button" class="btn btn-outline-primary">MOSTRAR APRENDIZADO POSTERIOR</button><p data-later-feedback aria-live="polite"></p></div>
-    <div class="single-question" data-unknown-question><span class="action-label label-try">CONFIRME O COMPORTAMENTO</span><p>Destination DD, tabela sem DD, ingresso Gi0/1. O que acontece?</p><div><button type="button" data-unknown-answer="correct">Flooding pelas demais portas apropriadas</button><button type="button" data-unknown-answer="ingress">Flooding também pela Gi0/1</button><button type="button" data-unknown-answer="drop">O frame é descartado</button></div><p data-question-feedback aria-live="polite"></p></div>
-    <p class="transition-copy">Agora podemos reunir entrada, aprendizado, consulta e encaminhamento em uma única sequência.</p>
-  </section>
+      <section class="switch-area" id="switch-unknown" data-switch-area="04" data-switch-stage="unknown" aria-labelledby="unknown-title">
+        <span class="switch-index">04 · E SE O DESTINO NÃO ESTIVER NA TABELA?</span>
+        <h2 id="unknown-title">Sem uma porta conhecida, o switch faz flooding</h2>
+        <p>Destination DD não aparece na tabela. Marque diretamente no laboratório todas as portas que devem transmitir, mantendo a entrada Gi0/1 excluída.</p>
+        <div class="lab-task" data-unknown-task><a class="lab-jump" href="#switch-shared-lab" data-stage-link="unknown">ABRIR ESTA ETAPA NO LABORATÓRIO</a><button type="button" class="btn btn-primary" data-flood-confirm>CONFIRMAR PORTAS MARCADAS</button><p data-unknown-feedback aria-live="polite">Selecione as portas no desenho do switch.</p><p class="later-learning" data-later-learning hidden>Quando um futuro frame chegar com Source DD, o switch poderá associar DD à porta de entrada observada.</p></div>
+        <p class="transition-copy">Entrada, aprendizagem, consulta e flooding agora podem ser reunidos em uma sequência.</p>
+      </section>
 
-  <section class="switch-area switch-summary" id="switch-summary" data-switch-area="05" aria-labelledby="cycle-title">
-    <span class="switch-index">05 · COMO TUDO FUNCIONA EM SEQUÊNCIA?</span>
-    <h2 id="cycle-title">A primeira tentativa ensina o caminho das próximas</h2>
-    <div class="cycle-state"><article><strong>PC-A</strong><span>MAC AA</span><span>Gi0/1</span></article><article><strong>PC-B</strong><span>MAC BB</span><span>Gi0/4</span></article></div>
-    {% include "learning/partials/interactive_switch_board.html" with board_id="switch-clarity-cycle" board_mode="didactic" board_variant="switch-page" board_scenario="switch-clarity-cycle" %}
-    <div class="cycle-controls" data-cycle-demo data-phase="0"><button type="button" class="btn btn-primary">INICIAR FRAME A → B</button><p data-cycle-feedback aria-live="polite">Tabela vazia. Source AA, Destination BB.</p></div>
-    <ol class="compact-cycle-steps" data-cycle-steps><li data-cycle-step="1">Frame entra Gi0/1</li><li data-cycle-step="2">Aprende AA → Gi0/1</li><li data-cycle-step="3">Procura BB</li><li data-cycle-step="4">BB ausente</li><li data-cycle-step="5">Flooding</li></ol>
-    <div class="simple-mac-table cycle-table"><strong>MAC ADDRESS TABLE</strong><div><span>MAC</span><span>PORTA</span></div><div data-cycle-aa hidden><code>AA</code><code>Gi0/1</code></div><div data-cycle-bb hidden><code>BB</code><code>Gi0/4</code></div><p data-cycle-empty>Nenhuma associação aprendida.</p></div>
-    <div class="first-later" data-first-later hidden><article><span>PRIMEIRA VEZ</span><strong>BB desconhecido → flooding</strong></article><article><span>DEPOIS</span><strong>BB conhecido → Gi0/4</strong></article></div>
-    <div class="four-card-model"><article><span>1</span><strong>FRAME CHEGA</strong></article><article><span>2</span><strong>SOURCE MAC</strong><p>Aprende.</p></article><article><span>3</span><strong>DESTINATION MAC</strong><p>Consulta.</p></article><article><span>4</span><strong>KNOWN → PORTA<br>UNKNOWN → FLOODING</strong></article></div>
-    <section class="switch-cli-proof" data-switch-cli-proof><span class="action-label label-observe">A MESMA INFORMAÇÃO NA CLI</span><pre><code>Switch&gt; enable
+      <section class="switch-area switch-summary" id="switch-summary" data-switch-area="05" data-switch-stage="summary" aria-labelledby="cycle-title">
+        <span class="switch-index">05 · COMO TUDO FUNCIONA EM SEQUÊNCIA?</span>
+        <h2 id="cycle-title">A primeira tentativa ensina o caminho das próximas</h2>
+        <p>Acompanhe três momentos no mesmo switch: destino BB desconhecido, resposta que ensina BB e nova comunicação direcionada.</p>
+        <div class="cycle-controls" data-cycle-demo data-phase="0"><a class="lab-jump" href="#switch-shared-lab" data-stage-link="summary">ABRIR SÍNTESE NO LABORATÓRIO</a><button type="button" class="btn btn-primary" data-cycle-next>INICIAR FRAME A → B</button><p data-cycle-feedback aria-live="polite">Tabela vazia. Source AA, Destination BB.</p></div>
+        <div class="first-later" data-first-later hidden><article><span>PRIMEIRA VEZ</span><strong>BB desconhecido → flooding</strong></article><article><span>DEPOIS</span><strong>BB conhecido → somente Gi0/4</strong></article></div>
+        <section class="switch-cli-proof" data-switch-cli-proof><span class="action-label label-observe">A MESMA INFORMAÇÃO NA CLI</span><pre><code>Switch&gt; enable
 Switch# show mac address-table
 
 Mac Address          Port
 aaaa.aaaa.aaaa       Gi0/1
-bbbb.bbbb.bbbb       Gi0/4</code></pre><p>É a mesma tabela que acabamos de acompanhar visualmente.</p><button type="button" data-cli-mac-b><code>bbbb.bbbb.bbbb → Gi0/4</code></button><p data-cli-feedback aria-live="polite">Clique na entrada para localizar PC-B e Gi0/4 no quadro.</p><small><strong>VEJA TAMBÉM:</strong> <code>show interfaces status</code> permanece disponível no checkpoint. Para este conteúdo, <code>show mac address-table</code> é suficiente.</small></section>
-    <section class="rapid-fire" data-switch-rapid-fire data-current="1"><span class="action-label label-try">RAPID FIRE · 3 PERGUNTAS</span><article data-rapid-question="1"><p>Source ou Destination é usado para aprender?</p><button type="button" data-rapid-answer="source">Source</button><button type="button" data-rapid-answer="destination">Destination</button><small data-rapid-feedback></small></article><article data-rapid-question="2"><p>Qual campo o switch consulta para decidir o encaminhamento?</p><button type="button" data-rapid-answer="source">Source</button><button type="button" data-rapid-answer="destination">Destination</button><small data-rapid-feedback></small></article><article data-rapid-question="3"><p>Se o Destination MAC não estiver na tabela?</p><button type="button" data-rapid-answer="flood">Flooding pelas demais portas apropriadas</button><button type="button" data-rapid-answer="drop">Descarta sempre</button><small data-rapid-feedback></small></article></section>
-    <section class="self-explanation" data-switch-self-explanation><span class="action-label label-reflect">COMPLETE COM SUAS PALAVRAS</span><label for="switch-explanation">O switch usa o Source MAC para ______ e o Destination MAC para ______.</label><textarea id="switch-explanation" rows="3" data-switch-explanation-text></textarea><button type="button" class="btn btn-outline-primary" data-switch-reference-button>CONFERIR IDEIA ESPERADA</button><div class="reference-answer" data-switch-reference hidden><strong>Ideia esperada</strong><p>Source MAC para aprender. Destination MAC para decidir ou encaminhar.</p><small>Compare o conceito, não as palavras. Esta resposta não recebe pontuação.</small></div></section>
-    <aside class="next-concept"><p>Vimos que, quando o switch ainda não conhece um destino específico, ele pode enviar o frame por várias portas.</p><p>Mas existe outro caso em que um frame é criado intencionalmente para ser recebido por vários dispositivos: <strong>Broadcast</strong>.</p><a href="{% url 'learning:delivery_concept' %}">PRÓXIMO CONTEÚDO →</a></aside>
-    <nav class="concept-sequence" aria-label="Sequência do bloco"><a href="{% url 'learning:frame_concept' %}">← Frame Ethernet</a></nav>
-    <form method="post" action="{% url 'learning:switch_checkpoint_start' %}" data-checkpoint-start>{% csrf_token %}<button class="btn btn-primary btn-lg">COMEÇAR CHECKPOINT</button></form>
-  </section>
+bbbb.bbbb.bbbb       Gi0/4</code></pre><p>Esta saída representa as associações acompanhadas na tabela visual.</p><button type="button" data-cli-mac-b disabled><code>bbbb.bbbb.bbbb → Gi0/4</code></button><p data-cli-feedback aria-live="polite">A entrada de BB ficará disponível depois que a resposta for observada.</p></section>
+        <section class="self-explanation" data-switch-self-explanation><span class="action-label label-reflect">COMPLETE COM SUAS PALAVRAS</span><label for="switch-explanation">O switch usa o Source MAC para ______ e o Destination MAC para ______.</label><textarea id="switch-explanation" rows="3" data-switch-explanation-text></textarea><button type="button" class="btn btn-outline-primary" data-switch-reference-button>CONFERIR IDEIA ESPERADA</button><div class="reference-answer" data-switch-reference hidden><strong>Ideia esperada</strong><p>Source MAC para aprender. Destination MAC para decidir ou encaminhar.</p><small>Compare o conceito, não as palavras. Esta resposta não recebe pontuação.</small></div></section>
+        <p class="transition-copy">O mesmo ciclo explica por que um destino desconhecido pode gerar várias transmissões e um destino conhecido apenas uma.</p>
+        <aside class="next-concept"><p>O próximo conteúdo separa essa decisão entre entrega unicast e broadcast.</p><a href="{% url 'learning:delivery_concept' %}">PRÓXIMO CONTEÚDO →</a></aside>
+        <nav class="concept-sequence" aria-label="Sequência do bloco"><a href="{% url 'learning:frame_concept' %}">← Frame Ethernet</a></nav>
+        <form method="post" action="{% url 'learning:switch_checkpoint_start' %}" data-checkpoint-start>{% csrf_token %}<button class="btn btn-primary btn-lg">COMEÇAR CHECKPOINT</button></form>
+      </section>
+    </main>
+
+    <aside class="shared-switch-lab" id="switch-shared-lab" aria-labelledby="shared-lab-title">
+      <header class="shared-lab-heading"><span>LABORATÓRIO COMPARTILHADO</span><strong id="shared-lab-title" data-shared-stage-title>Área 01 · Entrada do frame</strong><p data-shared-stage-copy>O mesmo SW1 acompanhará todas as etapas.</p></header>
+      {% include "learning/partials/interactive_switch_board.html" with board_id="switch-concept-shared" board_mode="didactic" board_variant="switch-page-shared" board_scenario="switch-concept-shared" board_hide_context=True %}
+      <p class="shared-lab-feedback visually-hidden" data-shared-lab-feedback aria-live="polite"></p>
+    </aside>
+  </div>
   {% include "learning/partials/switch_checkpoint.html" %}
 </div>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}?v=switch-clarity-1"></script><script src="{% static 'js/switch-workbench.js' %}"></script><script src="{% static 'js/switch-concept.js' %}?v=switch-clarity-1"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}?v=switch-shared-1"></script><script src="{% static 'js/switch-workbench.js' %}"></script><script src="{% static 'js/switch-concept.js' %}?v=switch-shared-1"></script>{% endblock %}

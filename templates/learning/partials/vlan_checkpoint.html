@@ -1,0 +1,29 @@
+<section id="vlan-checkpoint" class="frame-checkpoint switch-checkpoint vlan-checkpoint" aria-labelledby="vlan-checkpoint-title">
+{% if not vlan_checkpoint_started %}
+  <div class="checkpoint-locked"><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="vlan-checkpoint-title">Checkpoint — VLAN</h2><p>Dez situações sobre portas Access, alcance, tabela MAC e diagnóstico.</p></div>
+{% elif vlan_checkpoint_complete %}
+  <div class="checkpoint-complete"><span class="action-label label-checkpoint">CHECKPOINT CONCLUÍDO</span><h2 id="vlan-checkpoint-title">10 situações resolvidas</h2>
+    <div class="checkpoint-outcomes"><article><strong>{{ vlan_checkpoint_immediate }}</strong><span>Acertos imediatos</span></article><article><strong>{{ vlan_checkpoint_guided }}</strong><span>Resolvidos após orientação</span></article></div>
+    <div class="checkpoint-capabilities"><h3>Capacidades treinadas</h3>{% for capability in vlan_checkpoint_capabilities %}<span>✓ {{ capability }}</span>{% endfor %}</div>
+    {% if vlan_checkpoint_misconceptions %}<aside class="checkpoint-review"><h3>Pontos para revisar</h3>{% for label in vlan_checkpoint_misconceptions %}<span>{{ label }}</span>{% endfor %}</aside>{% endif %}
+    <p class="completion-statement">Você separou uma infraestrutura Ethernet física em contextos lógicos e usou VLAN como parte explícita do raciocínio.</p>
+    <div class="checkpoint-next-concept"><span>PRÓXIMO CONCEITO</span><h3>Trunk + 802.1Q</h3><p>Veja como mais de uma VLAN atravessa um enlace entre switches mantendo a separação lógica.</p><a class="btn btn-primary" href="{% url 'learning:trunk_concept' %}">Estudar Trunk + 802.1Q →</a></div>
+    <form method="post" action="{% url 'learning:vlan_checkpoint_restart' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
+  </div>
+{% else %}
+  <header class="checkpoint-header"><div><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="vlan-checkpoint-title">Checkpoint — VLAN</h2><p>10 situações. Inspecione o contexto lógico antes de concluir.</p></div><strong>ATIVIDADE {{ vlan_checkpoint_activity.number }} DE {{ vlan_checkpoint_total }}</strong></header>
+  <div class="checkpoint-progress"><span style="width:{% widthratio vlan_checkpoint_activity.number vlan_checkpoint_total 100 %}%"></span></div>
+  <article class="checkpoint-activity type-{{ vlan_checkpoint_activity.type }}">
+    <div class="checkpoint-meta"><span class="concept-primary">{{ vlan_checkpoint_activity.primary }}</span>{% for concept in vlan_checkpoint_activity.related %}<span class="concept-related">{{ concept }}</span>{% endfor %}<span class="difficulty-badge">{{ vlan_checkpoint_activity.category|upper }} · NÍVEL {{ vlan_checkpoint_activity.difficulty_level }}</span></div>
+    <h3>{{ vlan_checkpoint_activity.title }}</h3><p class="checkpoint-question">{{ vlan_checkpoint_activity.symptom }}</p>
+    {% if vlan_checkpoint_result.ui_error %}<div class="alert alert-warning">{{ vlan_checkpoint_result.ui_error }}</div>{% endif %}
+    {% with switch_checkpoint_activity=vlan_checkpoint_activity %}{% include "learning/partials/switch_workbench.html" %}{% endwith %}
+    <form method="post" action="{% url 'learning:vlan_checkpoint_reset_current' %}" data-reset-current-form hidden>{% csrf_token %}</form>
+    <form method="post" action="{% url 'learning:vlan_checkpoint_answer' %}" data-builder-form data-required-count="{{ vlan_checkpoint_activity.correct_map|length }}" data-locked="{{ vlan_checkpoint_result.complete|yesno:'true,false' }}">{% csrf_token %}<input type="hidden" name="answer_payload"><div class="checkpoint-builder"><div class="token-bank"><strong>Elementos disponíveis</strong>{% for token in vlan_checkpoint_activity.tokens %}<button type="button" data-token="{{ token.id }}" data-token-text="{{ token.text }}" class="{% if vlan_checkpoint_result and token.id in vlan_checkpoint_result.error_tokens %}is-last-error{% endif %}">{{ token.text }}</button>{% endfor %}</div><div class="builder-slots">{% for slot in vlan_checkpoint_activity.slots %}<button type="button" class="builder-slot {% if 'port' in slot.id or 'egress' in slot.id %}port-slot{% endif %}" data-slot="{{ slot.id }}" data-capacity="{{ slot.capacity|default:'one' }}"><strong>{{ slot.label }}</strong><span data-slot-content></span></button>{% endfor %}</div></div>{% if not vlan_checkpoint_result.complete %}<button class="btn btn-primary btn-lg mt-4">Verificar conclusão</button>{% endif %}</form>{{ vlan_checkpoint_builder_initial|json_script:"exercise-initial-payload" }}
+    {% if vlan_checkpoint_result.attempt_count %}<div class="feedback {% if vlan_checkpoint_result.complete %}feedback-correct{% else %}feedback-wrong{% endif %}" role="status"><h4>{% if vlan_checkpoint_result.complete %}✓ Correto{% else %}✕ Incorreto{% endif %}</h4><p>{{ vlan_checkpoint_result.last_feedback|linebreaksbr }}</p></div>{% endif %}
+    {% if not vlan_checkpoint_result.complete %}<form method="post" action="{% url 'learning:vlan_checkpoint_hint' %}" class="checkpoint-hint-form" data-hint-form>{% csrf_token %}<button class="btn btn-outline-secondary">Preciso de uma pista</button></form>{% endif %}
+    {% if vlan_checkpoint_hint_text %}<aside class="hint"><strong>Pista {{ vlan_checkpoint_result.hint_level }}</strong><p>{{ vlan_checkpoint_hint_text }}</p></aside>{% endif %}
+    {% if vlan_checkpoint_result.complete %}<form method="post" action="{% url 'learning:vlan_checkpoint_next' %}" class="checkpoint-next">{% csrf_token %}<button class="btn btn-primary btn-lg">{% if vlan_checkpoint_activity.number == vlan_checkpoint_total %}Concluir checkpoint{% else %}Próxima situação{% endif %} →</button></form>{% endif %}
+  </article>
+{% endif %}
+</section>

@@ -1,0 +1,10 @@
+<div class="netstudy-terminal" aria-label="NetStudy Terminal">
+  <header><span>{{ terminal_title|default:"Windows Terminal" }}</span><span aria-hidden="true">─ □ ×</span></header>
+  <div class="terminal-screen" data-terminal-screen>
+    <div data-terminal-stage></div>
+    <form data-terminal-form>
+      <label><span>{{ terminal_prompt|default:"C:\Users\Aluno>" }}</span><input type="text" data-terminal-input autocomplete="off" spellcheck="false" aria-label="Comando do NetStudy Terminal"><i aria-hidden="true"></i></label>
+      <button type="submit" class="visually-hidden">Executar</button>
+    </form>
+  </div>
+</div>

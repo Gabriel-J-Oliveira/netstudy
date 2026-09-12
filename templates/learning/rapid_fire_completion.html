@@ -1,0 +1,8 @@
+{% extends "learning/base.html" %}
+{% block title %}Rapid Fire concluído · ARP{% endblock %}
+{% block content %}
+<section class="completion rapid-completion"><div class="completion-mark" aria-hidden="true">⚡</div><span class="eyebrow">ARP</span><h1>Rapid Fire concluído</h1>
+<div class="outcome-summary rapid-outcomes"><div><strong>{{ immediate_count }}</strong><span>Respostas imediatas</span></div><div><strong>{{ guided_count }}</strong><span>Respostas após erro</span></div><div><strong>{{ total }}</strong><span>Total</span></div></div>
+<blockquote>O objetivo do Rapid Fire é tornar relações fundamentais rapidamente recuperáveis, sem substituir atividades que exigem raciocínio mais profundo.</blockquote>
+<div class="completion-actions"><form method="post" action="{% url 'learning:rapid_fire_start' %}">{% csrf_token %}<button class="btn btn-primary btn-lg">Refazer Rapid Fire</button></form><a href="{% url 'learning:concept' %}" class="btn btn-outline-secondary btn-lg">Voltar ao ARP</a></div></section>
+{% endblock %}

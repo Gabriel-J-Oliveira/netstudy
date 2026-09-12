@@ -1,0 +1,59 @@
+<section class="switch-board{% if board_mode == 'didactic' %} switch-board-didactic{% endif %}{% if board_variant %} switch-board-{{ board_variant }}{% endif %}" data-switch-board data-board-id="{{ board_id }}" data-mode="{{ board_mode|default:'demonstration' }}" data-scenario="{{ board_scenario|default:'known' }}"{% if board_variant %} data-board-variant="{{ board_variant }}"{% endif %} aria-label="Quadro interativo do switch {{ board_id }}">
+  <header class="board-toolbar">
+    <div><span>INTERACTIVE SWITCH BOARD</span><strong>SW1</strong></div>
+    <div class="board-mode" aria-label="Modo atual"><i aria-hidden="true"></i><span data-board-mode-label>Demonstração</span></div>
+    <button type="button" data-toggle-vlans aria-pressed="false">Mostrar VLANs</button><button type="button" data-board-reset aria-label="Reiniciar este quadro">↻ Reiniciar</button>
+  </header>
+  <div class="switch-lab-grid">
+    <div class="switch-canvas" data-switch-canvas>
+      <svg viewBox="0 0 1000 540" role="group" aria-label="Switch SW1 com {% if board_mode == 'didactic' %}as portas relevantes{% else %}oito portas interativas{% endif %}">
+        <path class="cable cable-a" data-cable="1" d="M105 115 C180 115 205 190 285 190" />
+        <path class="cable cable-d" data-cable="2" d="M105 325 C180 325 205 225 285 225" />
+        <path class="cable cable-b" data-cable="4" d="M895 115 C820 115 795 190 715 190" />
+        <path class="cable cable-c" data-cable="7" d="M895 325 C820 325 795 225 715 225" />
+        <path class="cable cable-e" data-cable="5" d="M500 465 C500 405 524 360 524 257" />
+        <path class="cable cable-f" data-cable="6" d="M660 465 C660 405 574 360 574 257" style="display:none" />
+        <g class="host host-a" data-host="A"><rect x="30" y="65" width="130" height="86" rx="12"/><text x="95" y="96">PC-A</text><text x="95" y="121">AA:AA:…</text><text x="95" y="140">Gi0/1</text></g>
+        <g class="host host-d" data-host="D"><rect x="30" y="278" width="130" height="86" rx="12"/><text x="95" y="309">PC-D</text><text x="95" y="334">DD:DD:…</text><text x="95" y="353">Gi0/2</text></g>
+        <g class="host host-b" data-host="B"><rect x="840" y="65" width="130" height="86" rx="12"/><text x="905" y="96">PC-B</text><text x="905" y="121">BB:BB:…</text><text x="905" y="140">Gi0/4</text></g>
+        <g class="host host-c" data-host="C"><rect x="840" y="278" width="130" height="86" rx="12"/><text x="905" y="309">PC-C</text><text x="905" y="334">CC:CC:…</text><text x="905" y="353">Gi0/7</text></g>
+        <g class="host host-e" data-host="E"><rect x="435" y="445" width="130" height="76" rx="12"/><text x="500" y="472">PC-E</text><text x="500" y="494">EE:EE:…</text><text x="500" y="513">Gi0/5</text></g>
+        <g class="host host-f" data-host="F" style="display:none"><rect x="600" y="445" width="130" height="76" rx="12"/><text x="665" y="472">PC-F</text><text x="665" y="494">FE:FE:…</text><text x="665" y="513">Gi0/3 · VLAN 30</text></g>
+        <rect class="switch-chassis" x="280" y="108" width="440" height="230" rx="24" />
+        <text class="switch-label" x="500" y="147">SW1</text>
+        <text class="switch-model" x="500" y="169">ETHERNET SWITCH · {% if board_mode == 'didactic' %}PORTAS RELEVANTES{% else %}8 PORTS{% endif %}</text>
+        {% for port in "12345678" %}
+        <g class="switch-port" data-switch-port="{{ port }}" role="button" tabindex="0" aria-label="Inspecionar porta Gi0/{{ port }}" aria-pressed="false">
+          <title>Porta Gi0/{{ port }}</title>
+          <rect x="{% cycle '304' '354' '404' '454' '504' '554' '604' '654' %}" y="202" width="40" height="55" rx="5" />
+          <circle class="port-led" cx="{% cycle '324' '374' '424' '474' '524' '574' '624' '674' %}" cy="189" r="6" />
+          <text x="{% cycle '324' '374' '424' '474' '524' '574' '624' '674' %}" y="281">{{ port }}</text>
+          <text class="vlan-port-label" data-port-vlan-label x="{% cycle '324' '374' '424' '474' '524' '574' '624' '674' %}" y="300"></text>
+        </g>
+        {% endfor %}
+        <g class="frame-packet" data-board-frame transform="translate(220 165)" hidden><rect width="98" height="34" rx="7"/><text x="49" y="22">FRAME</text></g>
+      </svg>
+      <div class="port-tooltip" data-port-tooltip role="tooltip" hidden></div>
+      <div data-frame-copies aria-live="polite"></div>
+      <div class="vlan-groups" data-vlan-groups hidden aria-label="Grupos lógicos de VLAN"></div>
+      <div class="board-legend" aria-label="Legenda de estados"><span><i class="led-up"></i> link</span><span><i class="led-in"></i> entrada</span><span><i class="led-out"></i> saída</span><span><i class="led-flood"></i> flood</span></div>
+    </div>
+    <aside class="port-inspector" data-port-inspector aria-live="polite">
+      <span>PORT INSPECTOR</span><h3 data-inspector-title>Selecione uma porta</h3>
+      <dl><dt>Interface</dt><dd data-inspector-interface>—</dd><dt>Status</dt><dd data-inspector-state>—</dd><dt>Modo</dt><dd data-inspector-mode>—</dd><dt>Access VLAN</dt><dd data-inspector-vlan>—</dd><dt>Allowed VLANs</dt><dd data-inspector-allowed>—</dd><dt>Native VLAN</dt><dd data-inspector-native>—</dd><dt>802.1Q</dt><dd data-inspector-tagged>—</dd><dt>Dispositivo conectado</dt><dd data-inspector-host>—</dd><dt>MACs observados</dt><dd data-inspector-mac>—</dd><dt>RX Frames</dt><dd data-inspector-rx>0</dd><dt>TX Frames</dt><dd data-inspector-tx>0</dd><dt>Último frame</dt><dd data-inspector-role>—</dd><dt>Último evento</dt><dd data-inspector-event>—</dd></dl>
+    </aside>
+  </div>
+  <div class="frame-visualizer" data-frame-visualizer aria-label="Campos principais do frame">
+    <button type="button" data-frame-field="vlan"{% if board_hide_context %} hidden{% endif %}><small>Contexto de entrada</small><code data-frame-vlan>Contexto Ethernet</code><span>definido pela porta access</span></button>
+    <button type="button" data-frame-field="source"><small>Source MAC</small><code data-frame-source>AA:AA:AA:AA:AA:AA</code><span>usado para aprender</span></button>
+    <button type="button" data-frame-field="destination"><small>Destination MAC</small><code data-frame-destination>BB:BB:BB:BB:BB:BB</code><span>usado para decidir</span></button>
+    <button type="button" data-frame-field="type"><small>Type</small><code data-frame-type>Ethernet II</code><span>conteúdo transportado</span></button>
+    <button type="button" data-frame-field="payload"><small>Payload conceitual</small><code data-frame-payload>Dados</code><span>inspeção contextual</span></button>
+  </div>
+  <div class="board-data-grid">
+    <section class="live-mac-table" data-mac-table-panel><header><span>MAC ADDRESS TABLE</span><small>{% if board_mode == 'didactic' %}visual{% else %}ao vivo{% endif %}</small></header><table><thead><tr><th>VLAN</th><th>MAC</th><th>Porta</th><th>Tipo</th><th>Mudança</th></tr></thead><tbody data-mac-table></tbody></table><p data-empty-table>A tabela ainda está vazia.</p></section>
+    <section class="decision-timeline"><header>LINHA DO TEMPO</header><ol data-board-timeline aria-live="polite"><li class="is-current">Aguardando o frame.</li></ol></section>
+  </div>
+  <div class="board-actions"><button type="button" class="btn btn-primary" data-board-run>VER A DECISÃO</button><button type="button" class="btn btn-outline-primary" data-board-step>Próximo passo</button></div>
+  <p class="board-announcement visually-hidden" data-board-announcement aria-live="polite"></p>
+</section>

@@ -1,0 +1,15 @@
+<section class="dual-switch-stage" data-trunk-stage data-stage-id="{{ stage_id }}" data-stage-mode="{{ stage_mode|default:'advanced' }}" data-sw1-id="{{ sw1_id }}" data-sw2-id="{{ sw2_id }}" data-allowed-a="{{ allowed_a|default:'10,20' }}" data-allowed-b="{{ allowed_b|default:'10,20' }}" data-native-a="{{ native_a|default:'1' }}" data-native-b="{{ native_b|default:'1' }}" aria-label="Estágio de rede com SW1 e SW2 conectados por trunk">
+  <header class="dual-stage-header"><div><span>DUAL SWITCH STAGE</span><strong>{{ stage_title|default:"SW1 ↔ SW2" }}</strong></div><button type="button" data-stage-reset>↻ Resetar cenário</button></header>
+  <div class="dual-stage-grid">
+    <div class="dual-switch" data-stage-switch="sw1"><h3>SW1</h3>{% include "learning/partials/interactive_switch_board.html" with board_id=sw1_id board_mode=stage_mode|default:"demonstration" board_scenario=sw1_scenario|default:"trunk-sw1" %}</div>
+    <button type="button" class="trunk-link" data-trunk-link aria-label="Trunk entre SW1 Gi0/8 e SW2 Gi0/8, link up, VLANs permitidas 10 e 20">
+      <span class="trunk-end">SW1 · Gi0/8</span><i aria-hidden="true"></i><strong>?</strong><i aria-hidden="true"></i><span class="trunk-end">SW2 · Gi0/8</span><small data-trunk-badge>REVELAR TRUNK</small>
+    </button>
+    <div class="dual-switch" data-stage-switch="sw2"><h3>SW2</h3>{% include "learning/partials/interactive_switch_board.html" with board_id=sw2_id board_mode=stage_mode|default:"demonstration" board_scenario=sw2_scenario|default:"trunk-sw2" %}</div>
+  </div>
+  <div class="dual-inspection-grid">
+    <aside class="trunk-inspector" data-trunk-inspector aria-live="polite"><span>TRUNK INSPECTOR</span><h3>SW1 Gi0/8 ↔ SW2 Gi0/8</h3><dl><dt>Status</dt><dd data-trunk-status>UP</dd><dt>Mode SW1 / SW2</dt><dd data-trunk-modes>TRUNK / TRUNK</dd><dt>Allowed VLANs SW1</dt><dd data-trunk-allowed-a>10, 20</dd><dt>Allowed VLANs SW2</dt><dd data-trunk-allowed-b>10, 20</dd><dt>Native VLAN SW1 / SW2</dt><dd data-trunk-native>1 / 1</dd><dt>Último frame</dt><dd data-trunk-last>—</dd><dt>802.1Q</dt><dd data-trunk-tag>—</dd></dl></aside>
+    <section class="dot1q-inspector" data-dot1q-inspector><header><span>PACKET INSPECTOR</span><strong data-packet-phase>ACCESS · antes do trunk</strong></header><div class="packet-tree"><span>Ethernet II</span><span>├─ Destination MAC: <code data-packet-destination>—</code></span><span>├─ Source MAC: <code data-packet-source>—</code></span><span data-dot1q-row>├─ 802.1Q VLAN: <code data-packet-vlan>—</code></span><span data-tagged-row>│  └─ Tagged: <code data-packet-tagged>—</code></span><span>└─ Payload: <code data-packet-payload>Dados</code></span></div><div class="packet-phases"><button type="button" data-packet-view="access-in">ANTES DO TRUNK</button><button type="button" data-packet-view="trunk">NO TRUNK</button><button type="button" data-packet-view="access-out">DEPOIS DO TRUNK / ACCESS</button></div></section>
+  </div>
+  <section class="trunk-timeline"><header>EVENT TIMELINE · DOIS SWITCHES</header><ol data-trunk-timeline aria-live="polite"><li>Cenário pronto.</li></ol></section>
+</section>

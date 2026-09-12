@@ -1,0 +1,89 @@
+{% extends "learning/base.html" %}{% load static %}
+{% block title %}TCP × UDP · NetStudy{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}"><link rel="stylesheet" href="{% static 'css/transport-concept.css' %}">{% endblock %}
+{% block content %}<main class="transport-concept">
+<section class="transport-area transport-hero" data-transport-area="01">
+  <span class="transport-index">TCP × UDP · ÁREA 01</span><p class="transport-kicker">Duas formas diferentes de transportar dados entre aplicações</p>
+  <h1>Chegar ao computador correto não encerra o problema</h1>
+  <div class="central-question"><small>PERGUNTA CENTRAL</small><strong>Depois que a rede consegue levar dados até o host correto, como esses dados devem ser transportados entre as aplicações?</strong><b>O que TCP e UDP fazem de diferente?</b></div>
+  <div class="knowledge-bridge"><span>MAC <small>entrega no enlace</small></span><span>IPv4 <small>comunicação entre redes</small></span><span>Routing <small>caminho</small></span><strong>Camada de Transporte <small>comunicação entre aplicações finais</small></strong></div>
+  <div class="simple-path"><article><b>CLIENTE</b><span>Aplicação A</span></article><i>↓</i><strong>REDE IP</strong><i>↓</i><article><b>SERVIDOR</b><span>Aplicação B · outras aplicações</span></article></div>
+  <span class="layer-badge">OSI · CAMADA 4 — TRANSPORTE</span>
+  <blockquote>A Camada de Transporte fornece mecanismos para comunicação entre aplicações nos hosts finais.</blockquote>
+  <p>TCP e UDP são dois protocolos de transporte importantes, mas oferecem serviços diferentes para as aplicações.</p>
+  <div class="sequence-problem"><p>Uma aplicação precisa enviar:</p><div><span>1</span><span>2</span><span>3</span><span>4</span></div><ul><li>Precisamos saber se os dados chegaram?</li><li>Precisamos manter a ordem?</li><li>Se algo se perder, alguém precisa reenviar?</li><li>Queremos preservar cada envio como uma mensagem individual?</li><li>Quanto trabalho o protocolo deve realizar?</li></ul></div>
+  <div class="two-models"><article><b>MODELO A</b><p>O transporte detecta e tenta recuperar.</p><span>Aproxima TCP</span></article><article><b>MODELO B</b><p>O transporte entrega os datagramas que chegaram; recuperação, quando necessária, fica em outro nível.</p><span>Aproxima UDP</span></article></div>
+  <p>E se a rede entregar <code>1 · 3 · 2 · 4</code>? TCP fornece um fluxo ordenado. UDP não reordena datagramas para a aplicação por conta própria.</p>
+  <aside class="transport-anchor">TCP E UDP NÃO ESCOLHEM O CAMINHO DA REDE.<small>Eles definem como aplicações trocam dados sobre a rede IP. Routing continua sendo Camada 3.</small></aside>
+  <div class="responsibility-match" data-responsibility><p>Associe cada responsabilidade:</p><div><button type="button" data-role="routing">Escolher rota até outra rede</button><button type="button" data-role="tcp">Manter entrega ordenada entre aplicações</button><button type="button" data-role="udp">Transportar datagramas entre aplicações</button></div><p data-role-feedback aria-live="polite"></p><button type="button" data-interaction-reset>Resetar cenário</button></div>
+  <p class="transport-transition">Vamos começar pelo modelo mais simples dos dois: UDP.</p>
+</section>
+
+<section class="transport-area" data-transport-area="02">
+  <span class="transport-index">ÁREA 02 · UDP</span><h2>UDP preserva cada envio como um datagrama independente</h2>
+  <blockquote>UDP transporta datagramas independentes sem fornecer, por si próprio, mecanismos de confirmação de entrega, retransmissão ou ordenação.</blockquote>
+  <p>Um datagrama UDP é uma unidade independente de dados transportada pela aplicação através do UDP. O limite entre cada datagrama é preservado.</p>
+  <div class="boundary-example"><span>Aplicação envia</span><b>“A”</b><b>“B”</b><b>“C”</b><i>→</i><span>UDP DATAGRAM A</span><span>UDP DATAGRAM B</span><span>UDP DATAGRAM C</span></div>
+  {% include "learning/partials/transport_flow_stage.html" with protocol="udp" scenario="normal" %}
+  <h3>Agora introduzimos uma perda</h3><p>A aplicação envia A, B, C e D. Na rede, C é perdido.</p>
+  {% include "learning/partials/transport_flow_stage.html" with protocol="udp" scenario="loss" %}
+  <aside class="transport-anchor">UDP NÃO ENVIA AUTOMATICAMENTE C NOVAMENTE.<small>UDP não possui, por si só, confirmação e retransmissão para garantir que C seja recuperado.</small></aside>
+  <h3>E se os datagramas chegarem fora de ordem?</h3>
+  {% include "learning/partials/transport_flow_stage.html" with protocol="udp" scenario="order" %}
+  <aside class="transport-anchor">UDP ENVIA DATAGRAMAS.<br>ELE NÃO PROMETE ENTREGA.<br>ELE NÃO PROMETE ORDEM.<br>ELE NÃO RETRANSMITE AUTOMATICAMENTE.</aside>
+  <div class="important-box"><b>IMPORTANTE</b><p>UDP possui menos mecanismos de transporte que TCP, mas isso não significa que toda aplicação usando UDP será automaticamente mais rápida ou terá menor latência em qualquer situação.</p><p>Performance depende da aplicação, protocolo superior, rede e implementação.</p></div>
+  <p>Algumas aplicações preferem um transporte simples de datagramas e implementam, quando necessário, suas próprias estratégias de controle. Isso pode ocorrer em algumas comunicações em tempo real, consultas curtas ou protocolos que implementam mecanismos próprios sobre UDP.</p>
+  <details><summary>Mais adiante</summary><p>Protocolos modernos como QUIC utilizam UDP como base e implementam recursos mais sofisticados acima dele.</p></details>
+  <div class="single-check" data-udp-check><p>O datagrama 3 foi perdido. O que o próprio UDP faz automaticamente para recuperá-lo?</p><button type="button" data-answer="nothing">Nada: não implementa retransmissão automática</button><button type="button" data-answer="retry">Retransmite o datagrama 3</button><p aria-live="polite"></p><button type="button" data-interaction-reset>Resetar cenário</button></div>
+  <p class="transport-transition">Em algumas comunicações, a aplicação quer que o transporte cuide justamente dos problemas que UDP deixa para outros níveis. Aí entra TCP.</p>
+</section>
+
+<section class="transport-area transport-tcp" data-transport-area="03">
+  <span class="transport-index">ÁREA 03 · TCP</span><h2>TCP adiciona controle à comunicação</h2>
+  <blockquote>TCP fornece às aplicações um fluxo de bytes orientado a conexão, com mecanismos para entrega confiável e ordenada enquanto a conexão está funcionando.</blockquote>
+  <aside class="transport-anchor">“QUERO UM FLUXO CONFIÁVEL E ORDENADO.”</aside>
+  <p>A aplicação envia A, B, C e D. A rede perde C; D chega fisicamente depois. TCP percebe conceitualmente que o fluxo ainda não está completo, recupera C e entrega A, B, C e D em ordem.</p>
+  {% include "learning/partials/transport_flow_stage.html" with protocol="tcp" scenario="loss" %}
+  <div class="stream-difference"><article><b>UDP · DATAGRAMAS</b><span>Envio 1: ABC</span><span>Envio 2: DEF</span><strong>[ ABC ] [ DEF ]</strong></article><article><b>TCP · FLUXO DE BYTES</b><span>A aplicação escreve bytes</span><strong>ABCDEF</strong><p>TCP não preserva esses limites como mensagens individuais.</p></article></div>
+  <p>A aplicação não deve supor que cada operação de envio corresponderá exatamente a uma operação de recebimento do mesmo tamanho.</p>
+  <h3>TCP é orientado a conexão</h3><blockquote>Antes da troca normal de dados, TCP estabelece estado de comunicação entre os endpoints.</blockquote>
+  <div class="connection-flow"><span>ESTABELECER CONEXÃO</span><i>↓</i><span>TROCAR DADOS</span><i>↓</i><span>ENCERRAR</span></div>
+  <details><summary>Teaser do estabelecimento</summary><p>SYN → SYN-ACK → ACK</p><strong>VEREMOS ISSO EM DETALHES EM “TCP POR DENTRO”.</strong></details>
+  <p>Durante a comunicação, TCP utiliza confirmações e números de sequência para saber quais partes do fluxo foram recebidas e quais precisam ser recuperadas.</p>
+  <h3>Chegada física fora de ordem</h3>{% include "learning/partials/transport_flow_stage.html" with protocol="tcp" scenario="order" %}
+  <div class="important-box"><b>TCP NÃO É MÁGICO</b><p>Esses mecanismos melhoram a confiabilidade do transporte, mas não tornam uma comunicação impossível de falhar. Se a rede permanecer indisponível, TCP eventualmente não conseguirá continuar a conexão.</p></div>
+  <div class="single-check" data-tcp-check><p>Depois da recuperação conceitual de C, a aplicação recebeu o fluxo com o item ausente?</p><button type="button" data-answer="no">Não</button><button type="button" data-answer="yes">Sim</button><p aria-live="polite"></p><button type="button" data-interaction-reset>Resetar cenário</button></div>
+  <p class="transport-transition">Agora a pergunta deixa de ser “qual é melhor?” e passa a ser “qual comportamento a aplicação precisa?”.</p>
+</section>
+
+<section class="transport-area" data-transport-area="04">
+  <span class="transport-index">ÁREA 04 · COMPARAR</span><h2>Não existe vencedor universal</h2>
+  <div class="fundamental-comparison"><article><small>MODELO DE DADOS</small><b>TCP · FLUXO DE BYTES</b><b>UDP · DATAGRAMAS INDEPENDENTES</b></article><article><small>ENTREGA</small><b>TCP · confirmação e retransmissão</b><b>UDP · sem esses mecanismos embutidos</b></article><article><small>ORDEM</small><b>TCP · fluxo em ordem</b><b>UDP · sem ordenação garantida</b></article><article><small>ESTADO</small><b>TCP · orientado a conexão</b><b>UDP · connectionless</b></article></div>
+  <p>“Sem conexão” descreve o modelo do UDP. Ainda existem origem, destino e troca de dados.</p>
+  <div class="service-boards"><article><h3>TCP</h3><span>conexão</span><span>fluxo</span><span>ordem</span><span>confirmação</span><span>retransmissão</span></article><article><h3>UDP</h3><span>datagramas</span><span>sem estabelecimento TCP-like</span><span>sem ordem garantida</span><span>sem confirmação/retransmissão embutidas</span></article></div>
+  <p>Como TCP mantém mais estado e mecanismos de controle, existe trabalho adicional associado ao transporte. UDP possui um mecanismo de transporte mais simples. Isso não determina sozinho o desempenho real.</p>
+  <div class="requirement-scenarios"><article><b>TRANSFERÊNCIA COMPLETA</b><p>Entre TCP e UDP, TCP já fornece diretamente fluxo completo e em ordem.</p></article><article><b>ATUALIZAÇÕES FREQUENTES</b><p>UDP pode ser adequado como base dependendo do protocolo da aplicação.</p></article><article><b>CONTROLE NO PROTOCOLO SUPERIOR</b><p>UDP → confirmação própria · controle próprio · recuperação própria.</p></article></div>
+  <aside class="transport-anchor">UDP NÃO PROÍBE CONFIABILIDADE.<small>Apenas não a fornece por si.</small></aside>
+  <aside class="transport-anchor">TCP × UDP É UMA ESCOLHA DE SERVIÇO DE TRANSPORTE.<small>Não é bom × ruim. Não é rápido × lento.</small></aside>
+  <div class="requirements-interaction" data-requirements><p>Escolha a resposta segura para cada requisito:</p><article data-requirement="a"><b>A · fluxo em ordem e recuperação de perdas</b><button type="button" data-pick="tcp">TCP</button><button type="button" data-pick="udp">UDP</button><span aria-live="polite"></span></article><article data-requirement="b"><b>B · datagramas; a aplicação trata o restante</b><button type="button" data-pick="tcp">TCP</button><button type="button" data-pick="udp">UDP</button><span aria-live="polite"></span></article><article data-requirement="c"><b>C · “quero menor latência”</b><button type="button" data-pick="udp">UDP automaticamente</button><button type="button" data-pick="unknown">Requisitos insuficientes</button><span aria-live="polite"></span></article><button type="button" data-interaction-reset>Resetar cenário</button></div>
+  <div class="single-check" data-loss-visible><p>Se uma aplicação usa UDP, qualquer perda será obrigatoriamente visível ao usuário?</p><button type="button" data-answer="no">Não necessariamente</button><button type="button" data-answer="yes">Sim</button><p aria-live="polite"></p><button type="button" data-interaction-reset>Resetar cenário</button></div>
+  <p class="transport-transition">Agora vamos acompanhar duas comunicações equivalentes e observar exatamente o que muda.</p>
+</section>
+
+<section class="transport-area transport-summary" data-transport-area="05">
+  <span class="transport-index">ÁREA 05 · VEJA TUDO JUNTO</span><h2>Mesmos hosts. Mesma rede. Transporte diferente.</h2>
+  <div class="host-path"><article><b>CLIENTE</b><code>192.168.10.20</code></article><strong>→ [ REDE IP ] →</strong><article><b>SERVIDOR</b><code>192.168.20.30</code></article></div>
+  <div class="side-by-side-loss"><article><h3>UDP</h3><div><span>A</span><span>B</span><span class="lost">C · PERDIDO</span><span>D</span></div><b>Destino: A B D</b><p>Sem retransmissão automática.</p></article><article><h3>TCP</h3><div><span>A</span><span>B</span><span class="lost">C · AUSENTE</span><span>D</span><span>C · RETRANSMITIDO ↻</span></div><b>Aplicação: A B C D</b><p>Controle e recuperação no transporte.</p></article></div>
+  <p>A diferença não foi a rota IP. Foi o serviço fornecido pela Camada de Transporte.</p>
+  {% include "learning/partials/transport_flow_stage.html" with protocol="udp" scenario="boundaries" %}
+  <div class="packet-inspector"><b>PACKET INSPECTOR · ESTRUTURA SIMPLIFICADA</b><article><h3>TCP</h3><code>IPv4<br>└ TCP<br>&nbsp;&nbsp;└ Data</code><span>Source Port: …</span><span>Destination Port: …</span></article><article><h3>UDP</h3><code>IPv4<br>└ UDP<br>&nbsp;&nbsp;└ Data</code><span>Source Port: …</span><span>Destination Port: …</span></article></div>
+  <div class="ports-teaser"><h3>Para que servem esses números?</h3><p>Eles ajudam a identificar os endpoints das aplicações.</p><p>Qual informação ainda falta para sabermos exatamente qual aplicação ou processo deve receber os dados dentro do host?</p><strong>NÚMERO DE PORTA — sem exigir nenhum número específico agora.</strong><div><strong>IP: QUAL HOST?</strong><strong>TRANSPORTE + PORTAS: QUAL ENDPOINT DE APLICAÇÃO?</strong></div></div>
+  <div class="final-mental-model"><b>DADOS DA APLICAÇÃO</b><i>↓</i><strong>PRECISO DE QUE TIPO DE TRANSPORTE?</strong><div><article><h3>TCP</h3><p>fluxo de bytes → ordem confiável → confirmação e retransmissão embutidas</p></article><article><h3>UDP</h3><p>datagramas independentes → sem ordem garantida → sem confirmação/retransmissão embutidas</p></article></div><i>↓ IPv4 ↓ REDE</i></div>
+  <div class="transport-rapid" data-transport-rapid><b>RAPID FIRE · 5 PERGUNTAS</b><p data-rapid-question>1. TCP entrega mensagens independentes ou fluxo de bytes?</p><button type="button" data-rapid="stream">Fluxo de bytes</button><button type="button" data-rapid="messages">Mensagens independentes</button><p data-rapid-feedback aria-live="polite"></p><button type="button" data-interaction-reset>Resetar cenário</button></div>
+  <div class="self-explanations"><article data-self><h3>Explique antes de revelar</h3><p>Qual é a principal diferença entre TCP e UDP?</p><textarea rows="4"></textarea><button type="button" data-reference-reveal>Conferir referência</button><p data-reference hidden>TCP fornece um fluxo de bytes orientado a conexão com mecanismos de entrega confiável e ordenada. UDP transporta datagramas independentes sem fornecer, por si próprio, confirmação, retransmissão ou ordenação.</p></article><article data-self><h3>Explique antes de revelar</h3><p>Por que dizer apenas “TCP é lento e UDP é rápido” é uma explicação ruim?</p><textarea rows="4"></textarea><button type="button" data-reference-reveal>Conferir referência</button><p data-reference hidden>Porque a diferença principal está nos serviços de transporte oferecidos por cada protocolo. TCP possui mecanismos de conexão, confirmação, ordenação e retransmissão; UDP é mais simples e deixa essas responsabilidades para outros níveis quando necessárias. O desempenho real depende da aplicação, da rede e do protocolo usado acima deles.</p></article></div>
+  <nav class="concept-sequence"><a href="{% url 'learning:icmp_concept' %}">← ICMP + Ping + Traceroute</a><span>Próximo: Portas + Cliente/Servidor · em breve</span></nav>
+  <p>Já sabemos como TCP e UDP transportam dados. O próximo conteúdo responderá como o sistema identifica qual aplicação deve enviar ou receber esses dados dentro de cada host.</p>
+</section>
+<section id="transport-checkpoint" class="transport-checkpoint-shell" aria-live="polite">{% include "learning/partials/transport_checkpoint.html" %}</section>
+</main>{% endblock %}
+{% block scripts %}<script src="{% static 'js/transport-concept.js' %}"></script>{% endblock %}

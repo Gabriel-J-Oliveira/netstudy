@@ -1,0 +1,48 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}NetStudy{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/netstudy.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="{% url 'learning:home' %}">NetStudy</a>
+      <div class="sidebar-section">Bloco 1 — Comunicação Ethernet local</div>
+      <nav class="topic-navigation" aria-label="Conceitos de Fundamentos">
+        <a href="{% url 'learning:concept' %}" {% if current_topic == 'ARP' %}aria-current="page"{% endif %}>ARP</a>
+        <a href="{% url 'learning:mac_concept' %}" {% if current_topic == 'MAC' %}aria-current="page"{% endif %}>MAC Address</a>
+        <a href="{% url 'learning:frame_concept' %}" {% if current_topic == 'FRAME' %}aria-current="page"{% endif %}>Frame Ethernet</a>
+        <a href="{% url 'learning:switch_concept' %}" {% if current_topic == 'SWITCH' %}aria-current="page"{% endif %}>Switch Ethernet</a>
+        <a href="{% url 'learning:delivery_concept' %}" {% if current_topic == 'DELIVERY' %}aria-current="page"{% endif %}>Unicast × Broadcast</a>
+        <a href="{% url 'learning:vlan_concept' %}" {% if current_topic == 'VLAN' %}aria-current="page"{% endif %}>VLAN</a>
+        <a href="{% url 'learning:trunk_concept' %}" {% if current_topic == 'TRUNK' %}aria-current="page"{% endif %}>Trunk + 802.1Q</a>
+        <a href="{% url 'learning:ipv4_concept' %}" {% if current_topic == 'IPV4' %}aria-current="page"{% endif %}>IPv4 + Sub-rede</a>
+        <a href="{% url 'learning:gateway_concept' %}" {% if current_topic == 'GATEWAY' %}aria-current="page"{% endif %}>Default Gateway + Next Hop</a>
+        <a href="{% url 'learning:route_concept' %}" {% if current_topic == 'ROUTES' %}aria-current="page"{% endif %}>Tabela de Rotas</a>
+        <a href="{% url 'learning:inter_vlan_concept' %}" {% if current_topic == 'INTERVLAN' %}aria-current="page"{% endif %}>Inter-VLAN Routing</a>
+        <a href="{% url 'learning:icmp_concept' %}" {% if current_topic == 'ICMP' %}aria-current="page"{% endif %}>ICMP + Ping + Traceroute</a>
+        <a href="{% url 'learning:transport_concept' %}" {% if current_topic == 'TRANSPORT' %}aria-current="page"{% endif %}>TCP × UDP</a>
+      </nav>
+      {% if current_topic == 'ARP' %}<ol class="stage-list" aria-label="Etapas da sessão">
+        {% for stage in stage_status %}
+          <li class="stage stage-{{ stage.state }}">
+            <span class="stage-marker" aria-hidden="true">{% if stage.state == 'completed' %}✓{% elif stage.state == 'current' %}●{% else %}○{% endif %}</span>
+            <span>{{ stage.label }}</span>
+            <span class="visually-hidden">— {{ stage.state }}</span>
+          </li>
+        {% endfor %}
+      </ol>{% endif %}
+    </aside>
+    <main class="main-content">
+      <div class="content-column">{% block content %}{% endblock %}</div>
+    </main>
+  </div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

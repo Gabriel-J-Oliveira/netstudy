@@ -1,0 +1,26 @@
+<section class="switch-workbench" data-switch-workbench data-activity-id="{{ switch_checkpoint_activity.id }}" data-hide-mac-table="{{ switch_checkpoint_activity.hide_mac_table|yesno:'true,false' }}">
+  <header class="workbench-header">
+    <div><span>{% if switch_checkpoint_activity.mode == 'investigation' %}INVESTIGATION MODE{% else %}CENÁRIO CONTROLADO{% endif %}</span><h4>{{ switch_checkpoint_activity.symptom }}</h4><p>{{ switch_checkpoint_activity.instruction }}</p></div>
+    <button type="button" class="btn btn-outline-secondary" data-scenario-reset>↻ Resetar cenário</button>
+  </header>
+
+  {% include "learning/partials/interactive_switch_board.html" with board_id="checkpoint" board_mode=switch_checkpoint_activity.mode board_scenario=switch_checkpoint_activity.scenario_key %}
+
+  {% if switch_checkpoint_activity.tools|length > 1 or 'switch_cli' in switch_checkpoint_activity.tools %}
+  <section class="workbench-tools" data-workbench-tools>
+    <div class="tool-tabs" role="tablist" aria-label="Ferramentas de investigação">
+      {% if 'host_terminal' in switch_checkpoint_activity.tools %}<button type="button" role="tab" aria-selected="true" data-tool-tab="host">PC-A Terminal</button>{% endif %}
+      {% if 'switch_cli' in switch_checkpoint_activity.tools %}<button type="button" role="tab" aria-selected="{% if 'host_terminal' in switch_checkpoint_activity.tools %}false{% else %}true{% endif %}" data-tool-tab="switch">SW1 CLI</button>{% endif %}
+    </div>
+    {% if 'host_terminal' in switch_checkpoint_activity.tools %}<div class="workbench-terminal" data-tool-panel="host"><header><strong>{{ switch_checkpoint_activity.host_label|default:'PC-A' }} TERMINAL</strong><span>perspectiva do host</span></header><div class="terminal-screen" data-host-output aria-live="polite"><p>NetStudy Host Terminal</p><p>Digite help para consultar os comandos permitidos.</p></div><form data-host-form><label>{{ switch_checkpoint_activity.host_label|default:'PC-A' }}&gt;</label><input data-host-input aria-label="Comando no terminal do host" autocomplete="off" spellcheck="false"><button>Executar</button></form></div>{% endif %}
+    {% if 'switch_cli' in switch_checkpoint_activity.tools %}<div class="workbench-terminal" data-tool-panel="switch" {% if 'host_terminal' in switch_checkpoint_activity.tools %}hidden{% endif %}><header><strong>SW1 CLI</strong><span>perspectiva do switch</span></header><div class="terminal-screen" data-switch-output aria-live="polite"><p>NetStudy Switch CLI</p><p>Digite help para consultar os comandos permitidos.</p></div><form data-switch-form><label data-switch-prompt>Switch&gt;</label><input data-switch-input aria-label="Comando na CLI de SW1" autocomplete="off" spellcheck="false"><button>Executar</button></form></div>{% endif %}
+  </section>
+  {% endif %}
+
+  {% if switch_checkpoint_activity.actions %}<section class="controlled-actions"><header>AÇÕES / TESTES CONTROLADOS</header><div>{% if switch_checkpoint_activity.action_buttons %}{% for action in switch_checkpoint_activity.action_buttons %}<button type="button" data-workbench-action="{{ action.id }}">{{ action.label }}</button>{% endfor %}{% else %}{% if 'move-a' in switch_checkpoint_activity.actions %}<button type="button" data-workbench-action="move-a">Mover PC-A · Gi0/1 → Gi0/6</button>{% endif %}{% if 'generate-a' in switch_checkpoint_activity.actions %}<button type="button" data-workbench-action="generate-a">Gerar frame Source AA em Gi0/6</button>{% endif %}{% if 'generate-b' in switch_checkpoint_activity.actions %}<button type="button" data-workbench-action="generate-b">Gerar tráfego de PC-B</button>{% endif %}{% if 'send-a-b' in switch_checkpoint_activity.actions %}<button type="button" data-workbench-action="send-a-b">Enviar novo frame A → B</button>{% endif %}{% endif %}</div><p data-action-feedback aria-live="polite"></p></section>{% endif %}
+
+  {% if switch_checkpoint_activity.evidence %}<section class="evidence-discovery"><header>EVIDÊNCIAS DISPONÍVEIS APÓS INSPEÇÃO</header><div data-evidence-candidates><p>Use as ferramentas. Evidências relevantes encontradas poderão ser adicionadas.</p></div></section><section class="evidence-board" data-evidence-board aria-labelledby="evidence-title"><header><span>EVIDÊNCIAS COLETADAS</span><strong data-evidence-count>0 / {{ switch_checkpoint_activity.required_evidence|length }}</strong></header><h4 id="evidence-title" class="visually-hidden">Evidências coletadas</h4><ul data-evidence-list><li>Nenhuma evidência adicionada.</li></ul></section>{% endif %}
+
+  <aside class="investigation-progress"><strong>Progresso da investigação</strong><ul data-action-checklist></ul><p data-workbench-guidance aria-live="polite">Explore a bancada antes de montar sua conclusão.</p></aside>
+</section>
+{{ switch_checkpoint_activity|json_script:"switch-workbench-data" }}

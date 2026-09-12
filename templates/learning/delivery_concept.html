@@ -1,0 +1,96 @@
+{% extends "learning/base.html" %}{% load static %}
+{% block title %}Unicast × Broadcast · NetStudy{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}?v=delivery-clarity-3"><link rel="stylesheet" href="{% static 'css/switch-concept.css' %}?v=delivery-clarity-3"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}"><link rel="stylesheet" href="{% static 'css/delivery-concept.css' %}?v=delivery-clarity-3"><link rel="stylesheet" href="{% static 'css/delivery-board.css' %}">{% endblock %}
+{% block content %}
+<div class="delivery-concept">
+  <section class="delivery-area delivery-hero" data-delivery-area="01" id="delivery-destination">
+    <span class="switch-index">01 · PRIMEIRO, LEIA O DESTINATION MAC</span><span class="switch-eyebrow">UNICAST × BROADCAST · CAMADA 2</span>
+    <h1>O destino escrito no frame revela a intenção da entrega</h1>
+    <p class="lead">Antes de pensar em portas ou tabelas, observe para quem o frame Ethernet foi destinado.</p>
+    <p>O campo <strong>Destination MAC</strong> diz para qual endereço aquela entrega foi criada.</p>
+    <div class="delivery-frame ethernet-minimal" aria-label="Frame Ethernet com destino específico"><span class="frame-type"><small>Formato</small><strong>Ethernet II</strong></span><span><small>Source MAC</small><strong>AA</strong></span><span class="destination"><small>Destination MAC</small><strong>BB</strong></span></div>
+    <p><code>BB</code> é um endereço específico. Isso basta para classificar a intenção da entrega como <strong>Unicast</strong>, mesmo sem saber ainda por qual porta o frame sairá.</p>
+    <div class="destination-anchor">DESTINATION ESPECÍFICO → UNICAST</div>
+    {% include "learning/partials/interactive_switch_board.html" with board_id="delivery-didactic-opening" board_mode="didactic" board_scenario="delivery-didactic-opening" %}
+    <div class="delivery-demo" data-opening-demo><button type="button" class="btn btn-primary">DESTACAR O DESTINATION MAC</button><p data-demo-feedback aria-live="polite">Comece pelo campo que representa a intenção da entrega.</p></div>
+    <p class="transition-copy"><strong>Agora sabemos que um Destination MAC específico representa uma entrega Unicast.</strong> Como o switch entrega esse frame?</p>
+  </section>
+
+  <section class="delivery-area" data-delivery-area="02" id="delivery-unicast">
+    <span class="switch-index">02 · UNICAST: UM DESTINO ESPECÍFICO</span>
+    <h2>Quando conhece a porta, o switch encaminha diretamente</h2>
+    <p>O frame continua sendo Unicast porque seu Destination MAC é <code>BB</code>. Agora acrescentamos o conhecimento atual do switch.</p>
+    <div class="two-decisions"><article><span>INTENÇÃO DO FRAME</span><strong>Destination BB → Unicast</strong><p>Definida pelo endereço de destino.</p></article><article><span>CONHECIMENTO DO SWITCH</span><strong>BB → Gi0/4</strong><p>Define a porta usada nesta entrega.</p></article></div>
+    <details class="compact-delivery-table"><summary>Ver a associação usada</summary><div><strong>MAC ADDRESS TABLE</strong><span><code>BB</code><b>→</b><code>Gi0/4</code></span></div></details>
+    {% include "learning/partials/interactive_switch_board.html" with board_id="delivery-didactic-known" board_mode="didactic" board_scenario="delivery-didactic-known" %}
+    <div class="delivery-demo" data-unicast-demo><button type="button" class="btn btn-primary">VER UNICAST A → B</button><p data-demo-feedback aria-live="polite">Destination BB será relacionado a BB → Gi0/4.</p></div>
+    <div class="simple-delivery-question" data-unicast-question data-concept-question="1">
+      <span class="action-label label-try">AGORA VOCÊ</span><p>Destination MAC: <code>BB</code>. Tabela: <code>BB → Gi0/4</code>. Qual leitura está correta?</p>
+      <div><button type="button" data-unicast-answer="correct">Unicast · saída Gi0/4</button><button type="button" data-unicast-answer="broadcast">Broadcast · todas as portas</button><button type="button" data-unicast-answer="wrong-port">Unicast · saída Gi0/1</button></div><p data-question-feedback aria-live="polite"></p>
+    </div>
+    <p class="nuance">Unicast significa <strong>destino específico</strong>. Uma única porta de saída é consequência de o switch conhecer esse destino.</p>
+    <p class="transition-copy"><strong>Nem toda entrega é destinada a apenas um endereço.</strong></p>
+  </section>
+
+  <section class="delivery-area" data-delivery-area="03" id="delivery-broadcast">
+    <span class="switch-index">03 · BROADCAST: TODOS DAQUELE DOMÍNIO</span>
+    <h2>FF:FF:FF:FF:FF:FF define uma entrega Broadcast</h2>
+    <p>Esse endereço especial no campo Destination MAC indica que o frame foi criado para todos os participantes aplicáveis daquela Ethernet.</p>
+    <div class="delivery-frame ethernet-minimal broadcast-frame" aria-label="Frame Ethernet Broadcast"><span class="frame-type"><small>Formato</small><strong>Ethernet II</strong></span><span><small>Source MAC</small><strong>AA</strong></span><span class="destination"><small>Destination MAC</small><strong>FF:FF:FF:FF:FF:FF</strong></span></div>
+    <p>Não é necessário consultar a MAC Address Table para saber que a intenção é Broadcast. O próprio Destination MAC fornece essa resposta.</p>
+    {% include "learning/partials/interactive_switch_board.html" with board_id="delivery-didactic-broadcast" board_mode="didactic" board_scenario="delivery-didactic-broadcast" %}
+    <div class="delivery-demo" data-broadcast-demo><button type="button" class="btn btn-primary">VER O BROADCAST</button><p data-demo-feedback aria-live="polite">O frame entra pela Gi0/1 e segue pelas demais portas aplicáveis.</p></div>
+    <div class="simple-delivery-question" data-broadcast-question data-concept-question="2">
+      <span class="action-label label-try">AGORA VOCÊ</span><p>Destination MAC: <code>FF:FF:FF:FF:FF:FF</code>. Qual é o tipo da entrega?</p>
+      <div><button type="button" data-broadcast-answer="correct">Broadcast</button><button type="button" data-broadcast-answer="unicast">Unicast</button></div><p data-question-feedback aria-live="polite"></p>
+    </div>
+    <aside class="delivery-note">Os dispositivos recebem o frame no domínio local. Isso não significa que todos necessariamente usarão ou responderão ao conteúdo transportado.</aside>
+    <div class="domain-limit"><article><strong>DOMÍNIO DE BROADCAST</strong><p>É o contexto de Camada 2 no qual essa entrega Broadcast pode ser replicada.</p></article></div>
+    <p class="transition-copy"><strong>Mas cuidado:</strong> várias portas transmitindo não prova que houve Broadcast.</p>
+  </section>
+
+  <section class="delivery-area" data-delivery-area="04" id="delivery-unknown">
+    <span class="switch-index">04 · VÁRIAS PORTAS NÃO SIGNIFICAM BROADCAST</span>
+    <h2>Um frame Unicast também pode ser enviado por várias portas</h2>
+    <div class="delivery-frame ethernet-minimal"><span class="frame-type"><small>Formato</small><strong>Ethernet II</strong></span><span><small>Source MAC</small><strong>AA</strong></span><span class="destination"><small>Destination MAC</small><strong>DD</strong></span></div>
+    <p><code>DD</code> é específico, portanto o frame é Unicast. O problema é que o switch ainda não sabe em qual porta DD está.</p>
+    <details class="compact-delivery-table"><summary>Consultar conhecimento do switch</summary><div><strong>MAC ADDRESS TABLE</strong><span><code>AA</code><b>→</b><code>Gi0/1</code></span><span><code>DD</code><b>→</b><code>não encontrado</code></span></div></details>
+    <p>O switch faz <strong>flooding</strong> pelas demais portas aplicáveis. O Destination MAC continua sendo DD em todas as cópias; ele não se transforma em FF:FF:FF:FF:FF:FF.</p>
+    <div class="two-decisions"><article><span>INTENÇÃO DO FRAME</span><strong>Destination DD → Unicast</strong></article><article><span>CONHECIMENTO DO SWITCH</span><strong>DD desconhecido → Flooding</strong></article></div>
+    {% include "learning/partials/interactive_switch_board.html" with board_id="delivery-didactic-unknown" board_mode="didactic" board_scenario="delivery-didactic-unknown" %}
+    <div class="delivery-demo" data-unknown-demo><button type="button" class="btn btn-primary">VER O UNKNOWN UNICAST</button><p data-demo-feedback aria-live="polite">Observe o Destination DD durante as várias saídas.</p></div>
+    <div class="cause-comparison"><article><span>BROADCAST</span><strong>Destination FF:FF:FF:FF:FF:FF</strong><p>Várias saídas porque o frame foi criado para todos.</p></article><div><strong>MESMO RESULTADO VISUAL</strong><b>≠</b><strong>MESMA CAUSA</strong></div><article><span>UNKNOWN UNICAST</span><strong>Destination DD</strong><p>Várias saídas porque a porta do destino específico é desconhecida.</p></article></div>
+    <div class="simple-delivery-question" data-unknown-question data-concept-question="3">
+      <span class="action-label label-try">AGORA VOCÊ</span><p>Destination MAC: <code>DD</code>. Tabela: sem DD. Qual leitura está correta?</p>
+      <div><button type="button" data-unknown-answer="correct">Unicast · flooding</button><button type="button" data-unknown-answer="broadcast">Broadcast · flooding</button><button type="button" data-unknown-answer="drop">Unicast · descarte</button></div><p data-question-feedback aria-live="polite"></p>
+    </div>
+    <blockquote class="anchor-phrase">Para classificar o frame, observe o Destination MAC. Para prever as saídas de um Unicast, observe também o que o switch conhece.</blockquote>
+    <p class="transition-copy"><strong>Agora podemos separar intenção do frame e conhecimento do switch.</strong></p>
+  </section>
+
+  <section class="delivery-area delivery-summary" data-delivery-area="05" id="delivery-summary">
+    <span class="switch-index">05 · VEJA TUDO JUNTO</span>
+    <h2>Destination primeiro. Conhecimento do switch depois.</h2>
+    <div class="final-delivery-model"><span>FRAME CHEGA AO SWITCH</span><b>↓</b><span>OLHE DESTINATION MAC</span><b>↓</b><strong>É FF:FF:FF:FF:FF:FF?</strong><div><article><b>SIM</b><span>BROADCAST</span></article><article><b>NÃO</b><span>DESTINO ESPECÍFICO → UNICAST</span><em>Switch conhece a porta?</em><span>SIM → PORTA ESPECÍFICA</span><span>NÃO → FLOODING / UNKNOWN UNICAST</span></article></div></div>
+    {% include "learning/partials/interactive_switch_board.html" with board_id="delivery-didactic-summary" board_mode="didactic" board_scenario="delivery-didactic-summary" %}
+    <div class="scenario-tabs" data-summary-tabs><button type="button" data-summary="known">UNICAST CONHECIDO</button><button type="button" data-summary="unknown">UNKNOWN UNICAST</button><button type="button" data-summary="broadcast">BROADCAST</button></div>
+    <div class="case-explanation" data-summary-copy><strong>Escolha um caso para acompanhar.</strong><p>Primeiro identifique a intenção; depois observe a decisão do switch.</p></div>
+    <div class="arp-integration">
+      <h3>ARP como aplicação concreta</h3>
+      <div class="request-reply"><article><span>ARP REQUEST</span><div class="protocol-pair"><strong>Ethernet II</strong><b>+</b><strong>ARP</strong></div><code>Destination FF:FF:FF:FF:FF:FF</code><p>Broadcast. Todos recebem; somente quem tem motivo responde.</p></article><article><span>ARP REPLY NO FLUXO ESTUDADO</span><div class="protocol-pair"><strong>Ethernet II</strong><b>+</b><strong>ARP</strong></div><code>Destination MAC do solicitante</code><p>Unicast.</p></article></div>
+      <button type="button" class="btn btn-outline-primary" data-arp-demo>VER REQUEST × REPLY</button><p data-arp-feedback aria-live="polite"></p>
+    </div>
+    <section class="self-explanation" data-delivery-self-explanation>
+      <span class="action-label label-reflect">EXPLIQUE ANTES DE COMPARAR</span>
+      <h3>Um frame saiu por três portas do switch. Isso é suficiente para afirmar que ele era Broadcast? Explique.</h3>
+      <label for="delivery-explanation">Escreva com suas próprias palavras</label><textarea id="delivery-explanation" rows="5" data-delivery-explanation-text></textarea>
+      <button type="button" class="btn btn-outline-primary" data-delivery-reference-button>CONFERIR RESPOSTA DE REFERÊNCIA</button>
+      <div class="reference-answer" data-delivery-reference hidden><h4>Resposta de referência</h4><p>Não. É necessário observar o Destination MAC. Um broadcast utiliza FF:FF:FF:FF:FF:FF. Um frame unicast com um Destination MAC específico também pode ser enviado por várias portas quando o switch ainda não sabe onde esse MAC está, situação chamada de unknown unicast flooding.</p><small>Compare as ideias, não as palavras. Esta explicação não recebe pontuação.</small></div>
+    </section>
+    <nav class="concept-sequence" aria-label="Sequência do bloco"><a href="{% url 'learning:switch_concept' %}">← Switch Ethernet</a><a href="{% url 'learning:vlan_concept' %}"><span class="visually-hidden">Próximo: VLAN</span><span aria-hidden="true">VLAN →</span></a></nav>
+    <form method="post" action="{% url 'learning:delivery_checkpoint_start' %}" data-delivery-checkpoint-start>{% csrf_token %}<button class="btn btn-primary btn-lg">COMEÇAR CHECKPOINT</button></form>
+  </section>
+  {% include "learning/partials/delivery_checkpoint.html" %}
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}?v=delivery-clarity-3"></script><script src="{% static 'js/switch-workbench.js' %}"></script><script src="{% static 'js/delivery-concept.js' %}?v=delivery-clarity-3"></script>{% endblock %}

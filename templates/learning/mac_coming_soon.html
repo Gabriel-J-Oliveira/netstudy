@@ -1,0 +1,15 @@
+{% extends "learning/base.html" %}
+{% block title %}MAC Address · Próxima etapa{% endblock %}
+{% block content %}
+<section class="hero-space">
+  <span class="eyebrow">MAC Address · Em preparação</span>
+  {% if destination == 'rapid-fire' %}
+    <h1>Rapid Fire de MAC será a próxima etapa</h1>
+    <p class="lead text-secondary">A experiência conceitual já está disponível. A fixação rápida será implementada na próxima entrega.</p>
+  {% else %}
+    <h1>Atividades de MAC serão a próxima etapa</h1>
+    <p class="lead text-secondary">A experiência conceitual já está disponível. As atividades práticas serão implementadas na próxima entrega.</p>
+  {% endif %}
+  <a href="{% url 'learning:mac_concept' %}" class="btn btn-primary btn-lg">← Voltar ao conceito MAC</a>
+</section>
+{% endblock %}

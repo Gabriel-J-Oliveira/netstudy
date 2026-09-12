@@ -1,0 +1,19 @@
+{% extends "learning/base.html" %}
+{% block title %}Rapid Fire {{ item_number }} de {{ total }} · ARP{% endblock %}
+{% block content %}
+<section class="rapid-shell">
+  <header class="rapid-header"><span>Rapid Fire · ARP</span><strong>{{ item_number }} / {{ total }}</strong></header>
+  <div class="rapid-progress" aria-hidden="true"><span style="width:{% widthratio item_number total 100 %}%"></span></div>
+  {% if item.presented %}<pre class="rapid-presented">{{ item.presented }}</pre>{% endif %}
+  <h1>{{ item.question }}</h1>
+  {% if error %}<div class="alert alert-warning">{{ error }}</div>{% endif %}
+  <form method="post">{% csrf_token %}
+    {% if item.type == 'fill' %}<div class="terminal command-inline rapid-command"><span>{{ item.prompt_before }}</span><input name="answer" autocomplete="off" aria-label="Complete o comando" {% if result.complete %}value="{{ result.selected }}" disabled{% endif %}></div>
+    {% else %}<div class="rapid-options">{% for option in item.options %}<label class="rapid-option {% if result and option in result.wrong_answers %}option-wrong{% elif result.complete and option == item.correct %}option-correct{% endif %}"><input type="radio" name="answer" value="{{ option }}" {% if result.complete or result and option in result.wrong_answers %}disabled{% endif %}><span>{{ option }}</span>{% if result and option in result.wrong_answers %}<b>✕</b>{% elif result.complete and option == item.correct %}<b>✓</b>{% endif %}</label>{% endfor %}</div>{% endif %}
+    {% if not result.complete %}<button class="btn btn-primary btn-lg mt-4">Verificar</button>{% endif %}
+  </form>
+  {% if result.attempts %}<div class="rapid-feedback {% if result.complete %}feedback-correct{% else %}feedback-wrong{% endif %}"><strong>{% if result.complete %}✓ Correto{% else %}✕ Incorreto{% endif %}</strong><p>{{ item.feedback }}</p></div>{% endif %}
+  {% if result.complete %}<form method="post" action="{% url 'learning:rapid_fire_next' item_number %}" class="rapid-next">{% csrf_token %}<button class="btn btn-primary btn-lg">{% if item_number == total %}Ver resultado{% else %}Próxima{% endif %} <span aria-hidden="true">→</span></button></form>{% endif %}
+</section>
+{% endblock %}
+

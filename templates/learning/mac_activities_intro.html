@@ -1,0 +1,15 @@
+{% extends "learning/base.html" %}
+{% block title %}Atividades de MAC Address · NetStudy{% endblock %}
+{% block content %}
+<section class="hero-space mac-session-intro">
+  <span class="eyebrow">MAC Address · Sessão interconceitual</span>
+  <h1>MAC dentro da comunicação Ethernet</h1>
+  <p class="lead text-secondary">Pratique o endereço MAC isoladamente e depois integre MAC, ARP, frame Ethernet, destino local e destino remoto.</p>
+  <div class="config-strip my-4" aria-label="Estrutura da sessão">
+    <code>{{ activity_total }} atividades</code><code>Uma por tela</code><code>Feedback por hipótese</code>
+  </div>
+  <p>Na primeira tentativa incorreta, a hipótese é descartada sem revelar a solução. Depois de uma segunda tentativa, atividades com pista ajudam a reorganizar o raciocínio.</p>
+  <form method="post" action="{% url 'learning:mac_begin' %}" class="mt-4">{% csrf_token %}<button class="btn btn-primary btn-lg">Começar atividades →</button></form>
+  <a href="{% url 'learning:mac_concept' %}" class="btn btn-link mt-3">← Revisar o conceito MAC</a>
+</section>
+{% endblock %}

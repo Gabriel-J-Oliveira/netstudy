@@ -1,0 +1,27 @@
+<section class="subnet-visualizer mode-{{ visualizer_mode|default:'full' }}" data-subnet-visualizer
+  data-visualizer-id="{{ visualizer_id|default:'' }}"
+  data-host-ip="{{ host_ip|default:'192.168.10.25' }}"
+  data-prefix="{{ prefix_length|default:'24' }}"
+  data-destination-ip="{{ destination_ip|default:'' }}"
+  data-gateway="{{ gateway|default:'' }}"
+  aria-label="Visualizador IPv4 e sub-rede">
+  <header><span>IPv4 / SUBNET VISUALIZER</span><strong data-subnet-heading>{{ host_ip|default:"192.168.10.25" }}/{{ prefix_length|default:"24" }}</strong></header>
+  <div class="ip-boundary" data-ip-boundary aria-label="Separação visual entre rede e host"></div>
+  <div class="subnet-result-grid">
+    <article><small>Network</small><strong data-network-address>—</strong></article>
+    <article><small>Broadcast</small><strong data-broadcast-address>—</strong></article>
+    <article><small>First Host</small><strong data-first-host>—</strong></article>
+    <article><small>Last Host</small><strong data-last-host>—</strong></article>
+    <article><small>Total Addresses</small><strong data-total-addresses>—</strong></article>
+    <article><small>Usable Hosts</small><strong data-usable-hosts>—</strong></article>
+    <article><small>Subnet Mask</small><strong data-subnet-mask>—</strong></article>
+    <article><small>Block Size</small><strong data-block-size>—</strong></article>
+  </div>
+  <div class="subnet-ruler" data-subnet-ruler aria-label="Régua de blocos da sub-rede"></div>
+  <div class="destination-verdict" data-destination-verdict hidden>
+    <span>DESTINO <code data-destination-value></code></span>
+    <strong data-local-remote>—</strong>
+    <small data-destination-network>—</small>
+  </div>
+  <details class="binary-reveal"><summary>{{ binary_title|default:"VER EM BINÁRIO" }}</summary><code data-binary-mask>—</code><p data-binary-meaning></p></details>
+</section>

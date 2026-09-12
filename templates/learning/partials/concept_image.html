@@ -1,0 +1,18 @@
+{% load static %}
+<figure class="concept-image-frame{% if detailed %} is-detailed{% endif %}" data-image-path="{% static image_path %}">
+  {% if available %}
+    <button type="button" class="concept-image-button" data-image-open aria-label="Ampliar: {{ alt }}">
+      <img src="{% static image_path %}" alt="{{ alt }}" data-concept-image>
+      <span class="concept-image-zoom" aria-hidden="true">↗ Ampliar</span>
+    </button>
+    <div class="concept-image-fallback" data-image-fallback hidden>
+      <strong>{{ placeholder }}</strong>
+      <span>Conteúdo visual será adicionado posteriormente.</span>
+    </div>
+  {% else %}
+    <div class="concept-image-fallback">
+      <strong>{{ placeholder }}</strong>
+      <span>Conteúdo visual será adicionado posteriormente.</span>
+    </div>
+  {% endif %}
+</figure>

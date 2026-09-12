@@ -1,0 +1,47 @@
+.mac-exercise-session .exercise-heading { max-width: 58rem; }
+.concept-integration-badge { display: inline-flex; margin-bottom: .8rem; padding: .35rem .75rem; border: 1px solid #9dbef2; border-radius: 999px; background: #edf4ff; color: #174f9c; font-size: .78rem; font-weight: 800; letter-spacing: .08em; }
+.mac-value-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.mac-value-option { min-height: 7rem; border: 2px solid #cbd7e6; border-radius: .85rem; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .65rem; color: #142945; transition: border-color .15s, transform .15s, background .15s; }
+.mac-value-option:hover:not(:disabled) { border-color: #2c75d8; transform: translateY(-2px); }
+.mac-value-option code { color: inherit; font-size: 1.15rem; }
+.mac-value-option span { font-weight: 750; }
+.mac-value-option.is-wrong, .frame-field.is-wrong, .mac-topology-node.is-wrong { border-color: #a72d35; background: #fff0f1; color: #7c1f26; }
+.mac-value-option.is-correct, .frame-field.is-correct, .mac-topology-node.is-correct { border-color: #23804b; background: #edf9f1; color: #155e36; }
+.frame-disclaimer { margin-bottom: 1rem; color: #5a6677; font-size: .94rem; }
+.simplified-frame { display: grid; grid-template-columns: 1.25fr 1.25fr .75fr; border: 2px solid #17375f; border-radius: .75rem; overflow: hidden; background: #fff; }
+.frame-field, .frame-preview > div { min-height: 7rem; border: 0; border-right: 1px solid #9aabc0; background: #f8fbff; padding: 1rem; color: #17375f; text-align: center; }
+.frame-field:last-child, .frame-preview > div:last-child { border-right: 0; }
+.frame-field:hover:not(:disabled) { background: #e7f0ff; }
+.frame-preview > div { display: flex; flex-direction: column; justify-content: center; gap: .75rem; }
+.frame-preview { margin-bottom: 1.25rem; }
+.mac-topology { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(4rem, .45fr) minmax(10rem, 1fr) minmax(4rem, .45fr) minmax(10rem, 1fr); align-items: center; }
+.mac-topology-node { min-height: 8rem; border: 2px solid #b9c8da; border-radius: .8rem; background: white; color: #17375f; font-weight: 750; }
+.mac-topology-node:hover:not(:disabled) { border-color: #2c75d8; background: #eef5ff; }
+.topology-wire { height: 3px; background: #758aa3; }
+.mac-output-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.mac-output-comparison article { overflow: hidden; border-radius: .75rem; background: #0d1d31; color: #dbe9f8; }
+.mac-output-comparison h2 { margin: 0; padding: .7rem 1rem; background: #17375f; color: white; font: 700 .85rem/1.2 system-ui, sans-serif; }
+.mac-output-comparison pre { margin: 0; padding: 1.15rem; min-height: 9rem; color: inherit; white-space: pre-wrap; }
+.process-slots { position: relative; }
+.process-slots .builder-slot { min-height: 4.8rem; }
+.process-slots .builder-slot:not(:last-child)::after { content: "↓"; position: absolute; left: 50%; margin-top: 4.45rem; color: #2c75d8; font-weight: 900; }
+.integrated-sequence li { min-height: 4.7rem; }
+.connected-concepts { margin-top: 3rem; padding: 2rem; border-radius: 1rem; background: #eef5ff; }
+.concept-pair { display: flex; align-items: center; justify-content: center; gap: 1.5rem; margin: 1.5rem 0; color: #17375f; font-size: 1.7rem; }
+.concept-pair span { color: #2c75d8; }
+.integrated-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .75rem; margin-top: 1.5rem; }
+.integrated-summary code { padding: .6rem .75rem; border-radius: .45rem; background: white; color: #17375f; }
+.mac-session-intro { max-width: 55rem; }
+
+@media (max-width: 900px) {
+  .mac-value-grid, .mac-output-comparison { grid-template-columns: 1fr; }
+  .mac-topology { grid-template-columns: 1fr; gap: .65rem; }
+  .topology-wire { width: 3px; height: 2rem; justify-self: center; }
+  .simplified-frame { grid-template-columns: 1fr; }
+  .frame-field, .frame-preview > div { border-right: 0; border-bottom: 1px solid #9aabc0; }
+  .frame-field:last-child, .frame-preview > div:last-child { border-bottom: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mac-value-option { transition: none; }
+}

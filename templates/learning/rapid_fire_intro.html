@@ -1,0 +1,6 @@
+{% extends "learning/base.html" %}
+{% block title %}Rapid Fire · ARP{% endblock %}
+{% block content %}
+<section class="rapid-intro"><span class="rapid-bolt" aria-hidden="true">⚡</span><span class="eyebrow">ARP</span><h1>Rapid Fire</h1><p class="lead">Treinar recuperação rápida do conceito através de perspectivas diferentes.</p><p>Responda rapidamente. Aqui o objetivo não é analisar longamente, mas tornar alguns conceitos fundamentais automáticos.</p><form method="post" action="{% url 'learning:rapid_fire_start' %}">{% csrf_token %}<button class="btn btn-primary btn-lg">Iniciar Rapid Fire <span aria-hidden="true">→</span></button></form></section>
+{% endblock %}
+

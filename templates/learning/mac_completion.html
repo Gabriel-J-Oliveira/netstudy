@@ -1,0 +1,12 @@
+{% extends "learning/base.html" %}{% load static %}
+{% block title %}Sessão MAC concluída · NetStudy{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/mac-exercises.css' %}">{% endblock %}
+{% block content %}
+<section class="completion"><div class="completion-mark" aria-hidden="true">✓</div><span class="eyebrow">MAC Address · Exercícios complementares</span><h1>Sessão concluída</h1>
+<p class="lead"><strong>{{ completed_count }} atividades realizadas</strong></p>
+<div class="outcome-summary"><div><strong>{{ immediate_count }}</strong><span>Acertos imediatos</span></div><div><strong>{{ guided_count }}</strong><span>Resolvidos após orientação</span></div></div>
+<section class="capacity-summary"><h2>Capacidades treinadas</h2><div class="completed-areas">{% for capability in capabilities %}<span>✓ {{ capability }}</span>{% endfor %}</div></section>
+<section class="connected-concepts"><h2>Conceitos conectados nesta sessão</h2><div class="concept-pair"><strong>MAC</strong><span aria-hidden="true">↕</span><strong>ARP</strong></div><p><strong>MAC</strong> é uma informação de endereçamento utilizada pela Ethernet. <strong>ARP</strong> é um mecanismo capaz de descobrir o MAC necessário a partir de um IPv4 conhecido em determinados cenários locais.</p><div class="integrated-summary"><code>IPv4 conhecido</code><span>→</span><code>ARP</code><span>→</span><code>MAC aprendido</code><span>→</span><code>frame Ethernet</code></div></section>
+{% if misconceptions %}<section class="misconception-summary"><h2>Pontos que apareceram durante a sessão</h2><ul>{% for label in misconceptions %}<li>{{ label }}</li>{% endfor %}</ul><p>Estes temas apareceram em respostas incorretas durante a sessão e podem merecer revisão posterior.</p></section>{% endif %}
+<div class="completion-actions"><form method="post" action="{% url 'learning:mac_restart' %}">{% csrf_token %}<button class="btn btn-primary btn-lg">Refazer sessão</button></form><a href="{% url 'learning:home' %}" class="btn btn-outline-secondary btn-lg">Voltar ao início</a></div></section>
+{% endblock %}

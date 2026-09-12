@@ -1,0 +1,19 @@
+<section class="l3-path-stage" data-l3-stage data-stage-id="{{ stage_id|default:'gateway-stage' }}" data-stage-mode="{{ stage_mode|default:'demonstration' }}" data-host-ip="{{ host_ip|default:'192.168.10.25' }}" data-host-prefix="{{ host_prefix|default:'24' }}" data-host-mac="{{ host_mac|default:'AA' }}" data-gateway-ip="{{ gateway_ip|default:'192.168.10.1' }}" data-gateway-mac="{{ gateway_mac|default:'RR' }}" data-destination-ip="{{ destination_ip|default:'192.168.20.50' }}" data-destination-mac="{{ destination_mac|default:'BB' }}" aria-label="Caminho de Camada 3 entre PC-A, gateway R1 e PC-B remoto">
+  <header><div><span>L3 PATH STAGE</span><strong>Entrega local × destino final</strong></div><button type="button" data-l3-reset aria-label="Resetar cenário do caminho de Camada 3">↻ Resetar cenário</button></header>
+  <div class="l3-topology">
+    <button type="button" class="l3-node host-a" data-l3-node="host" aria-label="PC-A — {{ host_ip|default:'192.168.10.25' }}/{{ host_prefix|default:'24' }} — MAC {{ host_mac|default:'AA' }}"><strong>PC-A</strong><small>{{ host_ip|default:'192.168.10.25' }}/{{ host_prefix|default:'24' }}</small><code>MAC {{ host_mac|default:'AA' }}</code></button>
+    <span class="l3-link" aria-hidden="true">────</span>
+    <button type="button" class="l3-node switch" data-l3-node="switch" aria-label="SW1 — switch Ethernet de Camada 2"><strong>SW1</strong><small>CAMADA 2</small></button>
+    <span class="l3-link" aria-hidden="true">────</span>
+    <button type="button" class="l3-node router" data-l3-node="gateway" aria-label="R1 — Default Gateway — {{ gateway_ip|default:'192.168.10.1' }} — MAC {{ gateway_mac|default:'RR' }}"><strong>R1</strong><small>DEFAULT GATEWAY</small><code>{{ gateway_ip|default:'192.168.10.1' }} · {{ gateway_mac|default:'RR' }}</code></button>
+    <span class="l3-remote-link" aria-hidden="true">··· OUTRA REDE ···</span>
+    <button type="button" class="l3-node host-b" data-l3-node="destination" aria-label="PC-B — destino final remoto — {{ destination_ip|default:'192.168.20.50' }} — MAC {{ destination_mac|default:'BB' }}"><strong>PC-B</strong><small>DESTINO FINAL</small><code>{{ destination_ip|default:'192.168.20.50' }} · {{ destination_mac|default:'BB' }}</code></button>
+  </div>
+  <div class="l3-transit" data-l3-transit>
+    <div class="ethernet-envelope"><span>FRAME ETHERNET · ENTREGA LOCAL</span><dl><dt>Source MAC</dt><dd>{{ host_mac|default:'AA' }}</dd><dt>Destination MAC</dt><dd>{{ gateway_mac|default:'RR' }} · GATEWAY</dd></dl>
+      <div class="ipv4-packet"><span>PACOTE IPv4 · DESTINO FINAL</span><dl><dt>Source IP</dt><dd>{{ host_ip|default:'192.168.10.25' }}</dd><dt>Destination IP</dt><dd>{{ destination_ip|default:'192.168.20.50' }}</dd></dl></div>
+    </div>
+  </div>
+  <div class="l3-stage-state"><span>ARP Cache</span><code data-l3-cache>{{ gateway_ip|default:'192.168.10.1' }} → desconhecido</code><p data-l3-message>Destino remoto identificado. Escolha o próximo salto local.</p></div>
+  <div class="l3-controls"><button type="button" data-l3-next>Ver o primeiro salto</button></div>
+</section>

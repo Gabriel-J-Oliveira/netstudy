@@ -1,0 +1,186 @@
+"""Checkpoint VLAN v1: associação Access, alcance e diagnóstico por evidências."""
+
+
+def token(key, text):
+    return {"id": key, "text": text}
+
+
+def slot(key, label, many=False):
+    value = {"id": key, "label": label}
+    if many:
+        value["capacity"] = "many"
+    return value
+
+
+HINTS = [
+    "Comece pela VLAN da porta de entrada; ela define o contexto local do frame.",
+    "Cruze portas Access, VLAN e MAC Address Table antes de concluir pela topologia física.",
+]
+
+
+ACTIVITIES = [
+    {
+        "id": "1", "number": 1, "primary": "VLAN", "related": ["ACCESS", "SWITCH"], "category": "Aplicar", "difficulty_level": 3,
+        "type": "vlan_membership", "mode": "exercise", "scenario_key": "vlan-a1", "title": "Quem pertence à VLAN 10?",
+        "symptom": "PC-A está em Gi0/1 e PC-B em Gi0/2; ambas as portas são Access VLAN 10.",
+        "instruction": "Inspecione as duas portas e associe os hosts ao mesmo grupo lógico.", "tools": ["board"],
+        "required_actions": ["port:1", "port:2"], "required_evidence": [],
+        "slots": [slot("v10", "MEMBROS DA VLAN 10", True)],
+        "tokens": [token("a", "PC-A · Gi0/1"), token("b", "PC-B · Gi0/2"), token("c", "PC-C · Gi0/3")],
+        "correct_map": {"a": "v10", "b": "v10"},
+        "feedback": {"c": "Gi0/3 é Access VLAN 20; compartilhar o switch físico não torna PC-C membro da VLAN 10."},
+        "misconceptions": {"c": "assumes_physical_switch_is_one_logical_network"},
+        "wrong_feedback": "Leia o campo Access VLAN de Gi0/1 e Gi0/2.", "hints": HINTS,
+        "correct_feedback": "Correto. Gi0/1 e Gi0/2 colocam PC-A e PC-B no mesmo contexto lógico VLAN 10.",
+    },
+    {
+        "id": "2", "number": 2, "primary": "VLAN", "related": ["BROADCAST", "ACCESS"], "category": "Aplicar", "difficulty_level": 3,
+        "type": "vlan_broadcast", "mode": "exercise", "scenario_key": "vlan-a2", "title": "Broadcast originado na VLAN 20",
+        "symptom": "Um broadcast entra por Gi0/3, Access VLAN 20.",
+        "instruction": "Inspecione Gi0/3 e Gi0/4, execute o frame e indique a saída aplicável.", "tools": ["board"],
+        "required_actions": ["port:3", "port:4", "frame:run"], "required_evidence": [],
+        "slots": [slot("egress", "PORTA QUE RECEBE CÓPIA", True)],
+        "tokens": [token("g1", "Gi0/1 · VLAN 10"), token("g2", "Gi0/2 · VLAN 10"), token("g4", "Gi0/4 · VLAN 20")],
+        "correct_map": {"g4": "egress"},
+        "feedback": {"g1": "Gi0/1 pertence à VLAN 10 e está fora do domínio de broadcast VLAN 20.", "g2": "Gi0/2 pertence à VLAN 10 e não recebe a cópia."},
+        "misconceptions": {"g1": "assumes_broadcast_crosses_vlan", "g2": "assumes_broadcast_crosses_vlan"},
+        "wrong_feedback": "O ingresso é excluído e somente as demais portas da VLAN 20 são aplicáveis.", "hints": HINTS,
+        "correct_feedback": "Correto. O broadcast da VLAN 20 é replicado para Gi0/4, não para as portas VLAN 10.",
+    },
+    {
+        "id": "3", "number": 3, "primary": "VLAN", "related": ["ARP", "BROADCAST"], "category": "Inferir", "difficulty_level": 4,
+        "type": "arp_vlan_boundary", "mode": "investigation", "scenario_key": "vlan-a3", "title": "Por que o ARP não chega?",
+        "symptom": "PC-A e PC-B estão no mesmo switch, mas A envia ARP Request sem receber Reply.",
+        "instruction": "Inspecione as duas portas, execute o Request e colete a evidência de segmentação.", "tools": ["board"],
+        "required_actions": ["port:1", "port:4", "frame:run"], "required_evidence": ["different-vlans"],
+        "evidence": [{"id": "different-vlans", "text": "Gi0/1 está na VLAN 10 e Gi0/4 na VLAN 20"}],
+        "evidence_triggers": {"port:4": ["different-vlans"]},
+        "slots": [slot("cause", "CONCLUSÃO SUSTENTADA")],
+        "tokens": [token("vlan", "O Request fica contido na VLAN 10"), token("physical", "O cabo de PC-B está necessariamente defeituoso"), token("dns", "DNS impediu o broadcast")],
+        "correct_map": {"vlan": "cause"},
+        "feedback": {"physical": "A evidência mostra VLANs diferentes; não prova defeito físico.", "dns": "ARP Request não depende de resolução DNS neste cenário."},
+        "misconceptions": {"physical": "jumps_to_physical_root_cause", "dns": "blames_dns_for_arp"},
+        "wrong_feedback": "Diferencie evidência observável de uma hipótese de causa física.", "hints": HINTS,
+        "correct_feedback": "Correto. A está na VLAN 10 e B na VLAN 20; o broadcast ARP de A não é entregue à porta de B.",
+    },
+    {
+        "id": "4", "number": 4, "primary": "VLAN", "related": ["MAC TABLE", "UNICAST"], "category": "Inferir", "difficulty_level": 4,
+        "type": "duplicate_mac_context", "mode": "exercise", "scenario_key": "vlan-a4", "title": "O mesmo MAC em dois contextos",
+        "symptom": "A tabela mostra BB na VLAN 10 em Gi0/2 e na VLAN 20 em Gi0/5. O frame entra por Gi0/1, VLAN 10.",
+        "instruction": "Inspecione Destination e Gi0/1, selecione a entrada VLAN 10 e execute.", "tools": ["board"],
+        "required_actions": ["field:destination", "port:1", "macvlan:10:BB:BB:BB:BB:BB:BB", "frame:run"], "required_evidence": [],
+        "slots": [slot("lookup", "ENTRADA USADA"), slot("egress", "SAÍDA")],
+        "tokens": [token("v10bb", "VLAN 10 · BB → Gi0/2"), token("v20bb", "VLAN 20 · BB → Gi0/5"), token("g2", "Gi0/2"), token("g5", "Gi0/5")],
+        "correct_map": {"v10bb": "lookup", "g2": "egress"},
+        "feedback": {"v20bb": "O ingresso Gi0/1 define contexto VLAN 10; a entrada VLAN 20 não participa dessa consulta.", "g5": "Gi0/5 é a porta associada a BB em outro contexto VLAN."},
+        "misconceptions": {"v20bb": "ignores_vlan_in_mac_lookup", "g5": "ignores_vlan_in_mac_lookup"},
+        "wrong_feedback": "A consulta é feita por VLAN + MAC, não apenas pelo texto do MAC.", "hints": HINTS,
+        "correct_feedback": "Correto. No contexto VLAN 10, BB resolve para Gi0/2; a entrada VLAN 20 permanece separada.",
+    },
+    {
+        "id": "5", "number": 5, "primary": "VLAN", "related": ["UNKNOWN UNICAST", "FLOODING"], "category": "Inferir", "difficulty_level": 4,
+        "type": "unknown_unicast_vlan", "mode": "exercise", "scenario_key": "vlan-a5", "title": "Unknown Unicast dentro da VLAN",
+        "symptom": "Destination EE é desconhecido e o frame entra por Gi0/1, VLAN 10.",
+        "instruction": "Inspecione Gi0/2 e Gi0/5, execute e identifique todas as saídas VLAN 10.", "tools": ["board"],
+        "required_actions": ["port:2", "port:5", "frame:run"], "required_evidence": [],
+        "slots": [slot("egress", "FLOODING NA VLAN 10", True)],
+        "tokens": [token("g2", "Gi0/2 · VLAN 10"), token("g5", "Gi0/5 · VLAN 10"), token("g3", "Gi0/3 · VLAN 20"), token("g4", "Gi0/4 · VLAN 20")],
+        "correct_map": {"g2": "egress", "g5": "egress"},
+        "feedback": {"g3": "Unknown unicast não autoriza atravessar para a VLAN 20.", "g4": "Gi0/4 está fora do contexto VLAN 10."},
+        "misconceptions": {"g3": "assumes_unknown_unicast_crosses_vlan", "g4": "assumes_unknown_unicast_crosses_vlan"},
+        "wrong_feedback": "Flooding continua limitado à VLAN de entrada e exclui o ingresso.", "hints": HINTS,
+        "correct_feedback": "Correto. O unknown unicast é inundado por Gi0/2 e Gi0/5, ambas VLAN 10, sem alcançar VLAN 20.",
+    },
+    {
+        "id": "6", "number": 6, "primary": "VLAN", "related": ["CLI", "ACCESS"], "category": "Inferir", "difficulty_level": 4,
+        "type": "cli_vlan_membership", "mode": "investigation", "scenario_key": "vlan-a6", "title": "Descubra a VLAN de PC-C",
+        "symptom": "PC-C está conectado a Gi0/7. Determine seu contexto lógico pela CLI.",
+        "instruction": "Use show vlan brief ou show interfaces Gi0/7 switchport; depois inspecione Gi0/7 e colete a evidência.", "tools": ["switch_cli", "board"],
+        "required_actions": ["port:7"], "required_evidence": ["pc-c-vlan20"],
+        "evidence": [{"id": "pc-c-vlan20", "text": "Gi0/7 opera como Access VLAN 20"}],
+        "evidence_triggers": {"command:show vlan brief": ["pc-c-vlan20"], "command:show interfaces gi0/7 switchport": ["pc-c-vlan20"]},
+        "slots": [slot("result", "RESULTADO")],
+        "tokens": [token("v20", "PC-C pertence à VLAN 20"), token("v10", "PC-C pertence à VLAN 10"), token("all", "PC-C pertence a todas as VLANs do switch")],
+        "correct_map": {"v20": "result"},
+        "feedback": {"v10": "A saída da interface mostra Access Mode VLAN 20.", "all": "Uma porta Access pertence a uma VLAN de acesso neste cenário."},
+        "misconceptions": {"v10": "misreads_cli_vlan", "all": "assumes_access_port_carries_all_vlans"},
+        "wrong_feedback": "Use a porta física de PC-C como chave da investigação.", "hints": HINTS,
+        "correct_feedback": "Correto. A evidência da CLI associa Gi0/7, e portanto PC-C, à VLAN 20.",
+    },
+    {
+        "id": "7", "number": 7, "primary": "VLAN", "related": ["ARP", "TROUBLESHOOTING"], "category": "Diagnosticar", "difficulty_level": 5,
+        "type": "wrong_access_vlan", "mode": "investigation", "scenario_key": "vlan-a7", "title": "Porta na VLAN errada",
+        "symptom": "PC-A e PC-B deveriam se comunicar, mas Gi0/1 está na VLAN 10 e Gi0/4 na VLAN 20.",
+        "instruction": "Gere ARP, confirme a contenção, corrija Gi0/4 para VLAN 10 e reteste.", "tools": ["host_terminal", "switch_cli", "board"],
+        "actions": ["arp-a", "set-vlan-4-10", "retest-a"], "action_buttons": [{"id": "arp-a", "label": "1 · Gerar ARP Request"}, {"id": "set-vlan-4-10", "label": "2 · Corrigir Gi0/4 → VLAN 10"}, {"id": "retest-a", "label": "3 · Retestar"}],
+        "required_actions": ["action:arp-a", "action:set-vlan-4-10", "action:retest-a"], "required_evidence": ["request-contained", "vlan-corrected"],
+        "evidence": [{"id": "request-contained", "text": "O primeiro ARP Request ficou contido na VLAN 10"}, {"id": "vlan-corrected", "text": "Após a correção, B recebeu e respondeu ao Request"}],
+        "evidence_triggers": {"action:arp-a": ["request-contained"], "action:retest-a": ["vlan-corrected"]},
+        "slots": [slot("diagnosis", "DIAGNÓSTICO"), slot("correction", "CORREÇÃO VALIDADA")],
+        "tokens": [token("wrong-vlan", "Gi0/4 estava no contexto VLAN incorreto"), token("fix", "Gi0/4 na VLAN 10 permitiu ARP Request/Reply"), token("cable", "Cabo defeituoso comprovado")],
+        "correct_map": {"wrong-vlan": "diagnosis", "fix": "correction"},
+        "feedback": {"cable": "O cenário não prova falha física; a mudança de VLAN altera o resultado."},
+        "misconceptions": {"cable": "jumps_to_physical_root_cause"}, "wrong_feedback": "Use o antes e o depois da única variável alterada.", "hints": HINTS,
+        "correct_feedback": "Correto. A associação Access incorreta separava os hosts; corrigir Gi0/4 e retestar validou o diagnóstico.",
+    },
+    {
+        "id": "8", "number": 8, "primary": "VLAN", "related": ["BROADCAST", "EVIDÊNCIA"], "category": "Diagnosticar", "difficulty_level": 5,
+        "type": "invalid_broadcast_trace", "mode": "investigation", "scenario_key": "vlan-a8", "title": "Encontre a entrega incoerente",
+        "symptom": "A captura afirma que um broadcast recebido em Gi0/1 VLAN 10 saiu também por Gi0/3 VLAN 20.",
+        "instruction": "Inspecione ingresso e saída alegada e marque a incoerência.", "tools": ["board"],
+        "required_actions": ["port:1", "port:3", "field:vlan"], "required_evidence": ["cross-vlan-copy"],
+        "evidence": [{"id": "cross-vlan-copy", "text": "Gi0/3 pertence à VLAN 20, diferente do ingresso VLAN 10"}],
+        "evidence_triggers": {"port:3": ["cross-vlan-copy"]},
+        "slots": [slot("verdict", "VEREDITO")],
+        "tokens": [token("invalid", "A saída por Gi0/3 é incoerente neste cenário Access"), token("valid", "Todo broadcast sempre alcança todas as portas físicas")],
+        "correct_map": {"invalid": "verdict"},
+        "feedback": {"valid": "VLANs dividem domínios de broadcast no mesmo switch físico."},
+        "misconceptions": {"valid": "assumes_broadcast_crosses_vlan"}, "wrong_feedback": "Compare a VLAN de entrada com a VLAN da saída alegada.", "hints": HINTS,
+        "correct_feedback": "Correto. Em portas Access, um broadcast VLAN 10 não deve ser replicado por uma porta VLAN 20.",
+    },
+    {
+        "id": "9", "number": 9, "primary": "VLAN", "related": ["ARP", "EVIDÊNCIA"], "category": "Diagnosticar", "difficulty_level": 5,
+        "type": "evidence_limited_diagnosis", "mode": "investigation", "scenario_key": "vlan-a9", "title": "Explique a falha sem adivinhar",
+        "symptom": "A envia ARP repetidamente; B está conectado, mas nenhuma resposta aparece.",
+        "instruction": "Inspecione as VLANs, execute e separe evidência de suposição.", "tools": ["host_terminal", "switch_cli", "board"],
+        "required_actions": ["port:1", "port:4", "frame:run"], "required_evidence": ["a10-b20", "arp-boundary"],
+        "evidence": [{"id": "a10-b20", "text": "A está na VLAN 10 e B na VLAN 20"}, {"id": "arp-boundary", "text": "O Request de A não é entregue à porta VLAN 20"}],
+        "evidence_triggers": {"port:4": ["a10-b20"], "frame:run": ["arp-boundary"]},
+        "slots": [slot("evidence", "O QUE AS EVIDÊNCIAS PERMITEM AFIRMAR")],
+        "tokens": [token("boundary", "A resolução ARP não se completa porque Request e B estão em VLANs diferentes"), token("off", "PC-B está necessariamente desligado"), token("gateway", "O gateway está necessariamente defeituoso")],
+        "correct_map": {"boundary": "evidence"},
+        "feedback": {"off": "Nenhuma evidência prova que B está desligado.", "gateway": "O cenário observado é local e a evidência relevante é a separação VLAN."},
+        "misconceptions": {"off": "confuses_evidence_with_root_cause", "gateway": "blames_gateway_without_evidence"},
+        "wrong_feedback": "Afirme somente o que VLANs, portas e o alcance observado sustentam.", "hints": HINTS,
+        "correct_feedback": "Correto. A evidência sustenta a contenção do ARP por VLAN; não uma causa física específica.",
+    },
+    {
+        "id": "10", "number": 10, "primary": "VLAN", "related": ["ARP", "MAC TABLE", "UNICAST"], "category": "Diagnosticar / Sintetizar", "difficulty_level": 5,
+        "type": "vlan_full_investigation", "mode": "investigation", "scenario_key": "vlan-a10", "title": "VLAN Investigation Challenge",
+        "symptom": "PC-E deveria falar com PC-A na VLAN 10, mas Gi0/5 está configurada como Access VLAN 20.", "host_label": "PC-E", "host_arp_empty": True,
+        "instruction": "Observe o ARP, prove a VLAN incorreta, corrija Gi0/5, reteste e confirme o unicast conhecido.", "tools": ["host_terminal", "switch_cli", "board"],
+        "actions": ["arp-e", "set-vlan-5-10", "retest-e", "unicast-e-a"], "action_buttons": [{"id": "arp-e", "label": "1 · ARP de PC-E"}, {"id": "set-vlan-5-10", "label": "2 · Corrigir Gi0/5 → VLAN 10"}, {"id": "retest-e", "label": "3 · Retestar ARP"}, {"id": "unicast-e-a", "label": "4 · Enviar E → A"}],
+        "required_actions": ["command:arp -a", "command:show interfaces gi0/5 switchport", "action:arp-e", "action:set-vlan-5-10", "action:retest-e", "action:unicast-e-a"],
+        "required_evidence": ["e-arp-empty", "e-vlan20", "e-contained", "e-corrected", "e-known"],
+        "evidence": [{"id": "e-arp-empty", "text": "PC-E inicialmente não possui a resolução de A"}, {"id": "e-vlan20", "text": "Gi0/5 opera inicialmente como Access VLAN 20"}, {"id": "e-contained", "text": "O primeiro Request permaneceu na VLAN 20"}, {"id": "e-corrected", "text": "Após a correção, o ARP Request/Reply foi concluído na VLAN 10"}, {"id": "e-known", "text": "O frame E → A seguiu como known unicast na VLAN 10"}],
+        "evidence_triggers": {"command:arp -a": ["e-arp-empty"], "command:show interfaces gi0/5 switchport": ["e-vlan20"], "action:arp-e": ["e-contained"], "action:retest-e": ["e-corrected"], "action:unicast-e-a": ["e-known"]},
+        "slots": [slot("cause", "CONDIÇÃO OBSERVADA"), slot("fix", "CORREÇÃO"), slot("proof", "PROVA FINAL")],
+        "tokens": [token("wrong", "Gi0/5 em VLAN 20 separava E de A"), token("correct", "Alterar Gi0/5 para Access VLAN 10"), token("known", "ARP concluído e E → A em known unicast VLAN 10"), token("trunk", "Converter Gi0/5 em trunk")],
+        "correct_map": {"wrong": "cause", "correct": "fix", "known": "proof"},
+        "feedback": {"trunk": "Trunking não é necessário nem implementado para esta porta de host; a correção pedida é Access VLAN 10."},
+        "misconceptions": {"trunk": "uses_trunk_as_generic_fix"}, "wrong_feedback": "Reconstrua condição inicial, única correção e reteste conclusivo.", "hints": HINTS,
+        "correct_feedback": "Correto. Você provou a associação Access incorreta, corrigiu Gi0/5 e validou ARP e known unicast no contexto VLAN 10.",
+    },
+]
+
+
+ACTIVITY_MAP = {activity["id"]: activity for activity in ACTIVITIES}
+CAPABILITIES = ["Associar portas Access a VLANs", "Delimitar broadcast", "Interpretar ARP por VLAN", "Consultar VLAN + MAC", "Prever flooding", "Usar CLI", "Diagnosticar associação incorreta", "Separar evidência de hipótese", "Corrigir e retestar", "Integrar VLAN, ARP e unicast"]
+MISCONCEPTION_LABELS = {
+    "assumes_physical_switch_is_one_logical_network": "Switch físico como uma única rede lógica", "assumes_broadcast_crosses_vlan": "Broadcast atravessa VLAN",
+    "jumps_to_physical_root_cause": "Salto prematuro para causa física", "blames_dns_for_arp": "DNS como causa de ARP local",
+    "ignores_vlan_in_mac_lookup": "Consulta MAC sem contexto VLAN", "assumes_unknown_unicast_crosses_vlan": "Unknown unicast atravessa VLAN",
+    "misreads_cli_vlan": "Leitura incorreta da VLAN na CLI", "assumes_access_port_carries_all_vlans": "Porta Access carrega todas as VLANs",
+    "confuses_evidence_with_root_cause": "Evidência confundida com causa raiz", "blames_gateway_without_evidence": "Gateway culpado sem evidência",
+    "uses_trunk_as_generic_fix": "Trunk usado como correção genérica",
+}

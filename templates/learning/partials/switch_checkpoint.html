@@ -1,0 +1,38 @@
+<section id="switch-checkpoint" class="frame-checkpoint switch-checkpoint" aria-labelledby="switch-checkpoint-title">
+{% if not switch_checkpoint_started %}
+  <div class="checkpoint-locked"><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="switch-checkpoint-title">Checkpoint — Switch Ethernet</h2><p>Dez situações de aprendizagem, encaminhamento, CLI e diagnóstico serão abertas aqui.</p></div>
+{% elif switch_checkpoint_complete %}
+  <div class="checkpoint-complete"><span class="action-label label-checkpoint">CHECKPOINT CONCLUÍDO</span><h2 id="switch-checkpoint-title">10 situações resolvidas</h2>
+    <div class="checkpoint-outcomes"><article><strong>{{ switch_checkpoint_immediate }}</strong><span>Acertos imediatos</span></article><article><strong>{{ switch_checkpoint_guided }}</strong><span>Resolvidos após orientação</span></article></div>
+    <div class="checkpoint-capabilities"><h3>Capacidades treinadas</h3>{% for capability in switch_checkpoint_capabilities %}<span>✓ {{ capability }}</span>{% endfor %}</div>
+    {% if switch_checkpoint_misconceptions %}<aside class="checkpoint-review"><h3>Pontos para revisar</h3>{% for label in switch_checkpoint_misconceptions %}<span>{{ label }}</span>{% endfor %}</aside>{% endif %}
+    <div class="checkpoint-next-concept"><span>PRÓXIMO CONCEITO</span><h3>Unicast × Broadcast</h3><p>Observe como o Destination MAC define a intenção e como a tabela do switch altera o alcance observado.</p><a class="btn btn-primary" href="{% url 'learning:delivery_concept' %}">Estudar Unicast × Broadcast →</a></div>
+    <form method="post" action="{% url 'learning:switch_checkpoint_restart' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
+  </div>
+{% else %}
+  <header class="checkpoint-header"><div><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="switch-checkpoint-title">Checkpoint — Switch Ethernet</h2><p>10 situações. Aprenda pela origem; decida pelo destino.</p></div><strong>ATIVIDADE {{ switch_checkpoint_activity.number }} DE {{ switch_checkpoint_total }}</strong></header>
+  <div class="checkpoint-progress"><span style="width:{% widthratio switch_checkpoint_activity.number switch_checkpoint_total 100 %}%"></span></div>
+  <article class="checkpoint-activity type-{{ switch_checkpoint_activity.type }}">
+    <div class="checkpoint-meta"><span class="concept-primary">{{ switch_checkpoint_activity.primary }}</span>{% for concept in switch_checkpoint_activity.related %}<span class="concept-related">{{ concept }}</span>{% endfor %}<span class="difficulty-badge">{{ switch_checkpoint_activity.category|upper }} · NÍVEL {{ switch_checkpoint_activity.difficulty_level }}</span></div>
+    <h3>{{ switch_checkpoint_activity.title }}</h3>{% if switch_checkpoint_activity.question %}<p class="checkpoint-question">{{ switch_checkpoint_activity.question }}</p>{% endif %}
+    {% if switch_checkpoint_activity.context_lines %}<div class="checkpoint-context">{% for line in switch_checkpoint_activity.context_lines %}<code>{{ line }}</code>{% endfor %}</div>{% endif %}
+    {% if switch_checkpoint_activity.capture %}<pre class="checkpoint-capture">{{ switch_checkpoint_activity.capture }}</pre>{% endif %}
+    {% if switch_checkpoint_result.ui_error %}<div class="alert alert-warning">{{ switch_checkpoint_result.ui_error }}</div>{% endif %}
+    {% include "learning/partials/switch_workbench.html" %}
+    <form method="post" action="{% url 'learning:switch_checkpoint_reset_current' %}" data-reset-current-form hidden>{% csrf_token %}</form>
+
+    {% if switch_checkpoint_activity.type == 'port_selection' %}
+      <form method="post" action="{% url 'learning:switch_checkpoint_answer' %}"><div class="checkpoint-port-options">{% csrf_token %}{% for option in switch_checkpoint_activity.options %}<button type="submit" name="answer" value="{{ option.key }}" class="switch-port-answer {% if switch_checkpoint_result and option.key in switch_checkpoint_result.wrong_answers %}is-wrong{% elif switch_checkpoint_result.complete and option.key == switch_checkpoint_activity.correct %}is-correct{% endif %}" {% if switch_checkpoint_result.complete or switch_checkpoint_result and option.key in switch_checkpoint_result.wrong_answers %}disabled{% endif %}><i aria-hidden="true"></i><span>{{ option.text }}</span></button>{% endfor %}</div></form>
+    {% elif switch_checkpoint_activity.type == 'event_selection_order' %}
+      {% if switch_checkpoint_result.complete %}<ol class="selected-events solved-events">{% for event in switch_checkpoint_result.last_payload %}<li><span>{{ forloop.counter }}</span>{{ event }}</li>{% endfor %}</ol>{% else %}<p><strong>{{ switch_checkpoint_activity.instruction }}</strong></p><form method="post" action="{% url 'learning:switch_checkpoint_answer' %}" data-event-form>{% csrf_token %}<input type="hidden" name="answer_payload"><div class="event-bank" data-event-bank>{% for event in switch_checkpoint_activity.events %}<button type="button" data-event-value="{{ event }}">{{ event }}</button>{% endfor %}</div><ol class="selected-events" data-selected-events></ol><button class="btn btn-primary mt-3">Verificar eventos</button></form>{% endif %}
+    {% else %}
+      <form method="post" action="{% url 'learning:switch_checkpoint_answer' %}" data-builder-form data-required-count="{{ switch_checkpoint_activity.correct_map|length }}" data-locked="{{ switch_checkpoint_result.complete|yesno:'true,false' }}">{% csrf_token %}<input type="hidden" name="answer_payload"><div class="checkpoint-builder"><div class="token-bank"><strong>Elementos disponíveis</strong>{% for token in switch_checkpoint_activity.tokens %}<button type="button" data-token="{{ token.id }}" data-token-text="{{ token.text }}" class="{% if switch_checkpoint_result and token.id in switch_checkpoint_result.error_tokens %}is-last-error{% endif %}">{{ token.text }}</button>{% endfor %}</div><div class="builder-slots">{% for slot in switch_checkpoint_activity.slots %}<button type="button" class="builder-slot {% if 'port' in slot.id or 'egress' in slot.id %}port-slot{% endif %}" data-slot="{{ slot.id }}" data-capacity="{{ slot.capacity|default:'one' }}"><strong>{{ slot.label }}</strong><span data-slot-content></span></button>{% endfor %}</div></div>{% if not switch_checkpoint_result.complete %}<button class="btn btn-primary btn-lg mt-4">Verificar construção</button>{% endif %}</form>{{ switch_checkpoint_builder_initial|json_script:"exercise-initial-payload" }}
+    {% endif %}
+
+    {% if switch_checkpoint_result.attempt_count %}<div class="feedback {% if switch_checkpoint_result.complete %}feedback-correct{% else %}feedback-wrong{% endif %}" role="status"><h4>{% if switch_checkpoint_result.complete %}✓ Correto{% else %}✕ Incorreto{% endif %}</h4><p>{{ switch_checkpoint_result.last_feedback|linebreaksbr }}</p></div>{% endif %}
+    {% if not switch_checkpoint_result.complete %}<form method="post" action="{% url 'learning:switch_checkpoint_hint' %}" class="checkpoint-hint-form" data-hint-form>{% csrf_token %}<button class="btn btn-outline-secondary">Preciso de uma pista</button></form>{% endif %}
+    {% if switch_checkpoint_hint_text %}<aside class="hint"><strong>Pista {{ switch_checkpoint_result.hint_level }}</strong><p>{{ switch_checkpoint_hint_text }}</p></aside>{% endif %}
+    {% if switch_checkpoint_result.complete %}<form method="post" action="{% url 'learning:switch_checkpoint_next' %}" class="checkpoint-next">{% csrf_token %}<button class="btn btn-primary btn-lg">{% if switch_checkpoint_activity.number == switch_checkpoint_total %}Concluir checkpoint{% else %}Próxima situação{% endif %} →</button></form>{% endif %}
+  </article>
+{% endif %}
+</section>

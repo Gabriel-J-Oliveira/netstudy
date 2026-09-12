@@ -1,0 +1,60 @@
+{% extends "learning/base.html" %}
+{% block title %}Estudo de Redes · NetStudy{% endblock %}
+{% block content %}
+<section class="hero-space">
+  <span class="eyebrow">Fundamentos · Bloco 1</span>
+  <h1>Estudo de Redes</h1>
+  <p class="lead text-secondary">Aprenda conceitos, diferencie tecnologias e pratique raciocínio técnico.</p>
+</section>
+<div class="topic-list">
+<section class="topic-panel">
+  <div>
+    <span class="topic-number">01</span>
+    <h2>ARP</h2>
+    <p>Como um dispositivo descobre o endereço MAC correspondente a um IPv4 na rede local.</p>
+  </div>
+  <a href="{% url 'learning:start' %}" class="btn btn-primary btn-lg">Estudar ARP <span aria-hidden="true">→</span></a>
+</section>
+<section class="topic-panel">
+  <div>
+    <span class="topic-number">02</span>
+    <h2>MAC Address</h2>
+    <p>Entenda o endereço físico utilizado pela Ethernet para identificar origem e destino durante a comunicação local.</p>
+  </div>
+  <a href="{% url 'learning:mac_concept' %}" class="btn btn-primary btn-lg">Estudar MAC <span aria-hidden="true">→</span></a>
+</section>
+<section class="topic-panel">
+  <div>
+    <span class="topic-number">03</span>
+    <span class="eyebrow">Fundamentos · Bloco 1</span>
+    <h2>Frame Ethernet</h2>
+    <p>Entenda a estrutura que a Ethernet utiliza para transportar dados entre interfaces dentro da comunicação local.</p>
+  </div>
+  <a href="{% url 'learning:frame_concept' %}" class="btn btn-primary btn-lg">Estudar Frame Ethernet <span aria-hidden="true">→</span></a>
+</section>
+<section class="topic-panel">
+  <div>
+    <span class="topic-number">04</span>
+    <span class="eyebrow">Fundamentos · Bloco 1</span>
+    <h2>Switch Ethernet</h2>
+    <p>Entenda como o switch aprende endereços MAC e decide por quais portas encaminhar frames.</p>
+  </div>
+  <a href="{% url 'learning:switch_concept' %}" class="btn btn-primary btn-lg">Estudar Switch Ethernet <span aria-hidden="true">→</span></a>
+</section>
+<section class="topic-panel">
+  <div><span class="topic-number">05</span><span class="eyebrow">Fundamentos · Bloco 1</span><h2>Unicast × Broadcast</h2><p>Entenda como o Destination MAC e a tabela do switch determinam o alcance da entrega Ethernet.</p></div>
+  <a href="{% url 'learning:delivery_concept' %}" class="btn btn-primary btn-lg">Estudar alcance Ethernet <span aria-hidden="true">→</span></a>
+</section>
+<section class="topic-panel">
+  <div><span class="topic-number">06</span><span class="eyebrow">Fundamentos · Bloco 1</span><h2>VLAN</h2><p>Separe logicamente uma rede Ethernet e entenda como portas Access delimitam aprendizado, encaminhamento e broadcast.</p></div>
+  <a href="{% url 'learning:vlan_concept' %}" class="btn btn-primary btn-lg">Estudar VLAN <span aria-hidden="true">→</span></a>
+</section>
+<section class="topic-panel"><div><span class="topic-number">07</span><span class="eyebrow">Fundamentos · Bloco 1</span><h2>Trunk + 802.1Q</h2><p>Veja como múltiplas VLANs atravessam uma única conexão entre switches mantendo seus contextos separados.</p></div><a href="{% url 'learning:trunk_concept' %}" class="btn btn-primary btn-lg">Estudar Trunk <span aria-hidden="true">→</span></a></section>
+<section class="topic-panel"><div><span class="topic-number">08</span><span class="eyebrow">Fundamentos · Camada 3</span><h2>IPv4 + Sub-rede</h2><p>Descubra como IPv4 e máscara permitem ao host classificar um destino como local ou remoto.</p></div><a href="{% url 'learning:ipv4_concept' %}" class="btn btn-primary btn-lg">Estudar IPv4 + Sub-rede <span aria-hidden="true">→</span></a></section>
+<section class="topic-panel"><div><span class="topic-number">09</span><span class="eyebrow">Fundamentos · Camada 3</span><h2>Default Gateway + Next Hop</h2><p>Entenda como o host entrega o primeiro frame a um próximo salto local quando o destino IP está em outra rede.</p></div><a href="{% url 'learning:gateway_concept' %}" class="btn btn-primary btn-lg">Estudar Default Gateway <span aria-hidden="true">→</span></a></section>
+<section class="topic-panel"><div><span class="topic-number">10</span><span class="eyebrow">Fundamentos · Camada 3</span><h2>Tabela de Rotas + Escolha de Caminho</h2><p>Use o Destination IP para encontrar rotas compatíveis e escolher a mais específica.</p></div><a href="{% url 'learning:route_concept' %}" class="btn btn-primary btn-lg">Estudar Tabela de Rotas <span aria-hidden="true">→</span></a></section>
+<section class="topic-panel"><div><span class="topic-number">11</span><span class="eyebrow">Fundamentos · Camada 3</span><h2>Inter-VLAN Routing</h2><p>Entenda como redes associadas a VLANs diferentes se comunicam através de uma função de Camada 3.</p></div><a href="{% url 'learning:inter_vlan_concept' %}" class="btn btn-primary btn-lg">Estudar Inter-VLAN Routing <span aria-hidden="true">→</span></a></section>
+<section class="topic-panel"><div><span class="topic-number">12</span><span class="eyebrow">Diagnóstico · Camada 3</span><h2>ICMP + Ping + Traceroute</h2><p>Entenda o que uma troca ICMP evidencia e como TTL permite observar partes do caminho.</p></div><a href="{% url 'learning:icmp_concept' %}" class="btn btn-primary btn-lg">Estudar ICMP e diagnóstico <span aria-hidden="true">→</span></a></section>
+<section class="topic-panel"><div><span class="topic-number">13</span><span class="eyebrow">Fundamentos · Camada 4</span><h2>TCP × UDP</h2><p>Compare fluxo de bytes e datagramas para escolher o serviço de transporte de que uma aplicação precisa.</p></div><a href="{% url 'learning:transport_concept' %}" class="btn btn-primary btn-lg">Estudar TCP × UDP <span aria-hidden="true">→</span></a></section>
+</div>
+{% endblock %}

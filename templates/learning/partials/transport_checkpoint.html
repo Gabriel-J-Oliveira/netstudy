@@ -1,0 +1,29 @@
+<div class="gateway-checkpoint" data-transport-checkpoint-panel>
+{% if not transport_checkpoint_started %}
+  <span class="gateway-index">CHECKPOINT · 10 SITUAÇÕES</span><h2>Escolha pelo serviço de transporte</h2>
+  <p>Compare fluxo, datagramas, ordem, perda e responsabilidade da aplicação.</p>
+  <form method="post" action="{% url 'learning:transport_checkpoint_start' %}" data-transport-checkpoint-form>{% csrf_token %}<button class="gateway-primary">Iniciar checkpoint</button></form>
+{% elif transport_checkpoint_complete %}
+  <span class="gateway-index">CHECKPOINT CONCLUÍDO</span><h2>TCP × UDP consolidado</h2>
+  <div class="gateway-score"><strong>{{ transport_checkpoint_immediate }}</strong><span>sem apoio</span><strong>{{ transport_checkpoint_guided }}</strong><span>com orientação</span></div>
+  <h3>Capacidades praticadas</h3><ul>{% for x in transport_checkpoint_capabilities %}<li>{{ x }}</li>{% endfor %}</ul>
+  {% if transport_checkpoint_misconceptions %}<h3>Pontos de atenção</h3><ul>{% for x in transport_checkpoint_misconceptions %}<li>{{ x }}</li>{% endfor %}</ul>{% endif %}
+  <form method="post" action="{% url 'learning:transport_checkpoint_restart' %}" data-transport-checkpoint-form data-restart>{% csrf_token %}<button>Refazer checkpoint</button></form>
+{% else %}
+  <header class="gateway-checkpoint-header"><div><span>[{{ transport_checkpoint_activity.primary }}]</span>{% for x in transport_checkpoint_activity.related %}<small>{{ x }}</small>{% endfor %}</div><strong>{{ transport_checkpoint_activity.number }} / {{ transport_checkpoint_total }}</strong></header>
+  <span class="difficulty-badge">NÍVEL {{ transport_checkpoint_activity.difficulty_level }} · {{ transport_checkpoint_activity.category }}</span>
+  <h2>{{ transport_checkpoint_activity.title }}</h2><p class="gateway-scenario">{{ transport_checkpoint_activity.scenario }}</p><p>{{ transport_checkpoint_activity.instruction }}</p>
+  <form method="post" action="{% url 'learning:transport_checkpoint_answer' %}" data-transport-checkpoint-form data-answer-form>{% csrf_token %}
+    <div class="gateway-checkpoint-fields">{% for f in transport_checkpoint_activity.fields %}<label><span>{{ f.label }}</span>{% if f.options %}<select data-transport-answer="{{ f.name }}" {% if transport_checkpoint_result.complete %}disabled{% endif %}><option></option>{% for o in f.options %}<option value="{{ o|lower }}">{{ o }}</option>{% endfor %}</select>{% else %}<input data-transport-answer="{{ f.name }}" {% if transport_checkpoint_result.complete %}disabled{% endif %}>{% endif %}</label>{% endfor %}</div>
+    <input type="hidden" name="answer_payload" data-payload>{% if not transport_checkpoint_result.complete %}<button class="gateway-primary">Verificar resposta</button>{% endif %}
+  </form>
+  {% if transport_checkpoint_result.ui_error %}<p class="gateway-feedback is-error">{{ transport_checkpoint_result.ui_error }}</p>{% endif %}
+  {% if transport_checkpoint_result.last_feedback %}<div class="gateway-feedback {% if transport_checkpoint_result.complete %}is-success{% else %}is-error{% endif %}"><strong>{% if transport_checkpoint_result.complete %}Correto{% else %}Ainda não{% endif %}</strong><p>{{ transport_checkpoint_result.last_feedback }}</p>{% if not transport_checkpoint_result.complete %}<p>{{ transport_checkpoint_activity.wrong_feedback }}</p>{% endif %}</div>{% endif %}
+  {% if transport_checkpoint_hint_text %}<aside class="gateway-hint"><strong>PISTA</strong><p>{{ transport_checkpoint_hint_text }}</p></aside>{% endif %}
+  <div class="gateway-checkpoint-actions">
+    {% if transport_checkpoint_activity.hints and not transport_checkpoint_result.complete %}<form method="post" action="{% url 'learning:transport_checkpoint_hint' %}" data-transport-checkpoint-form><button>Pedir pista</button>{% csrf_token %}</form>{% endif %}
+    {% if transport_checkpoint_result.complete %}<form method="post" action="{% url 'learning:transport_checkpoint_next' %}" data-transport-checkpoint-form data-next>{% csrf_token %}<button class="gateway-primary">{% if transport_checkpoint_activity.number == 10 %}Concluir{% else %}Próxima situação{% endif %}</button></form>{% endif %}
+    <form method="post" action="{% url 'learning:transport_checkpoint_reset' %}" data-transport-checkpoint-form data-reset>{% csrf_token %}<button>Resetar cenário</button></form>
+  </div>
+{% endif %}
+</div>

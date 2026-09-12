@@ -1,0 +1,64 @@
+{% extends "learning/base.html" %}{% load static %}
+{% block title %}Atividade {{ activity_number }} de {{ activity_total }} · MAC{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/mac-exercises.css' %}">{% endblock %}
+{% block content %}
+<div class="exercise-session mac-exercise-session">
+  <header class="exercise-progress-header">
+    <div><span class="eyebrow">{{ activity.category }}</span><strong>Atividade {{ activity_number }} de {{ activity_total }}</strong></div>
+    <div class="exercise-progress" aria-label="Progresso: atividade {{ activity_number }} de {{ activity_total }}"><span style="width:{% widthratio activity_number activity_total 100 %}%"></span></div>
+  </header>
+  <section class="exercise-heading">
+    {% if activity.concept_badge %}<span class="concept-integration-badge">{{ activity.concept_badge }}</span>{% endif %}
+    <h1>{{ activity.title }}</h1>
+    {% if activity.question %}<p>{{ activity.question }}</p>{% endif %}
+    {% if activity.instruction %}<p>{{ activity.instruction }}</p>{% endif %}
+  </section>
+  {% if activity.context_lines %}<div class="config-strip activity-context-strip">{% for line in activity.context_lines %}<code>{{ line }}</code>{% endfor %}</div>{% endif %}
+  {% if error %}<div class="alert alert-warning" role="alert">{{ error }}</div>{% endif %}
+
+  <section class="exercise-surface type-{{ activity.type }}">
+    {% if activity.situation %}<p class="exercise-context">{{ activity.situation }}</p>{% endif %}
+
+    {% if activity.type == 'visual_selection' or activity.type == 'find_inconsistency' %}
+      <form method="post">{% csrf_token %}<div class="mac-value-grid">{% for option in activity.options %}<button type="submit" name="answer" value="{{ option.key }}" class="mac-value-option {% if result and option.key in result.wrong_answers %}is-wrong{% elif result.complete and option.key == activity.correct %}is-correct{% endif %}" {% if result.complete or result and option.key in result.wrong_answers %}disabled{% endif %}><code>{{ option.text }}</code>{% if result and option.key in result.wrong_answers %}<span>✕ Descartado</span>{% elif result.complete and option.key == activity.correct %}<span>✓ Correto</span>{% endif %}</button>{% endfor %}</div></form>
+
+    {% elif activity.type == 'frame_hotspot' %}
+      <p class="frame-disclaimer">{{ activity.frame_note }}</p><form method="post">{% csrf_token %}<div class="simplified-frame interactive-frame" aria-label="Frame Ethernet simplificado">{% for option in activity.options %}<button type="submit" name="answer" value="{{ option.key }}" class="frame-field {% if result and option.key in result.wrong_answers %}is-wrong{% elif result.complete and option.key == activity.correct %}is-correct{% endif %}" {% if result.complete or result and option.key in result.wrong_answers %}disabled{% endif %}>{{ option.text|linebreaksbr }}</button>{% endfor %}</div></form>
+
+    {% elif activity.type == 'topology_hotspot' %}
+      <form method="post">{% csrf_token %}<div class="mac-topology" aria-label="Topologia interativa">{% for option in activity.options %}<button type="submit" name="answer" value="{{ option.key }}" class="mac-topology-node node-{{ option.key }} {% if result and option.key in result.wrong_answers %}is-wrong{% elif result.complete and option.key == activity.correct %}is-correct{% endif %}" {% if result.complete or result and option.key in result.wrong_answers %}disabled{% endif %}>{{ option.text|linebreaksbr }}</button>{% if not forloop.last %}<span class="topology-wire" aria-hidden="true"></span>{% endif %}{% endfor %}</div></form>
+
+    {% elif activity.type == 'terminal_hotspot' %}
+      <form method="post">{% csrf_token %}<div class="exercise-terminal"><pre>{{ activity.terminal_heading }}</pre><div class="terminal-grid terminal-columns-2">{% for column in activity.terminal_columns %}<strong>{{ column }}</strong>{% endfor %}{% for row in activity.terminal_rows %}{% for cell in row %}<button type="submit" name="answer" value="{{ cell.key }}" class="terminal-cell {% if result and cell.key in result.wrong_answers %}is-wrong{% elif result.complete and cell.key == activity.correct %}is-correct{% endif %}" {% if result.complete or result and cell.key in result.wrong_answers %}disabled{% endif %}>{{ cell.text }}</button>{% endfor %}{% endfor %}</div></div></form>
+
+    {% elif activity.type == 'integrated_flow_builder' %}
+      <form method="post" data-ordering-form>{% csrf_token %}<input type="hidden" name="answer_payload"><ol class="sequence-list integrated-sequence" data-ordering-list>{% for text in display_order %}<li data-value="{{ text }}" class="{% if result and forloop.counter in result.wrong_positions %}position-wrong{% endif %}"><span class="sequence-number">{{ forloop.counter }}</span><span>{{ text }}</span>{% if not result.complete %}<div><button type="button" data-move="up" aria-label="Mover para cima">↑</button><button type="button" data-move="down" aria-label="Mover para baixo">↓</button></div>{% endif %}</li>{% endfor %}</ol>{% if not result.complete %}<button class="btn btn-primary btn-lg">Verificar ordem</button>{% endif %}</form>
+
+    {% else %}
+      {% if activity.outputs %}<div class="mac-output-comparison">{% for output in activity.outputs %}<article><h2>C:\&gt; {{ output.title }}</h2><pre>{{ output.text }}</pre></article>{% endfor %}</div>{% endif %}
+      {% if activity.scenario %}<div class="diagnostic-scenario">{% for line in activity.scenario %}<code>{{ line }}</code>{% endfor %}{% if activity.capture %}<pre>{{ activity.capture }}</pre>{% endif %}</div>{% endif %}
+      {% if activity.incorrect_sentence %}<blockquote class="broken-sentence">{{ activity.incorrect_sentence }}</blockquote>{% endif %}
+      {% if activity.frame_note %}<p class="frame-disclaimer">{{ activity.frame_note }}</p><div class="simplified-frame frame-preview" aria-label="Frame Ethernet simplificado"><div><strong>Destination MAC</strong><span data-slot-preview="destination">_____</span></div><div><strong>Source MAC</strong><span data-slot-preview="source">_____</span></div><div><strong>Dados</strong><span>...</span></div></div>{% endif %}
+      <form method="post" data-builder-form data-required-count="{{ activity.correct_map|length }}" data-locked="{{ result.complete|yesno:'true,false' }}">{% csrf_token %}<input type="hidden" name="answer_payload">
+        <div class="builder-layout {% if activity.type == 'diagnostic_map' or activity.type == 'concept_map_builder' or activity.type == 'role_sort' or activity.type == 'evidence_sort' %}builder-wide{% endif %}">
+          <div class="token-bank"><strong>Elementos disponíveis</strong>{% for token in activity.tokens %}<button type="button" data-token="{{ token.id }}" data-token-text="{{ token.text }}" class="{% if result and token.id in result.error_tokens %}is-last-error{% endif %}">{{ token.text }}</button>{% endfor %}</div>
+          <div class="builder-slots {% if activity.type == 'process_builder' %}process-slots{% endif %}">{% for slot in activity.slots %}<button type="button" class="builder-slot" data-slot="{{ slot.id }}" data-capacity="{{ slot.capacity|default:'one' }}"><strong>{{ slot.label }}</strong><span data-slot-content></span></button>{% endfor %}</div>
+        </div>
+        {% if not result.complete %}<button class="btn btn-primary btn-lg mt-4">Verificar construção</button>{% endif %}
+      </form>
+      {{ builder_initial|json_script:"exercise-initial-payload" }}
+    {% endif %}
+
+    {% if result.attempt_count %}<div class="feedback {% if result.complete %}feedback-correct{% else %}feedback-wrong{% endif %}" role="status"><h3>{% if result.complete %}✓ Correto{% else %}✕ Incorreto{% endif %}</h3><p>{{ result.last_feedback|linebreaksbr }}</p>{% if not result.complete %}<strong>Revise a hipótese e tente novamente.</strong>{% endif %}</div>{% endif %}
+    {% if show_hint %}<aside class="hint"><strong>Pista</strong><p>{{ activity.hint }}</p></aside>{% endif %}
+    {% if result.complete and activity.after %}<blockquote class="diagnostic-note"><strong>{{ activity.after }}</strong></blockquote>{% endif %}
+  </section>
+
+  {% if activity.type == 'concept_map_builder' and result.complete %}
+    <section class="free-explanation"><h2>Autoexplicação final</h2><p>{{ activity.free_question }}</p><form method="post">{% csrf_token %}<textarea name="free_text" rows="6" {% if result.reference_revealed %}readonly{% endif %}>{{ result.free_text }}</textarea>{% if not result.reference_revealed %}<button class="btn btn-outline-primary mt-3" name="reveal_reference" value="1">Mostrar resposta de referência</button>{% endif %}</form>{% if result.reference_revealed %}<div class="reference-answer"><h3>Resposta de referência</h3><p>{{ activity.reference }}</p><p>{{ activity.reference_note }}</p></div>{% endif %}</section>
+  {% endif %}
+
+  {% if result.complete %}{% if activity.type != 'concept_map_builder' or result.reference_revealed %}<form method="post" action="{% url 'learning:mac_advance' activity.id %}" class="next-action">{% csrf_token %}<button class="btn btn-primary btn-lg">{% if activity.number == activity_total %}Concluir sessão{% else %}Continuar{% endif %} →</button></form>{% endif %}{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script>{% endblock %}

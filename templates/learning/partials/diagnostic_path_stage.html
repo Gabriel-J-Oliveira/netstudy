@@ -1,0 +1,13 @@
+<section class="diag-stage" data-diag-stage data-stage-mode="{{ stage_mode|default:'ping' }}" aria-label="Diagnostic Path Stage de PC-A até PC-B por R1, R2 e R3">
+  <header><div><span>DIAGNOSTIC PATH STAGE</span><strong>PC-A → R1 → R2 → R3 → PC-B</strong></div><button type="button" data-diag-reset>↻ Resetar cenário</button></header>
+  <div class="diag-path">
+    <button type="button" data-hop="0" aria-label="Origem PC-A 192.168.10.20"><b>PC-A</b><code>192.168.10.20</code></button><i>→</i>
+    <button type="button" data-hop="1" aria-label="Hop 1 — R1 — resposta ICMP Time Exceeded"><b>R1</b><small>HOP 1</small></button><i>→</i>
+    <button type="button" data-hop="2" aria-label="Hop 2 — R2 — resposta ICMP Time Exceeded"><b>R2</b><small>HOP 2</small></button><i>→</i>
+    <button type="button" data-hop="3" aria-label="Hop 3 — R3 — resposta ICMP Time Exceeded"><b>R3</b><small>HOP 3</small></button><i>→</i>
+    <button type="button" data-hop="4" aria-label="Destino PC-B 192.168.50.30"><b>PC-B</b><code>192.168.50.30</code></button>
+  </div>
+  <div class="diag-packet"><article><span>IPv4</span><dl><dt>Source IP</dt><dd data-ip-source>192.168.10.20</dd><dt>Destination IP</dt><dd data-ip-destination>192.168.50.30</dd><dt>TTL</dt><dd data-ttl>—</dd></dl></article><article><span>ICMP</span><dl><dt>Type</dt><dd data-icmp-type>Echo Request</dd><dt>Message</dt><dd data-icmp-message>Teste ainda não executado</dd></dl></article></div>
+  <div class="diag-controls"><label>TTL <input type="range" min="1" max="4" value="1" data-ttl-control><output data-ttl-output>1</output></label><button type="button" data-diag-run>EXECUTAR</button></div>
+  <ol class="diag-timeline" data-diag-timeline aria-live="polite"></ol><p class="diag-result" data-diag-result>Escolha um TTL ou execute o Ping demonstrativo.</p>
+</section>

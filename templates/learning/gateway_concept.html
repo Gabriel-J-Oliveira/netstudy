@@ -1,50 +1,69 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Default Gateway + Next Hop · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/ipv4-concept.css' %}"><link rel="stylesheet" href="{% static 'css/l3-path-stage.css' %}"><link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}">{% endblock %}
-{% block content %}<main class="gateway-concept">
-<section class="gateway-area gateway-hero" data-gateway-area="01" id="remote-now"><span class="gateway-index">DEFAULT GATEWAY + NEXT HOP · ÁREA 01</span><p class="gateway-kicker">O que o host faz quando o destino está em outra rede?</p><h1>Descobrir que é remoto cria uma nova pergunta</h1>
-  <div class="decision-recap"><article><code>192.168.10.80</code><strong>LOCAL</strong><p>Pertence a 192.168.10.0/24. ARP pode procurar o próprio destino.</p></article><article><code>192.168.20.50</code><strong>REMOTO</strong><p>Não pertence a 192.168.10.0/24.</p></article></div>
-  <h2>Para quem o primeiro frame deve ser entregue?</h2><p>PC-A não consegue entregar diretamente, da forma estudada aqui, um frame Ethernet a PC-B, pois PC-B não faz parte de sua rede Ethernet local.</p><p>PC-A precisa entregar a comunicação a um dispositivo localmente alcançável que possa encaminhá-la em direção a outras redes.</p>
-  <blockquote><strong>Next hop</strong>, ou próximo salto, é o próximo dispositivo de Camada 3 para o qual uma comunicação deve ser encaminhada em seu caminho até o destino final.</blockquote><p>PC-A não precisa alcançar PC-B diretamente naquele primeiro passo. Ele precisa alcançar quem poderá encaminhar a comunicação adiante.</p>
-  {% include "learning/partials/l3_path_stage.html" with stage_id="gateway-intro" stage_mode="choice" %}<div class="stage-question" data-stage-question><strong>CLIQUE NA TOPOLOGIA</strong><p>Qual dispositivo PC-A consegue alcançar diretamente pela LAN para iniciar o caminho?</p><p data-stage-answer>Selecione um dispositivo.</p></div>
-  <aside class="gateway-anchor">DESTINO FINAL ≠ PRÓXIMO SALTO</aside><p class="area-transition">Esse roteador possui um papel tão comum para o host que normalmente aparece diretamente em sua configuração de rede.</p>
-</section>
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/ipv4-concept.css' %}"><link rel="stylesheet" href="{% static 'css/l3-path-stage.css' %}?v=gateway-shared-1"><link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}?v=gateway-shared-1">{% endblock %}
+{% block content %}
+<div class="gateway-concept">
+  <div class="gateway-learning-layout">
+    <main class="gateway-learning-content">
+      <section class="gateway-area gateway-hero" data-gateway-area="01" data-gateway-page-stage="remote" id="remote-now">
+        <span class="gateway-index">DEFAULT GATEWAY + NEXT HOP · ÁREA 01</span>
+        <p class="gateway-kicker">O que o host faz quando o destino está em outra rede?</p>
+        <h1>Destino remoto cria uma nova pergunta</h1>
+        <p>PC-A usa IPv4 + máscara e conclui que <code>192.168.20.50</code> não pertence à sua rede <code>192.168.10.0/24</code>.</p>
+        <blockquote><strong>Next hop</strong>, ou próximo salto, é o próximo dispositivo de Camada 3 para o qual a comunicação deve ser encaminhada no caminho até o destino final.</blockquote>
+        <aside class="gateway-anchor">DESTINO FINAL ≠ PRÓXIMO SALTO</aside>
+        <div class="gateway-task"><a href="#gateway-shared-lab" data-gateway-stage-link="remote">ABRIR ESTA ETAPA NO LABORATÓRIO</a><p>Clique em R1 para identificar o próximo salto local.</p><p data-remote-feedback aria-live="polite">PC-B é o destino final. Qual dispositivo de Camada 3 recebe o primeiro frame?</p></div>
+        <p class="area-transition">O próximo salto local aparece na configuração do host como Default Gateway.</p>
+      </section>
 
-<section class="gateway-area" data-gateway-area="02" id="default-gateway"><span class="gateway-index">ÁREA 02</span><h2>A saída padrão para outras redes</h2>
-  <div class="host-config"><strong>PC-A</strong><span>IPv4 <code>192.168.10.25</code></span><span>Mask <code>255.255.255.0</code></span><span>Default Gateway <code>192.168.10.1</code></span></div>
-  <blockquote>O Default Gateway é o próximo salto utilizado pelo host quando o destino precisa ser alcançado através de outra rede e não existe uma rota mais específica aplicável.</blockquote><p>Nesta aula trabalharemos com cenários simples em que o gateway padrão é a saída utilizada para destinos remotos.</p>
-  <div class="simple-branch"><span>DESTINO LOCAL <b>→</b> entrega local</span><span>DESTINO REMOTO <b>→</b> enviar ao gateway no cenário atual</span></div>
-  <h3>O gateway precisa ser localmente alcançável</h3><div class="gateway-reachability"><article><strong>CONFIGURAÇÃO COERENTE</strong><code>PC-A 192.168.10.25/24</code><code>Gateway 192.168.10.1</code><p>Ambos pertencem a 192.168.10.0/24.</p></article><article><strong>CONFIGURAÇÃO RUIM NESTE CENÁRIO</strong><code>PC-A 192.168.10.25/24</code><code>Gateway 192.168.30.1</code><p>O gateway pertence a outra sub-rede e não é diretamente alcançável naquela LAN.</p></article></div>
-  <div class="gateway-choice" data-gateway-choice><strong>ESCOLHA O GATEWAY LOCALMENTE ALCANÇÁVEL</strong><p>PC-A: 192.168.10.25/24</p><button type="button" data-gateway="192.168.10.1">192.168.10.1</button><button type="button" data-gateway="192.168.20.1">192.168.20.1</button><p aria-live="polite"></p></div>
-  <div class="role-contrast"><span>Destino final <code>8.8.8.8</code></span><span>Gateway <code>192.168.10.1</code></span></div><aside class="gateway-anchor">GATEWAY NÃO SUBSTITUI O DESTINO. ELE É O PRÓXIMO PASSO DO CAMINHO.</aside><p class="area-transition">Sabemos o IP do gateway, mas Ethernet precisa de um endereço MAC. Qual é o MAC do gateway?</p>
-</section>
+      <section class="gateway-area" data-gateway-area="02" data-gateway-page-stage="gateway" id="default-gateway">
+        <span class="gateway-index">ÁREA 02 · DEFAULT GATEWAY</span>
+        <h2>O gateway precisa ser localmente alcançável</h2>
+        <blockquote>O Default Gateway é o próximo salto utilizado pelo host quando o destino precisa ser alcançado através de outra rede e não existe uma rota mais específica aplicável.</blockquote>
+        <div class="gateway-reachability"><article><strong>COERENTE</strong><code>PC-A 192.168.10.25/24</code><code>Gateway 192.168.10.1</code></article><article><strong>INCOERENTE NESTE CENÁRIO</strong><code>PC-A 192.168.10.25/24</code><code>Gateway 192.168.30.1</code></article></div>
+        <div class="gateway-task gateway-choice" data-gateway-choice><a href="#gateway-shared-lab" data-gateway-stage-link="gateway">LOCALIZAR O GATEWAY NO LABORATÓRIO</a><strong>ESCOLHA O GATEWAY LOCALMENTE ALCANÇÁVEL</strong><div><button type="button" data-gateway="192.168.10.1" aria-pressed="false">192.168.10.1</button><button type="button" data-gateway="192.168.30.1" aria-pressed="false">192.168.30.1</button></div><p aria-live="polite">Compare cada endereço com a LAN 192.168.10.0/24.</p></div>
+        <aside class="gateway-anchor">GATEWAY NÃO SUBSTITUI O DESTINO. ELE É O PRÓXIMO PASSO DO CAMINHO.</aside>
+        <p class="area-transition">Sabemos o IPv4 do gateway. Para entregar um frame Ethernet a ele, ainda falta seu MAC.</p>
+      </section>
 
-<section class="gateway-area" data-gateway-area="03" id="gateway-arp"><span class="gateway-index">ÁREA 03</span><h2>Para entregar o primeiro frame, ainda precisamos de um MAC</h2>
-  <div class="gateway-state"><span>PC-A · IP <code>192.168.10.25</code> · MAC <code>AA</code></span><span>Destino final · <code>192.168.20.50</code> · REMOTO</span><span>Next Hop · <code>192.168.10.1</code></span><span>MAC do gateway · <code>?</code></span></div>
-  <p>PC-A usa ARP para descobrir qual MAC corresponde ao endereço do próximo salto local.</p><div class="arp-exchange"><article><strong>ARP Request</strong><code>Who has 192.168.10.1?<br>Tell 192.168.10.25.</code><small>Ethernet Destination: FF:FF:FF:FF:FF:FF</small></article><article><strong>ARP Reply · R1</strong><code>192.168.10.1 is at RR.</code><small>ARP Cache: 192.168.10.1 → RR</small></article></div>
-  <div class="arp-comparison"><article><strong>DESTINO LOCAL</strong><span>Destino 192.168.10.80</span><span>ARP procura 192.168.10.80</span></article><article><strong>DESTINO REMOTO</strong><span>Destino 192.168.20.50</span><span>ARP procura 192.168.10.1</span></article></div>
-  <aside class="gateway-anchor">ARP RESOLVE A ENTREGA LOCAL RELEVANTE.</aside><div class="arp-target" data-arp-target><strong>QUAL IPv4 O ARP DEVE RESOLVER?</strong><p>PC-A 192.168.10.25/24 · Gateway 192.168.10.1 · Destino 10.50.0.20</p><input type="text" aria-label="Alvo IPv4 do ARP"><button type="button">Verificar e animar</button><p aria-live="polite"></p></div>
-  <p class="area-transition">Agora PC-A conhece o MAC do gateway. Podemos montar o frame e observar por que Camada 2 e Camada 3 apontam para dispositivos diferentes.</p>
-</section>
+      <section class="gateway-area" data-gateway-area="03" data-gateway-page-stage="arp" id="gateway-arp">
+        <span class="gateway-index">ÁREA 03 · ARP</span>
+        <h2>ARP resolve o próximo salto local</h2>
+        <p>Para o destino remoto <code>192.168.20.50</code>, PC-A precisa descobrir o MAC correspondente ao gateway local.</p>
+        <div class="arp-comparison"><article><strong>DESTINO LOCAL</strong><span>Destino 192.168.10.80</span><span>ARP procura 192.168.10.80</span></article><article><strong>DESTINO REMOTO</strong><span>Destino 192.168.20.50</span><span>ARP procura 192.168.10.1</span></article></div>
+        <div class="gateway-task arp-target" data-arp-target><a href="#gateway-shared-lab" data-gateway-stage-link="arp">ABRIR ARP NO LABORATÓRIO</a><strong>QUAL IPv4 O ARP DEVE RESOLVER?</strong><p>PC-A 192.168.10.25/24 · Gateway 192.168.10.1 · Destino 192.168.20.50</p><div><input type="text" inputmode="decimal" autocomplete="off" aria-label="Alvo IPv4 do ARP"><button type="button">VERIFICAR E ATUALIZAR</button></div><p aria-live="polite">Informe o endereço que receberá a primeira entrega Ethernet.</p></div>
+        <aside class="gateway-anchor">ARP RESOLVE A ENTREGA LOCAL RELEVANTE.</aside>
+        <p class="area-transition">Com <code>192.168.10.1 → RR</code> no ARP Cache, o primeiro frame pode ser montado.</p>
+      </section>
 
-<section class="gateway-area gateway-strong" data-gateway-area="04" id="frame-packet"><span class="gateway-index">ÁREA 04 · PONTO CENTRAL</span><h2>O frame vai para o gateway. O pacote continua indo ao destino final.</h2>
-  <div class="layer-envelope"><span>ETHERNET · PRIMEIRA LAN</span><dl><dt>Source MAC</dt><dd>AA</dd><dt>Destination MAC</dt><dd><strong>RR · GATEWAY</strong></dd></dl><div><span>IPv4 PACKET</span><dl><dt>Source IP</dt><dd>192.168.10.25</dd><dt>Destination IP</dt><dd><strong>192.168.20.50 · PC-B</strong></dd></dl></div></div>
-  <aside class="gateway-anchor dual-anchor"><span>O DESTINO IP DIZ ONDE A COMUNICAÇÃO QUER CHEGAR.</span><span>O DESTINATION MAC DIZ PARA QUEM AQUELA ENTREGA ETHERNET LOCAL DEVE IR AGORA.</span></aside><p><strong>São diferentes e está correto.</strong> O endereço IP representa o destino da comunicação de Camada 3. O Destination MAC representa o destinatário daquela entrega Ethernet naquele enlace local.</p><p>Neste cenário sem tradução de endereços, o Destination IP continua representando PC-B enquanto o pacote é encaminhado.</p>
-  <div class="destination-builder" data-destination-builder><strong>MONTE A PRIMEIRA ENTREGA</strong><p>Destino final 172.16.20.50 · Gateway 192.168.10.1 · MAC RR</p><label>IPv4 Destination <select data-build="ip"><option value="">Escolha</option><option>172.16.20.50</option><option>192.168.10.1</option></select></label><label>Ethernet Destination <select data-build="mac"><option value="">Escolha</option><option>RR</option><option>172.16.20.50</option></select></label><button type="button">Verificar</button><p aria-live="polite"></p></div>
-  <div class="different-question" data-different-question><p>Destination IP e Destination MAC representarem dispositivos diferentes indica erro?</p><button type="button" data-answer="sim">Sim</button><button type="button" data-answer="nao">Não</button><p aria-live="polite"></p></div>
-  <section class="gateway-inspector" data-gateway-inspector><header><strong>PACKET INSPECTOR</strong><span>Clique em uma camada</span></header><button type="button" data-inspector="ethernet" aria-expanded="true"><b>Ethernet II</b><span>Destination MAC RR · Source MAC AA</span></button><button type="button" data-inspector="ipv4" aria-expanded="false"><b>IPv4</b><span>Source 192.168.10.25 · Destination 192.168.20.50</span></button><p data-inspector-feedback>Ethernet mostra a primeira entrega local.</p></section>
-  <div class="layer-question"><strong>CAMADA 2: “PARA QUEM ENTREGO AGORA?”</strong><strong>CAMADA 3: “ONDE A COMUNICAÇÃO PRECISA CHEGAR?”</strong></div><p>SW1 lê Destination MAC RR e encaminha o frame a R1. Ele não decide usando 192.168.20.50. Ao chegar a R1, o frame cumpriu sua função naquele enlace; o pacote continua e o roteador precisará decidir como encaminhá-lo.</p><p class="area-transition">Temos todas as peças. Agora vamos acompanhar o primeiro salto inteiro.</p>
-</section>
+      <section class="gateway-area gateway-strong" data-gateway-area="04" data-gateway-page-stage="frame" id="frame-packet">
+        <span class="gateway-index">ÁREA 04 · PACOTE × FRAME</span>
+        <h2>O frame vai para R1. O pacote continua destinado a PC-B.</h2>
+        <div class="layer-envelope"><span>ETHERNET · PRIMEIRA LAN</span><dl><dt>Source MAC</dt><dd>AA</dd><dt>Destination MAC</dt><dd><strong>RR · GATEWAY</strong></dd></dl><div><span>IPv4 PACKET</span><dl><dt>Source IP</dt><dd>192.168.10.25</dd><dt>Destination IP</dt><dd><strong>192.168.20.50 · PC-B</strong></dd></dl></div></div>
+        <div class="gateway-task destination-builder" data-destination-builder><a href="#gateway-shared-lab" data-gateway-stage-link="frame">ABRIR PRIMEIRO FRAME NO LABORATÓRIO</a><strong>MONTE A PRIMEIRA ENTREGA</strong><label>IPv4 Destination<select data-build="ip"><option value="">Escolha</option><option>192.168.20.50</option><option>192.168.10.1</option></select></label><label>Ethernet Destination<select data-build="mac"><option value="">Escolha</option><option>RR</option><option>BB</option></select></label><button type="button">VERIFICAR</button><p aria-live="polite">Separe o destino final do destinatário deste enlace.</p></div>
+        <section class="gateway-inspector" data-gateway-inspector><header><strong>PACKET INSPECTOR</strong><span>Clique em uma camada</span></header><button type="button" data-inspector="ethernet" aria-expanded="true"><b>Ethernet II</b><span>Destination MAC RR · Source MAC AA</span></button><button type="button" data-inspector="ipv4" aria-expanded="false"><b>IPv4</b><span>Source 192.168.10.25 · Destination IP 192.168.20.50</span></button><p data-inspector-feedback aria-live="polite">Ethernet mostra a primeira entrega local.</p></section>
+        <div class="layer-question"><strong>MAC: “PARA QUEM ENTREGO AGORA?”</strong><strong>IP: “ONDE A COMUNICAÇÃO PRECISA CHEGAR?”</strong></div>
+        <p class="area-transition">SW1 encaminha o frame usando RR. Ao recebê-lo, R1 precisará decidir o próximo encaminhamento.</p>
+      </section>
 
-<section class="gateway-area gateway-summary" data-gateway-area="05" id="gateway-summary"><span class="gateway-index">ÁREA 05 · VEJA TUDO JUNTO</span><h2>Do destino remoto ao primeiro salto</h2>
-  {% include "learning/partials/l3_path_stage.html" with stage_id="gateway-complete" stage_mode="complete" %}
-  <ol class="gateway-steps"><li>Classificar 192.168.20.50 como <strong>REMOTO</strong>.</li><li>Escolher Next Hop <strong>192.168.10.1</strong>.</li><li>ARP: 192.168.10.1 → <strong>RR</strong>.</li><li>Pacote: Source 192.168.10.25 → Destination <strong>192.168.20.50</strong>.</li><li>Frame: Source AA → Destination <strong>RR</strong>.</li><li>SW1 encaminha usando RR.</li><li>R1 recebe o frame; o pacote continua.</li></ol>
-  <div class="gateway-mental-model"><span>DESTINO IP</span><b>↓</b><span>PERTENCE À MINHA SUB-REDE?</span><div><article><strong>SIM · LOCAL</strong><p>ARP pelo destino<br>MAC Destination = host</p></article><article><strong>NÃO · REMOTO</strong><p>Default Gateway → ARP pelo gateway<br>MAC Destination = gateway</p></article></div></div>
-  <section class="gateway-terminal" data-gateway-terminal><h3>Confirme no terminal</h3>{% include "learning/partials/netstudy_terminal.html" with terminal_title="NetStudy Host Terminal · Gateway" %}<div class="terminal-shortcuts"><button type="button" data-command="ipconfig /all">ipconfig /all</button><button type="button" data-command="arp -a">arp -a</button><button type="button" data-command="route print">route print · próximo módulo</button></div><p data-terminal-explain></p></section>
-  <div class="gateway-rapid" data-gateway-rapid><strong>RAPID FIRE · 4 PERGUNTAS</strong><p data-rapid-question>1. Destino local: ARP procura quem?</p><button type="button" data-rapid="destino">O próprio destino</button><button type="button" data-rapid="gateway">Gateway</button><p data-rapid-feedback></p></div>
-  <div class="gateway-explanation" data-gateway-explanation><h3>Explique antes de revelar</h3><p>Por que um pacote destinado a 192.168.20.50 pode sair de PC-A dentro de um frame cujo Destination MAC pertence ao gateway?</p><textarea rows="4" aria-label="Sua explicação"></textarea><button type="button" data-reference-reveal>Conferir resposta de referência</button><div data-reference hidden><strong>Resposta de referência</strong><p>Porque PC-A identificou que 192.168.20.50 está fora de sua rede local. O destino IP continua sendo o host remoto, mas a primeira entrega Ethernet precisa chegar ao próximo salto local. Por isso o frame usa o MAC do gateway.</p></div></div>
-  <nav class="concept-sequence"><a href="{% url 'learning:ipv4_concept' %}">← IPv4 + Sub-rede</a><a href="{% url 'learning:route_concept' %}">Tabela de Rotas →</a></nav>
-</section>
-<section class="gateway-checkpoint-shell" id="gateway-checkpoint" aria-live="polite">{% include "learning/partials/gateway_checkpoint.html" %}</section>
-</main>{% endblock %}
-{% block scripts %}<script src="{% static 'js/subnet-visualizer.js' %}"></script><script src="{% static 'js/l3-path-stage.js' %}"></script><script src="{% static 'js/gateway-concept.js' %}"></script>{% endblock %}
+      <section class="gateway-area gateway-summary" data-gateway-area="05" data-gateway-page-stage="summary" id="gateway-summary">
+        <span class="gateway-index">ÁREA 05 · SÍNTESE</span>
+        <h2>Do destino remoto ao primeiro salto</h2>
+        <p>Use “Avançar um passo” no mesmo laboratório e acompanhe as seis consequências.</p>
+        <div class="gateway-task"><a href="#gateway-shared-lab" data-gateway-stage-link="summary">ABRIR SÍNTESE NO LABORATÓRIO</a><ol class="gateway-steps"><li data-summary-step="0">Destino classificado como remoto</li><li data-summary-step="1">Gateway escolhido</li><li data-summary-step="2">ARP: 192.168.10.1 → RR</li><li data-summary-step="3">Frame AA → RR; pacote → PC-B</li><li data-summary-step="4">SW1 entrega o frame a R1</li><li data-summary-step="5">R1 recebe e precisa de informações de roteamento</li></ol><p data-summary-feedback aria-live="polite">A sequência começa pela classificação do destino.</p></div>
+        <section class="gateway-terminal" data-gateway-terminal><h3>Confirme no terminal</h3>{% include "learning/partials/netstudy_terminal.html" with terminal_title="NetStudy Host Terminal · Gateway" %}<div class="terminal-shortcuts"><button type="button" data-command="ipconfig /all">ipconfig /all</button><button type="button" data-command="arp -a">arp -a</button><button type="button" data-command="route print">route print · próximo módulo</button></div><p data-terminal-explain aria-live="polite"></p></section>
+        <div class="gateway-explanation" data-gateway-explanation><h3>Explique antes de revelar</h3><p>Por que um pacote destinado a 192.168.20.50 pode sair de PC-A dentro de um frame cujo Destination MAC pertence ao gateway?</p><textarea rows="4" aria-label="Sua explicação"></textarea><button type="button" data-reference-reveal>CONFERIR RESPOSTA DE REFERÊNCIA</button><div data-reference hidden><strong>Resposta de referência</strong><p>Porque PC-A identificou que 192.168.20.50 está fora de sua rede local. O destino IP continua sendo o host remoto, mas a primeira entrega Ethernet precisa chegar ao próximo salto local. Por isso o frame usa o MAC do gateway.</p></div></div>
+        <nav class="concept-sequence"><a href="{% url 'learning:ipv4_concept' %}">← IPv4 + Sub-rede</a><a href="{% url 'learning:route_concept' %}">Tabela de Rotas →</a></nav>
+      </section>
+    </main>
+
+    <aside class="gateway-shared-lab" id="gateway-shared-lab" aria-labelledby="gateway-shared-title">
+      <header class="gateway-shared-heading"><span>CAMINHO COMPARTILHADO</span><strong id="gateway-shared-title" data-gateway-stage-title>Área 01 · Destino remoto e próximo salto</strong><p data-gateway-stage-copy>PC-B é remoto. Selecione o próximo dispositivo de Camada 3 local.</p></header>
+      {% include "learning/partials/l3_path_stage.html" with stage_id="gateway-shared" stage_mode="shared" %}
+      <p class="gateway-shared-feedback" data-gateway-lab-feedback aria-live="polite">Clique em R1 para começar.</p>
+    </aside>
+  </div>
+  <section class="gateway-checkpoint-shell" id="gateway-checkpoint" aria-live="polite">{% include "learning/partials/gateway_checkpoint.html" %}</section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/subnet-visualizer.js' %}"></script><script src="{% static 'js/l3-path-stage.js' %}?v=gateway-shared-1"></script><script src="{% static 'js/gateway-concept.js' %}?v=gateway-shared-1"></script>{% endblock %}

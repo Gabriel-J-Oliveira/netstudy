@@ -1928,11 +1928,47 @@ class GatewayConceptTests(TestCase):
 
     def test_l3_stage_and_layered_destinations(self):
         response = self.client.get(reverse("learning:gateway_concept"))
-        self.assertContains(response, "data-l3-stage", count=2, html=False)
+        self.assertContains(response, "data-l3-stage", count=1, html=False)
+        self.assertContains(response, 'data-stage-id="gateway-shared"', count=1, html=False)
         self.assertContains(response, "R1 — Default Gateway — 192.168.10.1 — MAC RR")
         self.assertContains(response, "Destination MAC")
         self.assertContains(response, "Destination IP")
         self.assertContains(response, "DESTINO FINAL ≠ PRÓXIMO SALTO")
+
+    def test_shared_path_has_gateway_arp_builder_and_six_step_actions(self):
+        response = self.client.get(reverse("learning:gateway_concept"))
+        for fragment in (
+            'data-gateway="192.168.10.1"', 'data-gateway="192.168.30.1"',
+            "data-arp-target", "data-destination-builder", "data-gateway-inspector",
+        ):
+            self.assertContains(response, fragment, html=False)
+        self.assertContains(response, "data-summary-step=", count=6, html=False)
+        source = (settings.BASE_DIR / "static" / "js" / "l3-path-stage.js").read_text(encoding="utf-8")
+        self.assertIn("this.maxPhase = 5", source)
+        self.assertIn("l3stage:phase", source)
+
+    def test_remote_ip_and_gateway_mac_are_explicit_and_redundancy_is_removed(self):
+        response = self.client.get(reverse("learning:gateway_concept"))
+        self.assertContains(response, "Destination IP 192.168.20.50")
+        self.assertContains(response, "Destination MAC RR")
+        self.assertContains(response, "MAC: “PARA QUEM ENTREGO AGORA?”")
+        self.assertContains(response, "IP: “ONDE A COMUNICAÇÃO PRECISA CHEGAR?”")
+        self.assertNotContains(response, "Destination IP e Destination MAC representarem dispositivos diferentes indica erro?")
+        self.assertNotContains(response, "data-different-question", html=False)
+        self.assertNotContains(response, "data-gateway-rapid", html=False)
+        self.assertNotContains(response, "RAPID FIRE")
+        source = (settings.BASE_DIR / "static" / "js" / "gateway-concept.js").read_text(encoding="utf-8")
+        self.assertNotIn("setTimeout", source)
+        self.assertNotIn("data-rapid", source)
+
+    def test_shared_path_accessibility_and_responsive_contract(self):
+        response = self.client.get(reverse("learning:gateway_concept"))
+        self.assertContains(response, '<button type="button" class="l3-node', count=4, html=False)
+        self.assertContains(response, 'aria-live="polite"', html=False)
+        css = (settings.BASE_DIR / "static" / "css" / "gateway-concept.css").read_text(encoding="utf-8")
+        stage_css = (settings.BASE_DIR / "static" / "css" / "l3-path-stage.css").read_text(encoding="utf-8")
+        for fragment in ("position: sticky", "position: static", "max-width: 360px", "prefers-reduced-motion", ":focus-visible"):
+            self.assertTrue(fragment in css or fragment in stage_css)
 
     def test_packet_inspector_terminal_and_cli_consolidation(self):
         response = self.client.get(reverse("learning:gateway_concept"))

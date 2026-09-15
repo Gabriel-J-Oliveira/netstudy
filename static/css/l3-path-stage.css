@@ -1,1 +1,44 @@
-.l3-path-stage{margin:1.5rem 0;border:1px solid #9cb4c4;background:#f6fafc;overflow:hidden}.l3-path-stage>header{display:flex;justify-content:space-between;gap:1rem;padding:.85rem 1rem;background:#102b42;color:#fff}.l3-path-stage>header span{display:block;font-size:.68rem;font-weight:900;letter-spacing:.12em}.l3-path-stage>header button{border:1px solid #b9d1df;background:transparent;color:#fff;padding:.45rem .7rem}.l3-topology{display:grid;grid-template-columns:1fr auto 1fr auto 1.25fr auto 1fr;gap:.5rem;align-items:center;padding:1.2rem}.l3-node{display:flex;min-height:105px;flex-direction:column;justify-content:center;gap:.3rem;padding:.75rem;border:2px solid #7592a4;background:#fff;color:#17384d;text-align:center}.l3-node.router{border-color:#a65b00;background:#fff6e8}.l3-node.host-b{border-style:dashed}.l3-node.is-inspected{outline:4px solid #087ea4;outline-offset:2px}.l3-link,.l3-remote-link{color:#547386;text-align:center}.l3-remote-link{font-size:.68rem;font-weight:900}.l3-transit{max-width:740px;margin:0 auto;padding:1rem;opacity:.3;transform:translateX(-10%);transition:.35s}.l3-transit[data-phase="1"],.l3-transit[data-phase="2"]{opacity:.65}.l3-transit[data-phase="3"],.l3-transit[data-phase="4"]{opacity:1;transform:none}.ethernet-envelope{padding:1rem;border:4px solid #087ea4;background:#e8f7fc}.ethernet-envelope>span,.ipv4-packet>span{display:block;margin-bottom:.6rem;font-size:.7rem;font-weight:900;letter-spacing:.08em}.ethernet-envelope dl,.ipv4-packet dl{display:grid;grid-template-columns:1fr 1fr;margin:0}.ethernet-envelope dt,.ethernet-envelope dd,.ipv4-packet dt,.ipv4-packet dd{margin:0;padding:.25rem}.ipv4-packet{margin-top:.8rem;padding:.8rem;border:3px solid #7952b3;background:#f5f0ff}.is-at-router .ethernet-envelope{border-style:dashed;opacity:.55}.is-at-router .ipv4-packet{opacity:1}.l3-stage-state{display:grid;grid-template-columns:auto 1fr;gap:.45rem 1rem;margin:0 1rem;padding:1rem;background:#102b42;color:#e7f4fa}.l3-stage-state p{grid-column:1/-1;margin:0}.l3-controls{padding:1rem;text-align:center}.l3-controls button{padding:.65rem 1rem;border:1px solid #087ea4;background:#087ea4;color:#fff;font-weight:800}@media(max-width:1050px){.l3-topology{grid-template-columns:1fr}.l3-link{transform:rotate(90deg)}.l3-remote-link{padding:.5rem}.l3-node{min-height:80px}}
+.l3-path-stage { margin: 1.5rem 0; overflow: hidden; border: 1px solid #9cb4c4; background: #f6fafc; }
+.l3-path-stage > header { display: flex; justify-content: space-between; gap: 1rem; padding: .85rem 1rem; background: #102b42; color: #fff; }
+.l3-path-stage > header span { display: block; font-size: .68rem; font-weight: 900; letter-spacing: .12em; }
+.l3-path-stage > header button { padding: .45rem .7rem; border: 1px solid #b9d1df; background: transparent; color: #fff; }
+.l3-topology { display: grid; grid-template-columns: 1fr auto 1fr auto 1.25fr auto 1fr; gap: .5rem; align-items: center; padding: 1.2rem; }
+.l3-node { display: flex; min-height: 105px; flex-direction: column; justify-content: center; gap: .3rem; padding: .75rem; border: 2px solid #7592a4; background: #fff; color: #17384d; text-align: center; }
+.l3-node.router { border-color: #a65b00; background: #fff6e8; }
+.l3-node.host-b { border-style: dashed; }
+.l3-node.is-inspected { outline: 4px solid #087ea4; outline-offset: 2px; }
+.l3-node.is-path-current { border-color: #08733e; background: #eaf8f0; box-shadow: inset 0 0 0 2px #08733e; }
+.l3-link, .l3-remote-link { color: #547386; text-align: center; }
+.l3-remote-link { font-size: .68rem; font-weight: 900; }
+.l3-transit { max-width: 740px; margin: 0 auto; padding: 1rem; opacity: .3; transform: translateX(-10%); transition: .35s; }
+.l3-transit[data-phase="1"], .l3-transit[data-phase="2"] { opacity: .65; }
+.l3-transit[data-phase="3"], .l3-transit[data-phase="4"], .l3-transit[data-phase="5"] { opacity: 1; transform: none; }
+.ethernet-envelope { padding: 1rem; border: 4px solid #087ea4; background: #e8f7fc; }
+.ethernet-envelope > span, .ipv4-packet > span { display: block; margin-bottom: .6rem; font-size: .7rem; font-weight: 900; letter-spacing: .08em; }
+.ethernet-envelope dl, .ipv4-packet dl { display: grid; grid-template-columns: 1fr 1fr; margin: 0; }
+.ethernet-envelope dt, .ethernet-envelope dd, .ipv4-packet dt, .ipv4-packet dd { margin: 0; padding: .25rem; }
+.ipv4-packet { margin-top: .8rem; padding: .8rem; border: 3px solid #7952b3; background: #f5f0ff; }
+.is-at-router .ethernet-envelope { border-style: dashed; opacity: .55; }
+.is-at-router .ipv4-packet { opacity: 1; }
+.l3-stage-state { display: grid; grid-template-columns: auto 1fr; gap: .45rem 1rem; margin: 0 1rem; padding: 1rem; background: #102b42; color: #e7f4fa; }
+.l3-stage-state p { grid-column: 1 / -1; margin: 0; }
+.l3-controls { padding: 1rem; text-align: center; }
+.l3-controls button { min-height: 44px; padding: .65rem 1rem; border: 1px solid #087ea4; background: #087ea4; color: #fff; font-weight: 800; }
+.l3-path-stage button:focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
+
+@media (max-width: 1050px) {
+  .l3-topology { grid-template-columns: 1fr; }
+  .l3-link { transform: rotate(90deg); }
+  .l3-remote-link { padding: .5rem; }
+  .l3-node { min-height: 80px; }
+}
+@media (max-width: 360px) {
+  .l3-path-stage > header { align-items: flex-start; flex-direction: column; }
+  .l3-topology, .l3-transit { padding: .65rem; }
+  .l3-stage-state { grid-template-columns: 1fr; margin-inline: .65rem; }
+  .l3-stage-state p { grid-column: auto; }
+  .ethernet-envelope dl, .ipv4-packet dl { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .l3-path-stage * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

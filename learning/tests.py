@@ -2041,11 +2041,12 @@ class RouteConceptTests(TestCase):
         response = self.client.get(reverse("learning:route_concept"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-route-area=", count=5, html=False)
-        self.assertContains(response, "ROUTING TABLE VISUALIZER", count=3)
+        self.assertContains(response, "ROUTING TABLE VISUALIZER", count=1)
+        self.assertContains(response, "data-route-visualizer", count=1, html=False)
         self.assertContains(response, "Como um host ou roteador decide qual caminho usar?")
         self.assertContains(response, "O DESTINO ESCOLHE A ROTA")
-        for node in ("PC-A", "SW1", "R1", "R2", "Internet", "LAN 2"):
-            self.assertContains(response, node)
+        for destination in ("192.168.10.80", "192.168.20.50", "8.8.8.8"):
+            self.assertContains(response, destination)
 
     def test_route_anatomy_direct_next_hop_and_default(self):
         response = self.client.get(reverse("learning:route_concept"))
@@ -2060,8 +2061,35 @@ class RouteConceptTests(TestCase):
         for prefix in ("10.0.0.0/8", "10.10.0.0/16", "10.10.20.0/24"):
             self.assertContains(response, prefix)
         source = (settings.BASE_DIR / "static" / "js" / "routing-table-visualizer.js").read_text(encoding="utf-8")
-        for fragment in ("function routeMatches", "function selectRoute", "matches.sort", "is-selected", "NO MATCH"):
+        for fragment in ("function routeMatches", "function selectRoute", "matches.sort", "test(destination)", "selectBest()", "COMPATÍVEL", "NÃO COMBINA", "VENCEDORA"):
             self.assertIn(fragment, source)
+
+    def test_guided_actions_replace_old_quizzes_and_rapid_fire(self):
+        response = self.client.get(reverse("learning:route_concept"))
+        for fragment in (
+            'data-route-preset="192.168.10.80"',
+            'data-route-preset="192.168.20.50"',
+            'data-route-preset="8.8.8.8"',
+            'data-specificity-destination="10.10.20.50"',
+            'data-specificity-destination="10.50.1.20"',
+            "data-summary-next",
+            "data-route-new-frame",
+        ):
+            self.assertContains(response, fragment, html=False)
+        for removed in ("data-human-route", "data-show-decision", "data-route-choice", "data-direct-choice", "data-route-rapid", "RAPID FIRE"):
+            self.assertNotContains(response, removed)
+
+    def test_visualizer_is_accessible_responsive_and_has_no_timed_sequence(self):
+        response = self.client.get(reverse("learning:route_concept"))
+        self.assertContains(response, 'data-route-field="prefix"', count=3, html=False)
+        self.assertContains(response, 'aria-live="polite"', html=False)
+        visualizer = (settings.BASE_DIR / "static" / "js" / "routing-table-visualizer.js").read_text(encoding="utf-8")
+        concept = (settings.BASE_DIR / "static" / "js" / "route-concept.js").read_text(encoding="utf-8")
+        css = (settings.BASE_DIR / "static" / "css" / "route-concept.css").read_text(encoding="utf-8")
+        self.assertIn('event.key === "Enter"', visualizer)
+        self.assertNotIn("setTimeout", visualizer + concept)
+        for fragment in (":focus-visible", "max-width: 360px", "prefers-reduced-motion", "position: sticky", "position: static"):
+            self.assertIn(fragment, css)
 
     def test_l3_to_l2_and_cli_are_delayed(self):
         response = self.client.get(reverse("learning:route_concept"))
@@ -2109,7 +2137,7 @@ class RouteConceptTests(TestCase):
         self.assertContains(self.client.get(reverse("learning:home")), reverse("learning:route_concept"))
         self.assertContains(self.client.get(reverse("learning:gateway_concept")), reverse("learning:route_concept"))
         source=(settings.BASE_DIR / "static" / "js" / "route-concept.js").read_text(encoding="utf-8")
-        self.assertIn("fetch(f.action", source); self.assertIn("memory", source)
+        self.assertIn("fetch(form.action", source); self.assertIn("memory", source)
 
 
 class InterVlanConceptTests(TestCase):

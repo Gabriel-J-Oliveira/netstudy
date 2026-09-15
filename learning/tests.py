@@ -1335,32 +1335,58 @@ class DeliveryConceptAndCheckpointTests(TestCase):
         response = self.client.get(reverse("learning:delivery_concept"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-delivery-area=", count=5, html=False)
-        self.assertContains(response, "data-switch-board", count=5, html=False)
-        self.assertContains(response, "switch-board-didactic", count=5, html=False)
+        self.assertContains(response, "data-switch-board", count=1, html=False)
+        self.assertContains(response, "switch-board-didactic", count=1, html=False)
+        self.assertContains(response, "data-switch-port=", count=8, html=False)
+        self.assertContains(response, 'data-board-id="delivery-concept-shared"', html=False)
+        self.assertContains(response, 'data-scenario="delivery-concept-shared"', html=False)
         self.assertContains(response, "FF:FF:FF:FF:FF:FF")
         self.assertContains(response, "UNKNOWN UNICAST")
         self.assertContains(response, "O destino escrito no frame revela a intenção da entrega")
-        self.assertContains(response, "data-concept-question=", count=3, html=False)
         self.assertContains(response, "Um frame saiu por três portas do switch")
         self.assertContains(response, "Esta explicação não recebe pontuação")
         self.assertContains(response, "Destination DD → Unicast")
+        self.assertContains(response, "Um roteador não encaminha esse mesmo frame Ethernet broadcast")
+        self.assertNotContains(response, "data-concept-question")
+        self.assertNotContains(response, "data-unicast-question")
+        self.assertNotContains(response, "data-broadcast-question")
+        self.assertNotContains(response, "data-unknown-question")
         self.assertNotContains(response, "EVIDENCE BOARD")
-        self.assertContains(response, "delivery-concept.js?v=delivery-clarity-3")
+        self.assertContains(response, "delivery-concept.js?v=delivery-shared-1")
 
     def test_simplified_delivery_buttons_keep_the_javascript_contract(self):
         response = self.client.get(reverse("learning:delivery_concept"))
         html = response.content.decode()
         script = (settings.BASE_DIR / "static" / "js" / "delivery-concept.js").read_text(encoding="utf-8")
         selectors = (
-            "data-opening-demo", "data-unicast-demo",
-            "data-unicast-question", "data-broadcast-demo", "data-broadcast-question",
-            "data-unknown-demo", "data-unknown-question", "data-summary",
+            "data-delivery-stage-link", "data-destination-feedback",
+            "data-known-destination", "data-known-entry", "data-known-port",
+            "data-broadcast-confirm", "data-unknown-table-check", "data-unknown-confirm",
+            "data-summary",
             "data-arp-demo", "data-delivery-reference-button", "data-delivery-checkpoint-start",
         )
         for selector in selectors:
             with self.subTest(selector=selector):
                 self.assertIn(selector, html)
                 self.assertIn(selector, script)
+
+    def test_shared_delivery_lab_has_direct_actions_keyboard_and_responsive_contract(self):
+        board_script = (settings.BASE_DIR / "static" / "js" / "switch-board.js").read_text(encoding="utf-8")
+        concept_script = (settings.BASE_DIR / "static" / "js" / "delivery-concept.js").read_text(encoding="utf-8")
+        concept_css = (settings.BASE_DIR / "static" / "css" / "delivery-concept.css").read_text(encoding="utf-8")
+        self.assertIn('"delivery-concept-shared"', board_script)
+        self.assertNotIn('"delivery-didactic-opening"', board_script)
+        self.assertIn("OUTPUT_PORTS = [3, 4, 6]", concept_script)
+        self.assertIn('activeStage === "known"', concept_script)
+        self.assertIn('activeStage === "broadcast"', concept_script)
+        self.assertIn('activeStage === "unknown"', concept_script)
+        self.assertIn('["Enter", " "]', concept_script)
+        self.assertIn("DD continua sendo o Destination MAC em todas as cópias", concept_script)
+        self.assertNotIn("lockAnswer", concept_script)
+        self.assertIn("position: sticky", concept_css)
+        self.assertIn("position: static", concept_css)
+        self.assertIn("@media (max-width: 360px)", concept_css)
+        self.assertIn("prefers-reduced-motion", concept_css)
 
     def test_navigation_connects_switch_delivery_and_future_vlan(self):
         route = reverse("learning:delivery_concept")

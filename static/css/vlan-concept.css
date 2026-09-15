@@ -5,284 +5,152 @@
   --soft: #eff7fb;
 }
 
-.vlan-area {
-  scroll-margin-top: 1rem;
-  margin: 0 0 4rem;
-  padding: clamp(1.2rem, 3vw, 2.5rem);
-  border: 1px solid #d8e4ef;
-  border-radius: 20px;
-  background: #fff;
-}
-
-.vlan-area h1 { max-width: 940px; color: var(--ink); font-size: clamp(2.3rem, 4.5vw, 4.4rem); font-weight: 800; letter-spacing: -.035em; }
-.vlan-area h2 { max-width: 880px; color: var(--ink); font-size: clamp(1.8rem, 3.2vw, 2.8rem); font-weight: 800; letter-spacing: -.025em; }
+.vlan-learning-layout { display: grid; grid-template-columns: minmax(300px, .72fr) minmax(600px, 1.28fr); gap: clamp(1.25rem, 2.4vw, 2.5rem); align-items: start; }
+.vlan-learning-content { grid-column: 1; grid-row: 1; min-width: 0; }
+.vlan-area { scroll-margin-top: 1rem; margin: 0 0 3rem; padding: clamp(1.2rem, 2.5vw, 2.2rem); border: 1px solid #d8e4ef; border-radius: 18px; background: #fff; }
+.vlan-area h1 { color: var(--ink); font-size: clamp(2rem, 3.6vw, 3.7rem); font-weight: 800; letter-spacing: -.035em; }
+.vlan-area h2 { color: var(--ink); font-size: clamp(1.55rem, 2.6vw, 2.35rem); font-weight: 800; letter-spacing: -.025em; }
 .vlan-area h3 { color: var(--ink); }
-.vlan-area > p { max-width: 860px; font-size: 1.06rem; }
+.concept-kicker { display: block; margin-bottom: .75rem; color: #64748b; font-size: .76rem; font-weight: 800; letter-spacing: .13em; }
 
-.concept-kicker {
-  display: block;
-  margin-bottom: .75rem;
-  color: #64748b;
-  font-size: .76rem;
-  font-weight: 800;
-  letter-spacing: .13em;
-}
-
-.broadcast-frame,
-.central-question,
-.access-chain,
-.frame-context,
-.final-vlan-model {
-  margin: 1.35rem 0;
-  padding: 1.2rem;
-  border-radius: 13px;
-  background: #112d49;
-  color: #e4f0fb;
-}
-
-.broadcast-frame { display: grid; justify-items: center; gap: .45rem; }
-.broadcast-frame strong { color: #ffca65; font: 800 clamp(1.3rem, 3vw, 2.2rem) Consolas, monospace; }
-.broadcast-frame small { font-weight: 750; letter-spacing: .08em; }
-.central-question { color: #fff; font-size: clamp(1.25rem, 2.5vw, 2rem); font-weight: 850; text-align: center; }
-
-.group-problem,
-.before-after,
-.logical-groups,
-.clarity-notes,
-.physical-logical {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin: 1.4rem 0;
-}
-
-.group-problem article,
-.before-after article,
-.logical-groups article,
-.clarity-notes article {
-  padding: 1.15rem;
-  border: 1px solid #c3d3e1;
-  border-radius: 12px;
-  background: #f8fbfe;
-}
-
-.group-problem article:first-child,
-.logical-groups article:first-child { border-top: 5px solid var(--vlan10); }
-.group-problem article:last-child,
-.logical-groups article:last-child { border-top: 5px solid var(--vlan20); }
-.group-problem span,
-.before-after span,
-.logical-groups span { display: block; margin-bottom: .45rem; color: #5f7488; font-size: .7rem; font-weight: 850; letter-spacing: .09em; }
-.logical-groups p { margin: .25rem 0; }
-
-.vlan-definition,
+.vlan-task,
 .vlan-main-rule,
-.vlan-question,
-.vlan-explorer,
-.access-change,
-.arp-example,
-.layer3-note {
-  margin: 1.4rem 0;
-  padding: 1.15rem 1.25rem;
-  border: 1px solid #bfd0df;
-  border-left: 5px solid #16706b;
-  border-radius: 0 12px 12px 0;
-  background: #f8fbfe;
-}
+.arp-example { display: grid; gap: .75rem; margin: 1.25rem 0; padding: 1rem; border: 1px solid #bfd0df; border-radius: 12px; background: #f8fbfe; }
+.vlan-task p,
+.vlan-main-rule p { margin: 0; }
+.vlan-main-rule { border-left: 5px solid #16706b; }
+.vlan-main-rule strong { color: #123f63; }
+.arp-example { border-left: 5px solid #d38b21; background: #fff9ec; }
+.layer3-note { margin: 1.25rem 0; padding: 1rem; border-left: 5px solid var(--vlan20); background: #f5f1fc; color: #3f3264; }
+.vlan-lab-jump { justify-self: start; padding: .7rem .85rem; border: 1px solid #16706b; border-radius: 8px; color: #125c57; font-size: .76rem; font-weight: 850; letter-spacing: .05em; text-decoration: none; }
+.vlan-lab-jump:hover { background: #e9f7f5; }
+.vlan-lab-jump:focus-visible { outline: 3px solid #ffbf47; outline-offset: 3px; }
 
-.vlan-definition { display: grid; gap: .4rem; }
-.vlan-definition span { font-weight: 850; letter-spacing: .08em; }
-.vlan-definition p { margin: 0; }
-.vlan-definition small { color: #5d7286; }
-.vlan-main-rule strong { color: #123f63; font-size: 1.12rem; }
-.vlan-main-rule p { margin: .45rem 0 0; }
-.transition-copy { margin-top: 2rem !important; color: #36546f; }
+.vlan-action-list,
+.summary-sequence { display: grid; gap: .55rem; margin: 0; padding: 0; list-style: none; }
+.vlan-action-list li,
+.summary-sequence li { position: relative; padding: .65rem .75rem .65rem 2.35rem; border: 1px solid #c9d7e4; border-radius: 8px; background: #fff; color: #4d657b; }
+.vlan-action-list li::before,
+.summary-sequence li::before { position: absolute; top: .62rem; left: .75rem; content: "○"; color: #60798f; font-weight: 900; }
+.vlan-action-list li.is-done,
+.summary-sequence li.is-done { border-color: #3c9c71; background: #e9f7f0; color: #115a3e; font-weight: 750; }
+.vlan-action-list li.is-done::before,
+.summary-sequence li.is-done::before { content: "✓"; color: #13704c; }
+.summary-sequence li.is-current { outline: 3px solid rgba(23,107,206,.2); }
 
-.vlan-explorer > div,
-.vlan-question > div,
-.vlan-actions,
-.summary-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .65rem;
-  margin: .8rem 0;
-}
-
-.vlan-explorer button,
-.vlan-question button,
-.vlan-actions button,
-.summary-controls button {
-  min-height: 45px;
-  padding: .7rem .9rem;
-  border: 1px solid #218079;
-  border-radius: 8px;
-  background: #fff;
-  color: #125c57;
-  font-weight: 750;
-}
-
-button.is-active,
-.vlan-explorer button.is-active,
-.vlan-actions button.is-active,
-.summary-controls button.is-active { border-color: #176bce; background: #e6f1fd; box-shadow: 0 0 0 3px rgba(23,107,206,.14); color: #153f6b; }
-button.is-correct { border-color: #16845a !important; background: #e5f7ed !important; color: #115a3e !important; }
-button.is-wrong { border-color: #c53838 !important; background: #fff0f0 !important; color: #8c2424 !important; }
-
-.physical-logical-anchor {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: .7rem 1rem;
-  align-items: center;
-  margin: 1.5rem 0;
-  padding: 1.2rem;
-  border-radius: 12px;
-  background: #112d49;
-  color: #fff;
-  text-align: center;
-}
-
-.physical-logical-anchor b { color: #ffca65; font-size: 2rem; }
-.physical-logical-anchor span { padding: .6rem; border: 1px solid #506f8c; border-radius: 8px; }
-.physical-logical-anchor span:first-of-type { grid-column: 1 / 2; }
-.physical-logical-anchor span:last-of-type { grid-column: 3 / 4; }
-
+.before-after,
+.clarity-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.3rem 0; }
+.before-after article,
+.clarity-notes article { padding: 1rem; border: 1px solid #c3d3e1; border-radius: 12px; background: #f8fbfe; }
+.before-after article:first-child { border-top: 5px solid var(--vlan20); }
+.before-after article:last-child { border-top: 5px solid var(--vlan10); }
+.before-after span { display: block; margin-bottom: .4rem; color: #5f7488; font-size: .7rem; font-weight: 850; letter-spacing: .09em; }
 .clarity-notes article:first-child { border-left: 5px solid #d28a22; }
 .clarity-notes article:last-child { border-left: 5px solid #73869a; }
-.clarity-notes p { margin: .45rem 0 0; }
+.clarity-notes p { margin: .4rem 0 0; }
+.nothing-physical { display: grid; gap: .35rem; margin: 1.3rem 0; padding: 1rem; border-radius: 12px; background: #112d49; color: #fff; text-align: center; }
+.nothing-physical strong { color: #65e1ad; }
+.transition-copy { margin-top: 1.7rem; color: #36546f; }
 
-.access-chain,
-.delivery-conclusion {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: .7rem;
-  flex-wrap: wrap;
-}
-
-.access-chain strong { color: #65e1ad; }
-.port-comparison { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; margin: 1.4rem 0; }
-.port-comparison article { display: grid; gap: .35rem; padding: 1rem; border-top: 5px solid var(--vlan10); background: #f1f7fa; }
-.port-comparison article:nth-child(n+3) { border-top-color: var(--vlan20); }
-.port-comparison span { color: #355f72; font-size: .84rem; font-weight: 750; }
-.port-comparison small { color: #667a8e; }
-
-.physical-logical span { display: grid; gap: .25rem; padding: 1rem; border: 1px solid #c1d1df; border-radius: 10px; }
-.physical-logical small { color: #60758a; font-weight: 850; letter-spacing: .08em; }
-.inspector-hint { color: #60758a; font-size: .86rem !important; }
-
-.frame-context { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; justify-content: center; text-align: center; }
-.frame-context strong { color: #65e1ad; }
-.vlan-observation { padding: 1rem; border-left: 5px solid #0891b2; background: #ecfeff; }
-
-.mac-context-table {
-  display: grid;
-  width: min(100%, 680px);
-  margin: 1.5rem 0;
-  border: 1px solid #bacbd9;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.mac-context-table > strong { padding: .7rem 1rem; background: #e8f0f7; color: #24445f; font-size: .75rem; letter-spacing: .08em; }
-.mac-context-table > div { display: grid; grid-template-columns: .55fr 1fr 1fr; padding: .65rem 1rem; border-top: 1px solid #e0e9f0; }
-.mac-context-table > div:first-of-type { color: #62778b; font-size: .68rem; font-weight: 850; }
-
-.previous-connection { display: grid; gap: .5rem; margin: 1.4rem 0; padding: 1rem; border-radius: 11px; background: #f2f6fa; }
-.previous-connection span,
-.previous-connection b { color: #60758a; font-size: .7rem; letter-spacing: .08em; }
-.previous-connection b { margin-top: .4rem; color: #176bce; }
-.arp-example { border-left-color: #d38b21; background: #fff9ec; }
-.layer3-note { border-left-color: #6d45b5; background: #f5f1fc; }
-
-.summary-controls { margin: 1.3rem 0; }
-.summary-controls p { flex-basis: 100%; margin: .4rem 0 0; }
-.nothing-physical { display: grid; gap: .35rem; margin: 1.3rem 0; padding: 1.1rem; border-radius: 12px; background: #112d49; color: #fff; text-align: center; }
-.nothing-physical strong { color: #65e1ad; font-size: 1.3rem; }
-
-.final-vlan-model { display: grid; justify-items: center; gap: .45rem; text-align: center; }
-.final-vlan-model > div { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; width: min(100%, 520px); }
-.final-vlan-model > div strong { padding: .7rem; border: 1px solid #597791; border-radius: 9px; color: #65e1ad; }
-.final-vlan-model > strong { color: #65e1ad; }
-.concept-sequence { display: flex; justify-content: space-between; gap: 1rem; margin: 2rem 0; padding: 1rem 0; border-top: 1px solid #d9e4ef; }
+.mac-context-reminder { display: grid; gap: .5rem; margin: 1.3rem 0; padding: 1rem; border: 1px solid #bacbd9; border-radius: 11px; background: #f8fbfe; }
+.mac-context-reminder strong { color: #24445f; font-size: .75rem; letter-spacing: .08em; }
+.mac-context-reminder span { padding-top: .5rem; border-top: 1px solid #dce6ee; }
 
 .vlan-cli-proof,
 .self-explanation,
-.next-problem {
-  margin: 1.5rem 0;
-  padding: 1.3rem;
-  border: 1px solid #c2d2df;
-  border-radius: 14px;
-  background: #f8fbfe;
-}
+.next-problem { margin: 1.5rem 0; padding: 1.2rem; border: 1px solid #c2d2df; border-radius: 13px; background: #f8fbfe; }
 .vlan-cli-proof pre { margin: 1rem 0; padding: 1rem; border-radius: 10px; background: #112d49; color: #e8f4ff; overflow-x: auto; }
-.vlan-cli-proof > small { display: block; color: #5f7285; }
 .cli-vlan-choices { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin: 1rem 0; }
 .cli-vlan-choices button { display: grid; gap: .3rem; padding: .9rem; border: 1px solid #218079; border-radius: 9px; background: #fff; color: #125c57; text-align: left; }
-.switch-board-vlan .switch-port.is-cli-highlight rect,
-.switch-board-vlan .host.is-cli-highlight rect { stroke: #f6b73c; stroke-width: 7px; filter: drop-shadow(0 0 7px rgba(246,183,60,.8)); }
+.cli-vlan-choices button.is-active { border-color: #176bce; background: #e6f1fd; box-shadow: 0 0 0 3px rgba(23,107,206,.14); color: #153f6b; }
 .self-explanation { display: grid; gap: .8rem; border-left: 5px solid #6d45b5; }
 .self-explanation textarea { width: 100%; padding: .85rem; border: 1px solid #9eb2c4; border-radius: 9px; resize: vertical; }
 .self-explanation .btn { justify-self: start; }
 .reference-answer { padding: 1rem; border-radius: 10px; background: #eef7f3; }
 .reference-answer p { margin-bottom: .4rem; }
 .next-problem { border-left: 5px solid #d28a22; background: #fffaf0; }
-.two-switch-contexts { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem; margin: 1rem 0; }
-.two-switch-contexts article { display: grid; gap: .45rem; padding: 1rem; border: 1px solid #b9cad8; border-radius: 10px; background: #fff; }
-.two-switch-contexts article strong { color: var(--ink); font-size: 1.2rem; }
-.two-switch-contexts > b { color: #a46510; font: 800 1.1rem Consolas, monospace; }
 
-/* Variante didática de VLAN: quatro hosts/portas e contexto VLAN, sem ferramentas avançadas. */
-.switch-board-didactic.switch-board-vlan [data-switch-port="2"],
-.switch-board-didactic.switch-board-vlan [data-switch-port="3"],
-.switch-board-didactic.switch-board-vlan [data-host="D"],
-.switch-board-didactic.switch-board-vlan .cable-d { display: block !important; }
+.final-vlan-model { display: grid; justify-items: center; gap: .45rem; margin: 1.4rem 0; padding: 1.2rem; border-radius: 13px; background: #112d49; color: #e4f0fb; text-align: center; }
+.final-vlan-model > div { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; width: min(100%, 520px); }
+.final-vlan-model > div strong { padding: .7rem; border: 1px solid #597791; border-radius: 9px; color: #65e1ad; }
+.final-vlan-model > strong { color: #65e1ad; }
+.concept-sequence { display: flex; justify-content: space-between; gap: 1rem; margin: 2rem 0; padding: 1rem 0; border-top: 1px solid #d9e4ef; }
 
-.switch-board-didactic.switch-board-vlan [data-frame-field="vlan"] { display: grid !important; }
-.switch-board-didactic.switch-board-vlan [data-frame-field="vlan"][hidden] { display: none !important; }
-.switch-board-didactic.switch-board-vlan .frame-visualizer { grid-template-columns: repeat(3, 1fr); }
-.switch-board-didactic.switch-board-vlan .live-mac-table th:nth-child(1),
-.switch-board-didactic.switch-board-vlan .live-mac-table td:nth-child(1) { display: table-cell; }
+.vlan-shared-lab { grid-column: 2; grid-row: 1; position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow: auto; min-width: 0; padding: 1rem; border: 1px solid #bfcfdd; border-radius: 18px; background: #eef4f9; box-shadow: 0 18px 40px rgba(16,43,72,.12); scrollbar-gutter: stable; }
+.vlan-shared-heading { display: grid; gap: .25rem; margin: 0 0 .8rem; }
+.vlan-shared-heading span { color: #16706b; font-size: .68rem; font-weight: 850; letter-spacing: .12em; }
+.vlan-shared-heading strong { color: var(--ink); font-size: 1.12rem; }
+.vlan-shared-heading p { margin: 0; color: #526b82; }
 
-[data-board-id="vlan-didactic-access"] [data-switch-port="5"],
-[data-board-id="vlan-didactic-access"] [data-host="E"],
-[data-board-id="vlan-didactic-access"] .cable-e { display: block !important; }
+.switch-board-vlan-page-shared [data-switch-port="2"],
+.switch-board-vlan-page-shared [data-switch-port="3"],
+.switch-board-vlan-page-shared [data-switch-port="5"],
+.switch-board-vlan-page-shared [data-host="D"],
+.switch-board-vlan-page-shared [data-host="E"],
+.switch-board-vlan-page-shared .cable-d,
+.switch-board-vlan-page-shared .cable-e,
+.switch-board-vlan-page-shared .port-inspector,
+.switch-board-vlan-page-shared .decision-timeline,
+.switch-board-vlan-page-shared [data-frame-field="vlan"] { display: block !important; }
+.switch-board-vlan-page-shared [data-frame-field="vlan"] { display: grid !important; }
+.switch-board-vlan-page-shared [data-switch-port="6"] { display: none !important; }
+.switch-board-vlan-page-shared .switch-lab-grid { grid-template-columns: minmax(0, 1fr) 210px; }
+.switch-board-vlan-page-shared .switch-canvas svg { min-height: 300px; }
+.switch-board-vlan-page-shared .frame-visualizer { grid-template-columns: repeat(3, 1fr); }
+.switch-board-vlan-page-shared .board-data-grid { grid-template-columns: minmax(0, 1.15fr) minmax(210px, .85fr); }
+.switch-board-vlan-page-shared .live-mac-table th:nth-child(1),
+.switch-board-vlan-page-shared .live-mac-table td:nth-child(1) { display: table-cell; }
+.switch-board-vlan-page-shared .port-inspector dt,
+.switch-board-vlan-page-shared .port-inspector dd { display: none; }
+.switch-board-vlan-page-shared .port-inspector dt:nth-of-type(1),
+.switch-board-vlan-page-shared .port-inspector dd:nth-of-type(1),
+.switch-board-vlan-page-shared .port-inspector dt:nth-of-type(3),
+.switch-board-vlan-page-shared .port-inspector dd:nth-of-type(3),
+.switch-board-vlan-page-shared .port-inspector dt:nth-of-type(4),
+.switch-board-vlan-page-shared .port-inspector dd:nth-of-type(4),
+.switch-board-vlan-page-shared .port-inspector dt:nth-of-type(8),
+.switch-board-vlan-page-shared .port-inspector dd:nth-of-type(8) { display: block; }
+.switch-board-vlan-page-shared .switch-port.is-vlan-choice rect { stroke: #d97706; stroke-width: 7px; filter: drop-shadow(0 0 7px rgba(217,119,6,.65)); }
+.switch-board-vlan-page-shared.is-groups-identified .vlan-groups article { box-shadow: 0 0 0 4px rgba(23,107,206,.14); }
+.switch-board-vlan-page-shared .switch-port.is-cli-highlight rect,
+.switch-board-vlan-page-shared .host.is-cli-highlight rect { stroke: #f6b73c; stroke-width: 7px; filter: drop-shadow(0 0 7px rgba(246,183,60,.8)); }
+.switch-board-vlan-page-shared [data-switch-port]:focus-visible,
+.switch-board-vlan-page-shared [data-mac-entry]:focus-visible,
+.switch-board-vlan-page-shared [data-frame-field]:focus-visible { outline: 3px solid #ffbf47; outline-offset: 3px; }
 
-.switch-board-didactic.switch-board-vlan [data-switch-port="6"] { display: none !important; }
+.vlan-lab-controls { display: grid; gap: .7rem; margin-top: .8rem; }
+.vlan-lab-controls > div:not([hidden]) { display: flex; flex-wrap: wrap; gap: .6rem; }
+.vlan-lab-controls [data-frame-scenario] { min-height: 44px; padding: .65rem .8rem; border: 1px solid #218079; border-radius: 8px; background: #fff; color: #125c57; font-weight: 750; }
+.vlan-lab-controls button.is-active { border-color: #176bce; background: #e6f1fd; box-shadow: 0 0 0 3px rgba(23,107,206,.14); }
+.vlan-shared-feedback { min-height: 2.8rem; margin: .8rem 0 0; padding: .7rem .8rem; border-left: 4px solid #16706b; background: #fff; color: #173956; }
 
-.switch-board-vlan.show-simple-inspector .switch-lab-grid { grid-template-columns: minmax(0, 1fr) 220px; }
-.switch-board-vlan.show-simple-inspector .port-inspector { display: block !important; }
-.switch-board-vlan .port-inspector dt,
-.switch-board-vlan .port-inspector dd { display: none; }
-.switch-board-vlan .port-inspector dt:nth-of-type(1),
-.switch-board-vlan .port-inspector dd:nth-of-type(1),
-.switch-board-vlan .port-inspector dt:nth-of-type(3),
-.switch-board-vlan .port-inspector dd:nth-of-type(3),
-.switch-board-vlan .port-inspector dt:nth-of-type(4),
-.switch-board-vlan .port-inspector dd:nth-of-type(4),
-.switch-board-vlan .port-inspector dt:nth-of-type(8),
-.switch-board-vlan .port-inspector dd:nth-of-type(8) { display: block; }
-
-#vlan-why .switch-board-vlan .board-data-grid,
-#vlan-groups .switch-board-vlan .board-data-grid,
-#vlan-access .switch-board-vlan .board-data-grid { display: none; }
-
-@media (max-width: 900px) {
-  .port-comparison { grid-template-columns: 1fr 1fr; }
-  .two-switch-contexts { grid-template-columns: 1fr; text-align: center; }
-  .switch-board-vlan.show-simple-inspector .switch-lab-grid { grid-template-columns: 1fr; }
+@media (max-width: 1180px) {
+  .vlan-learning-layout { grid-template-columns: minmax(0, 1fr); }
+  .vlan-shared-lab { grid-column: 1; grid-row: 1; position: static; max-height: none; overflow: visible; }
+  .vlan-learning-content { grid-column: 1; grid-row: 2; }
 }
 
-@media (max-width: 600px) {
-  .group-problem,
+@media (max-width: 760px) {
   .before-after,
-  .logical-groups,
   .clarity-notes,
-  .physical-logical,
-  .port-comparison,
   .cli-vlan-choices,
-  .switch-board-didactic.switch-board-vlan .frame-visualizer { grid-template-columns: 1fr; }
-  .physical-logical-anchor { grid-template-columns: 1fr; }
-  .physical-logical-anchor span:first-of-type,
-  .physical-logical-anchor span:last-of-type { grid-column: 1; }
+  .switch-board-vlan-page-shared .board-data-grid { grid-template-columns: 1fr; }
+  .switch-board-vlan-page-shared .switch-lab-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 360px) {
+  .vlan-area,
+  .vlan-shared-lab { padding: .75rem; border-radius: 12px; }
+  .vlan-lab-jump,
+  .vlan-lab-controls .btn,
+  .vlan-lab-controls [data-frame-scenario],
+  .self-explanation .btn { width: 100%; justify-self: stretch; text-align: center; }
   .concept-sequence { flex-direction: column; }
+  .switch-board-vlan-page-shared .frame-visualizer,
+  .final-vlan-model > div { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vlan-shared-lab { scroll-behavior: auto; }
+  .switch-board-vlan-page-shared * { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }

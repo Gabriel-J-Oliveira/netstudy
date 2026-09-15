@@ -1494,20 +1494,26 @@ class VlanConceptAndCheckpointTests(TestCase):
         response = self.client.get(reverse("learning:vlan_concept"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-vlan-area=", count=5, html=False)
-        self.assertContains(response, "data-switch-board", count=5, html=False)
-        self.assertContains(response, "switch-board-didactic", count=5, html=False)
-        self.assertContains(response, "switch-board-vlan", count=5, html=False)
+        self.assertContains(response, "data-switch-board", count=1, html=False)
+        self.assertContains(response, "switch-board-didactic", count=1, html=False)
+        self.assertContains(response, "switch-board-vlan-page-shared", count=1, html=False)
+        self.assertContains(response, "data-switch-port=", count=8, html=False)
+        self.assertContains(response, 'data-board-id="vlan-concept-shared"', html=False)
+        self.assertContains(response, 'data-scenario="vlan-concept-shared"', html=False)
         self.assertContains(response, "E se eu não quiser que todos façam parte da mesma rede Ethernet?")
-        self.assertContains(response, "MESMO SWITCH FÍSICO")
-        self.assertContains(response, "PORTA ACCESS → UMA VLAN")
-        self.assertContains(response, "data-concept-question=", count=3, html=False)
+        self.assertContains(response, "Um switch. Duas VLANs. Dois contextos de Camada 2.")
+        self.assertContains(response, "ALTERAR Gi0/5 PARA VLAN 10")
         self.assertContains(response, "show vlan brief")
         self.assertContains(response, "OUTRA REPRESENTAÇÃO DA MESMA ESTRUTURA")
         self.assertContains(response, "E se a VLAN 10 e a VLAN 20 precisarem existir nos dois switches?")
         self.assertContains(response, "Esta explicação não recebe pontuação")
+        self.assertNotContains(response, "data-concept-question")
+        self.assertNotContains(response, "data-same-context")
+        self.assertNotContains(response, "data-access-question")
+        self.assertNotContains(response, "data-broadcast-question")
         self.assertNotContains(response, "data-vlan-cli-form")
         self.assertNotContains(response, "EVIDENCE BOARD")
-        self.assertContains(response, "vlan-concept.js?v=vlan-clarity-2")
+        self.assertContains(response, "vlan-concept.js?v=vlan-shared-1")
         self.assertContains(response, reverse("learning:trunk_concept"))
 
     def test_simplified_vlan_buttons_keep_the_javascript_contract(self):
@@ -1515,9 +1521,9 @@ class VlanConceptAndCheckpointTests(TestCase):
         html = response.content.decode()
         script = (settings.BASE_DIR / "static" / "js" / "vlan-concept.js").read_text(encoding="utf-8")
         selectors = (
-            "data-opening-mode", "data-same-context", "data-access-question",
-            "data-access-change", "data-frame-demo", "data-broadcast-question",
-            "data-summary-case", "data-cli-vlan", "data-vlan-reference-button",
+            "data-vlan-stage-link", "data-opening-mode", "data-group-port",
+            "data-access-inspected", "data-access-change", "data-frame-scenario",
+            "data-frame-confirm", "data-summary-next", "data-cli-vlan", "data-vlan-reference-button",
             "data-vlan-checkpoint-start",
         )
         for selector in selectors:
@@ -1542,8 +1548,23 @@ class VlanConceptAndCheckpointTests(TestCase):
         for fragment in ("vlanAware", "access_vlan", "allowed_vlans", "native_vlan", "tagged_state", "tableKey", "setAccessVlan"):
             self.assertIn(fragment, source)
         self.assertIn("port.access_vlan === vlan", source)
-        for scenario in ("vlan-didactic-opening", "vlan-didactic-groups", "vlan-didactic-access", "vlan-didactic-frames", "vlan-didactic-summary"):
-            self.assertIn(f'"{scenario}"', source)
+        self.assertIn('"vlan-concept-shared"', source)
+        self.assertNotIn('"vlan-didactic-opening"', source)
+
+    def test_shared_vlan_lab_has_direct_actions_keyboard_and_responsive_contract(self):
+        script = (settings.BASE_DIR / "static" / "js" / "vlan-concept.js").read_text(encoding="utf-8")
+        css = (settings.BASE_DIR / "static" / "css" / "vlan-concept.css").read_text(encoding="utf-8")
+        self.assertIn("configureSplit", script)
+        self.assertIn("inspectGroupPort", script)
+        self.assertIn("changeAccessVlan", script)
+        self.assertIn("confirmFramePorts", script)
+        self.assertIn("advanceSummary", script)
+        self.assertIn('["Enter", " "]', script)
+        self.assertNotIn("lockCorrect", script)
+        self.assertIn("position: sticky", css)
+        self.assertIn("position: static", css)
+        self.assertIn("@media (max-width: 360px)", css)
+        self.assertIn("prefers-reduced-motion", css)
 
     def test_cli_commands_and_access_only_scope_exist(self):
         source = (settings.BASE_DIR / "static" / "js" / "switch-workbench.js").read_text(encoding="utf-8")

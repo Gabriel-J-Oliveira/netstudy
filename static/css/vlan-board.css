@@ -1,2 +1,16 @@
-.switch-board.show-vlans [data-switch-port][data-access-vlan="10"] .port-body{stroke:#155e75;stroke-width:3}.switch-board.show-vlans [data-switch-port][data-access-vlan="20"] .port-body{stroke:#7c3aed;stroke-width:3}.switch-board [data-port-vlan-label]{font-size:10px;font-weight:900;pointer-events:none}.vlan-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem;margin:1rem 0}.vlan-groups article{display:flex;flex-direction:column;gap:.35rem;padding:1rem;border:2px solid}.vlan-groups article[data-vlan-group="10"]{border-color:#155e75;background:repeating-linear-gradient(45deg,#ecfeff,#ecfeff 10px,#cffafe 10px,#cffafe 20px)}.vlan-groups article[data-vlan-group="20"]{border-color:#7c3aed;background:repeating-linear-gradient(-45deg,#f5f3ff,#f5f3ff 10px,#ede9fe 10px,#ede9fe 20px)}.vlan-groups article[data-vlan-group="1"]{border-color:#64748b;background:#f1f5f9}.vlan-groups strong{font-size:.8rem;letter-spacing:.1em}.vlan-cell{font-weight:850}.vlan-concept .frame-visualizer{grid-template-columns:repeat(5,minmax(0,1fr))}.vlan-concept .switch-board-toolbar [data-toggle-vlans]{display:inline-flex}@media(max-width:850px){.vlan-concept .frame-visualizer{grid-template-columns:1fr 1fr}.vlan-groups{grid-template-columns:1fr}}
-.switch-board.show-vlans [data-switch-port][data-access-vlan="10"]>rect{stroke:#155e75;stroke-width:3}.switch-board.show-vlans [data-switch-port][data-access-vlan="20"]>rect{stroke:#7c3aed;stroke-width:3}
+.switch-board.show-vlans [data-switch-port][data-access-vlan="10"] > rect { stroke: #155e75; stroke-width: 3; }
+.switch-board.show-vlans [data-switch-port][data-access-vlan="20"] > rect { stroke: #7c3aed; stroke-width: 3; }
+.switch-board [data-port-vlan-label] { font-size: 10px; font-weight: 900; pointer-events: none; }
+.vlan-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .75rem; margin: 1rem 0; }
+.vlan-groups article { display: flex; flex-direction: column; gap: .35rem; padding: 1rem; border: 2px solid; }
+.vlan-groups article[data-vlan-group="10"] { border-color: #155e75; background: repeating-linear-gradient(45deg, #ecfeff, #ecfeff 10px, #cffafe 10px, #cffafe 20px); }
+.vlan-groups article[data-vlan-group="20"] { border-color: #7c3aed; background: repeating-linear-gradient(-45deg, #f5f3ff, #f5f3ff 10px, #ede9fe 10px, #ede9fe 20px); }
+.vlan-groups article[data-vlan-group="1"] { border-color: #64748b; background: #f1f5f9; }
+.vlan-groups strong { font-size: .8rem; letter-spacing: .1em; }
+.vlan-cell { font-weight: 850; }
+.vlan-checkpoint .frame-visualizer { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+@media (max-width: 850px) {
+  .vlan-checkpoint .frame-visualizer { grid-template-columns: 1fr 1fr; }
+  .vlan-groups { grid-template-columns: 1fr; }
+}

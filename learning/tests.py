@@ -1647,24 +1647,25 @@ class TrunkConceptAndCheckpointTests(TestCase):
         }
         session.save()
 
-    def test_page_loads_with_exactly_five_areas_and_dual_switch_stages(self):
+    def test_page_loads_with_exactly_five_areas_and_one_shared_dual_switch_stage(self):
         response = self.client.get(reverse("learning:trunk_concept"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-trunk-area=", count=5, html=False)
-        self.assertContains(response, "data-trunk-stage", count=5, html=False)
-        self.assertContains(response, "data-switch-board", count=10, html=False)
+        self.assertContains(response, "data-trunk-stage data-stage-id", count=1, html=False)
+        self.assertContains(response, "data-switch-board", count=2, html=False)
+        self.assertContains(response, 'id="trunk-shared-lab"', html=False)
         self.assertContains(response, "Como continuar a mesma VLAN em outro switch?")
         self.assertContains(response, "TRUNK TRANSPORTA.")
         self.assertContains(response, "802.1Q IDENTIFICA.")
 
-    def test_advanced_stage_capabilities_remain_but_content_uses_clarity_mode(self):
+    def test_shared_stage_retains_inspection_and_optional_native_vlan(self):
         response = self.client.get(reverse("learning:trunk_concept"))
-        self.assertContains(response, "data-trunk-link", count=5, html=False)
+        self.assertContains(response, "data-trunk-link", count=1, html=False)
         self.assertContains(response, "TRUNK INSPECTOR")
         self.assertContains(response, "Access VLAN")
         self.assertContains(response, "Allowed VLANs")
         self.assertContains(response, "Conceito adicional: Native VLAN")
-        self.assertContains(response, "trunk-content-stage", count=5, html=False)
+        self.assertNotContains(response, "trunk-content-stage")
 
     def test_forwarding_model_supports_allowed_native_broadcast_and_independent_state(self):
         board = (settings.BASE_DIR / "static" / "js" / "switch-board.js").read_text(encoding="utf-8")
@@ -1678,10 +1679,24 @@ class TrunkConceptAndCheckpointTests(TestCase):
     def test_simplified_packet_view_focuses_on_vlan_id(self):
         response = self.client.get(reverse("learning:trunk_concept"))
         self.assertContains(response, "data-simple-packet", html=False)
+        self.assertContains(response, "data-dot1q-field", html=False)
         self.assertContains(response, "VLAN ID")
         self.assertNotContains(response, "TPID")
         self.assertNotContains(response, "PCP")
         self.assertNotContains(response, "DEI")
+
+    def test_walkthrough_is_manual_and_has_no_timer(self):
+        response = self.client.get(reverse("learning:trunk_concept"))
+        self.assertContains(response, 'data-step="0"', html=False)
+        self.assertContains(response, "data-dot1q-next", html=False)
+        concept = (settings.BASE_DIR / "static" / "js" / "trunk-concept.js").read_text(encoding="utf-8")
+        stage = (settings.BASE_DIR / "static" / "js" / "trunk-stage.js").read_text(encoding="utf-8")
+        self.assertNotIn("setTimeout", concept)
+        self.assertNotIn("setTimeout", stage)
+        self.assertIn(
+            "Source e Destination MAC continuam identificando origem e destino. O VLAN ID preserva o contexto VLAN durante o transporte.",
+            concept,
+        )
 
     def test_cli_supports_required_observation_commands(self):
         source = (settings.BASE_DIR / "static" / "js" / "trunk-workbench.js").read_text(encoding="utf-8")
@@ -1694,13 +1709,35 @@ class TrunkConceptAndCheckpointTests(TestCase):
     def test_clarity_interactions_keep_the_javascript_contract(self):
         source = (settings.BASE_DIR / "static" / "js" / "trunk-concept.js").read_text(encoding="utf-8")
         for selector in (
-            "data-opening-solution", "data-opening-frame", "data-connection-answer",
-            "data-dot1q-vlan", "data-dot1q-next", "data-tag-answer",
-            "data-across-action", "data-broadcast-answer", "data-allowed-answer",
-            "data-summary-phase", "data-cli-trunk-row", "data-rapid-answer",
+            "data-trunk-stage-link", "data-opening-frame", "data-role-access",
+            "data-dot1q-vlan", "data-dot1q-next", "data-dot1q-field",
+            "data-across-action", "data-summary-next", "data-cli-trunk-row",
             "data-reveal-reference", "data-trunk-checkpoint-start",
         ):
             self.assertIn(selector, source)
+
+    def test_direct_actions_replace_old_quizzes_and_rapid_fire(self):
+        response = self.client.get(reverse("learning:trunk_concept"))
+        for selector in (
+            "data-connection-choice", "data-tag-choice", "data-broadcast-choice",
+            "data-allowed-choice", "data-trunk-rapid-fire", "data-rapid-answer",
+        ):
+            self.assertNotContains(response, selector, html=False)
+        for action in ("unicast", "broadcast", "restrict", "blocked", "restore"):
+            self.assertContains(response, f'data-across-action="{action}"', html=False)
+        self.assertContains(response, "LINK UP NÃO SIGNIFICA QUE TODA VLAN PODE ATRAVESSAR.")
+
+    def test_shared_controls_are_keyboard_native_and_layout_is_responsive(self):
+        response = self.client.get(reverse("learning:trunk_concept"))
+        self.assertContains(response, '<button type="button" class="trunk-link" data-trunk-link', html=False)
+        self.assertContains(response, '<button type="button" data-dot1q-field', html=False)
+        self.assertContains(response, 'role="button" tabindex="0"', count=16, html=False)
+        self.assertContains(response, 'aria-live="polite"', html=False)
+        board = (settings.BASE_DIR / "static" / "js" / "switch-board.js").read_text(encoding="utf-8")
+        self.assertIn('event.key === "Enter" || event.key === " "', board)
+        css = (settings.BASE_DIR / "static" / "css" / "trunk-concept.css").read_text(encoding="utf-8")
+        for fragment in ("position: sticky", "position: static", "max-width: 360px", "prefers-reduced-motion", ":focus-visible"):
+            self.assertIn(fragment, css)
 
     def test_checkpoint_has_exactly_ten_with_requested_difficulty_and_investigations(self):
         self.assertEqual(len(TRUNK_ACTIVITIES), 10)

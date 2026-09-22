@@ -2359,6 +2359,83 @@ class TransportConceptTests(TestCase):
         self.assertIn("fetch(form.action", source); self.assertIn("memory", source); self.assertNotIn("location.reload", source)
 
 
+class PortsConceptTests(TestCase):
+    def start(self):
+        return self.client.post(reverse("learning:ports_checkpoint_start"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+
+    def test_route_navigation_and_five_areas_one_lab(self):
+        response = self.client.get(reverse("learning:ports_concept"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "data-ports-area=", count=5, html=False)
+        self.assertContains(response, "data-endpoint-lab", count=1, html=False)
+        self.assertContains(response, 'aria-current="page"', html=False)
+        self.assertContains(response, "TCP 443 · Serviço web")
+        self.assertContains(response, "TCP 22 · SSH")
+        self.assertContains(response, "UDP 53 · DNS")
+        self.assertContains(self.client.get(reverse("learning:home")), reverse("learning:ports_concept"))
+        self.assertContains(self.client.get(reverse("learning:transport_concept")), reverse("learning:ports_concept"))
+        self.assertContains(response, "DNS + Resolução de Nomes · em breve")
+
+    def test_lab_packet_reply_parallel_and_accessibility(self):
+        response = self.client.get(reverse("learning:ports_concept"))
+        for text in ("Source IP", "Destination IP", "Source Port", "Destination Port",
+                     "192.168.10.20:53012", "192.168.10.21:53013", "data-lab-reply",
+                     'aria-live="polite"', 'tabindex="-1"'):
+            self.assertContains(response, text)
+        source = (settings.BASE_DIR / "static" / "js" / "ports-concept.js").read_text(encoding="utf-8")
+        for text in ("192.168.20.30:443 → 192.168.10.20:53012", "data-lab-service",
+                     "state.assembled.size < 3", "data-lab-field", "prefers-reduced-motion",
+                     "fetch(form.action", "memory"):
+            self.assertIn(text, source)
+        for unwanted in ("setTimeout", "location.reload", "data-transport-rapid"):
+            self.assertNotIn(unwanted, source)
+        css = (settings.BASE_DIR / "static" / "css" / "ports-concept.css").read_text(encoding="utf-8")
+        for text in ("position:sticky", "position:static", "focus-visible", "prefers-reduced-motion", "max-width:400px"):
+            self.assertIn(text, css)
+
+    def test_terminal_is_allowlisted(self):
+        source = (settings.BASE_DIR / "static" / "js" / "ports-concept.js").read_text(encoding="utf-8")
+        self.assertIn('command === "netstat -ano"', source)
+        self.assertIn('command === "netstat -ano | findstr :443"', source)
+        self.assertIn("Comando não disponível neste cenário.", source)
+        self.assertIn("ESTABLISHED", source)
+        self.assertIn("LISTENING", source)
+        self.assertNotIn("eval(", source)
+
+    def test_checkpoint_shape_and_wrong_guided_lock(self):
+        from .ports_checkpoint import ACTIVITIES as PORTS_ACTIVITIES
+        self.assertEqual(len(PORTS_ACTIVITIES), 10)
+        self.assertEqual(PORTS_ACTIVITIES[5]["correct_map"], {"source": "443", "destination": "53012"})
+        self.start()
+        wrong = self.client.post(reverse("learning:ports_checkpoint_answer"),
+            {"answer_payload": json.dumps({"host": "destination port"})}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        self.assertFalse(wrong.json()["correct"])
+        self.assertIn("Porta identifica", wrong.json()["feedback"])
+        self.client.post(reverse("learning:ports_checkpoint_hint"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        correct = self.client.post(reverse("learning:ports_checkpoint_answer"),
+            {"answer_payload": json.dumps({"host": "destination ip"})}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        self.assertTrue(correct.json()["correct"])
+        self.assertTrue(correct.json()["guided"])
+        locked = self.client.post(reverse("learning:ports_checkpoint_answer"),
+            {"answer_payload": json.dumps({"host": "source port"})}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        self.assertTrue(locked.json()["correct"])
+
+    def test_checkpoint_reset_all_ten_and_completion(self):
+        from .ports_checkpoint import ACTIVITIES as PORTS_ACTIVITIES
+        self.start()
+        reset = self.client.post(reverse("learning:ports_checkpoint_reset"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        self.assertIn("1 / 10", reset.json()["html"])
+        for item in PORTS_ACTIVITIES:
+            answer = self.client.post(reverse("learning:ports_checkpoint_answer"),
+                {"answer_payload": json.dumps(item["correct_map"])}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+            self.assertTrue(answer.json()["correct"], item["id"])
+            next_response = self.client.post(reverse("learning:ports_checkpoint_next"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        self.assertTrue(next_response.json()["complete"])
+        self.assertIn("Capacidades praticadas", next_response.json()["html"])
+        restarted = self.client.post(reverse("learning:ports_checkpoint_restart"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        self.assertIn("1 / 10", restarted.json()["html"])
+
+
 class RapidFireTests(TestCase):
     def start(self):
         return self.client.post(reverse("learning:rapid_fire_start"), follow=True)

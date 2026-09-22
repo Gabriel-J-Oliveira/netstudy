@@ -79,6 +79,7 @@ from .route_checkpoint import (
 from .inter_vlan_checkpoint import ACTIVITIES as IV_ACTIVITIES, ACTIVITY_MAP as IV_ACTIVITY_MAP, CAPABILITIES as IV_CAPABILITIES, MISCONCEPTION_LABELS as IV_MISCONCEPTION_LABELS
 from .icmp_checkpoint import ACTIVITIES as ICMP_ACTIVITIES, ACTIVITY_MAP as ICMP_ACTIVITY_MAP, CAPABILITIES as ICMP_CAPABILITIES, MISCONCEPTION_LABELS as ICMP_MISCONCEPTION_LABELS
 from .transport_checkpoint import ACTIVITIES as TRANSPORT_ACTIVITIES, ACTIVITY_MAP as TRANSPORT_ACTIVITY_MAP, CAPABILITIES as TRANSPORT_CAPABILITIES, MISCONCEPTION_LABELS as TRANSPORT_MISCONCEPTION_LABELS
+from .ports_checkpoint import ACTIVITIES as PORTS_ACTIVITIES, ACTIVITY_MAP as PORTS_ACTIVITY_MAP, CAPABILITIES as PORTS_CAPABILITIES, MISCONCEPTION_LABELS as PORTS_MISCONCEPTION_LABELS
 
 
 def _new_progress():
@@ -1741,6 +1742,129 @@ def transport_checkpoint_reset(request):
     if checkpoint and not checkpoint.get("complete"):
         checkpoint.get("answers", {}).pop(str(checkpoint["current"]), None); request.session.modified = True
     return _transport_response(request)
+
+
+def ports_concept(request):
+    return render(request, "learning/ports_concept.html", _context(request, current_topic="PORTS", **_ports_context(request)))
+
+
+def _ports_context(request):
+    checkpoint = request.session.get("ports_checkpoint")
+    context = {"ports_checkpoint_started": bool(checkpoint)}
+    if not checkpoint:
+        return context
+    answers = checkpoint.get("answers", {})
+    if checkpoint.get("complete"):
+        result_types = [answer.get("result_type") for answer in answers.values()]
+        codes = list(dict.fromkeys(code for answer in answers.values() for code in answer.get("misconception_codes", [])))
+        context.update({
+            "ports_checkpoint_complete": True,
+            "ports_checkpoint_immediate": result_types.count("immediate"),
+            "ports_checkpoint_guided": result_types.count("guided"),
+            "ports_checkpoint_capabilities": PORTS_CAPABILITIES,
+            "ports_checkpoint_misconceptions": [PORTS_MISCONCEPTION_LABELS[code] for code in codes if code in PORTS_MISCONCEPTION_LABELS],
+        })
+    else:
+        item = PORTS_ACTIVITY_MAP[str(checkpoint.get("current", 1))]
+        stored = answers.get(item["id"])
+        hints = item.get("hints", [])
+        level = stored.get("hint_level", 0) if stored else 0
+        context.update({
+            "ports_checkpoint_activity": item, "ports_checkpoint_result": stored,
+            "ports_checkpoint_total": len(PORTS_ACTIVITIES),
+            "ports_checkpoint_hint_text": hints[min(level, len(hints)) - 1] if level and hints else None,
+        })
+    return context
+
+
+def _ports_response(request):
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        html = render_to_string("learning/partials/ports_checkpoint.html", _ports_context(request), request=request)
+        checkpoint = request.session.get("ports_checkpoint", {})
+        current = checkpoint.get("current")
+        stored = checkpoint.get("answers", {}).get(str(current), {}) if current else {}
+        return JsonResponse({
+            "html": html, "complete": bool(checkpoint.get("complete")),
+            "correct": bool(stored.get("complete")),
+            "guided": stored.get("result_type") == "guided",
+            "feedback": stored.get("last_feedback", stored.get("ui_error", "")),
+        })
+    return redirect(f"{reverse('learning:ports_concept')}#ports-checkpoint")
+
+
+@require_POST
+def ports_checkpoint_start(request):
+    request.session["ports_checkpoint"] = {"current": 1, "answers": {}, "complete": False}
+    return _ports_response(request)
+
+
+@require_POST
+def ports_checkpoint_answer(request):
+    checkpoint = request.session.get("ports_checkpoint")
+    if not checkpoint or checkpoint.get("complete"):
+        return _ports_response(request)
+    item = PORTS_ACTIVITY_MAP[str(checkpoint["current"])]
+    stored = checkpoint["answers"].get(item["id"])
+    if not (stored and stored.get("complete")):
+        stored = stored or _initial_answer()
+        decoded = _decode_payload(request.POST.get("answer_payload"), dict)
+        raw = json.dumps({key: value.strip().lower() if isinstance(value, str) else value for key, value in decoded.items()}) if decoded else None
+        stored, error = _submit_mapping(item, stored, raw)
+        if error:
+            stored["ui_error"] = error
+        if not stored.get("complete") and stored.get("attempt_count", 0) >= 2:
+            stored["last_feedback"] = item["wrong_feedback"]
+            stored["hint_level"] = max(1, stored.get("hint_level", 0))
+        if stored.get("complete"):
+            stored.pop("ui_error", None)
+            if stored.get("hint_level", 0):
+                stored["result_type"] = stored["outcome"] = "guided"
+        checkpoint["answers"][item["id"]] = stored
+    request.session.modified = True
+    return _ports_response(request)
+
+
+@require_POST
+def ports_checkpoint_next(request):
+    checkpoint = request.session.get("ports_checkpoint")
+    if not checkpoint or checkpoint.get("complete"):
+        return _ports_response(request)
+    if not checkpoint["answers"].get(str(checkpoint["current"]), {}).get("complete"):
+        return _ports_response(request)
+    if checkpoint["current"] == len(PORTS_ACTIVITIES):
+        checkpoint["complete"] = True
+    else:
+        checkpoint["current"] += 1
+    request.session.modified = True
+    return _ports_response(request)
+
+
+@require_POST
+def ports_checkpoint_restart(request):
+    request.session["ports_checkpoint"] = {"current": 1, "answers": {}, "complete": False}
+    return _ports_response(request)
+
+
+@require_POST
+def ports_checkpoint_hint(request):
+    checkpoint = request.session.get("ports_checkpoint")
+    if not checkpoint or checkpoint.get("complete"):
+        return _ports_response(request)
+    item = PORTS_ACTIVITY_MAP[str(checkpoint["current"])]
+    stored = checkpoint["answers"].get(item["id"]) or _initial_answer()
+    stored["hint_level"] = min(stored.get("hint_level", 0) + 1, len(item.get("hints", [])))
+    checkpoint["answers"][item["id"]] = stored
+    request.session.modified = True
+    return _ports_response(request)
+
+
+@require_POST
+def ports_checkpoint_reset(request):
+    checkpoint = request.session.get("ports_checkpoint")
+    if checkpoint and not checkpoint.get("complete"):
+        checkpoint.get("answers", {}).pop(str(checkpoint["current"]), None)
+        request.session.modified = True
+    return _ports_response(request)
 
 
 def _trunk_checkpoint_context(request):

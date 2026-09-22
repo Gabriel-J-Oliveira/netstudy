@@ -1,0 +1,29 @@
+<div class="gateway-checkpoint" data-ports-checkpoint-panel>
+{% if not ports_checkpoint_started %}
+  <span class="gateway-index">CHECKPOINT · 10 SITUAÇÕES</span><h2>Entregue ao endpoint correto</h2>
+  <p>Interprete host, protocolo, portas, sentido da resposta e evidências de fluxos.</p>
+  <form method="post" action="{% url 'learning:ports_checkpoint_start' %}" data-ports-checkpoint-form>{% csrf_token %}<button class="gateway-primary">Iniciar checkpoint</button></form>
+{% elif ports_checkpoint_complete %}
+  <span class="gateway-index">CHECKPOINT CONCLUÍDO</span><h2>Portas + Cliente/Servidor consolidado</h2>
+  <div class="gateway-score"><strong>{{ ports_checkpoint_immediate }}</strong><span>sem apoio</span><strong>{{ ports_checkpoint_guided }}</strong><span>com orientação</span></div>
+  <h3>Capacidades praticadas</h3><ul>{% for x in ports_checkpoint_capabilities %}<li>{{ x }}</li>{% endfor %}</ul>
+  {% if ports_checkpoint_misconceptions %}<h3>Pontos de atenção</h3><ul>{% for x in ports_checkpoint_misconceptions %}<li>{{ x }}</li>{% endfor %}</ul>{% endif %}
+  <form method="post" action="{% url 'learning:ports_checkpoint_restart' %}" data-ports-checkpoint-form data-restart>{% csrf_token %}<button>Refazer checkpoint</button></form>
+{% else %}
+  <header class="gateway-checkpoint-header"><div><span>[{{ ports_checkpoint_activity.primary }}]</span>{% for x in ports_checkpoint_activity.related %}<small>{{ x }}</small>{% endfor %}</div><strong>{{ ports_checkpoint_activity.number }} / {{ ports_checkpoint_total }}</strong></header>
+  <span class="difficulty-badge">NÍVEL {{ ports_checkpoint_activity.difficulty_level }} · {{ ports_checkpoint_activity.category }}</span>
+  <h2>{{ ports_checkpoint_activity.title }}</h2><p class="gateway-scenario">{{ ports_checkpoint_activity.scenario }}</p><p>{{ ports_checkpoint_activity.instruction }}</p>
+  <form method="post" action="{% url 'learning:ports_checkpoint_answer' %}" data-ports-checkpoint-form data-answer-form>{% csrf_token %}
+    <div class="gateway-checkpoint-fields">{% for f in ports_checkpoint_activity.fields %}<label><span>{{ f.label }}</span><select data-ports-answer="{{ f.name }}" {% if ports_checkpoint_result.complete %}disabled{% endif %}><option></option>{% for o in f.options %}<option value="{{ o|lower }}">{{ o }}</option>{% endfor %}</select></label>{% endfor %}</div>
+    <input type="hidden" name="answer_payload" data-payload>{% if not ports_checkpoint_result.complete %}<button class="gateway-primary">Verificar resposta</button>{% endif %}
+  </form>
+  {% if ports_checkpoint_result.ui_error %}<p class="gateway-feedback is-error">{{ ports_checkpoint_result.ui_error }}</p>{% endif %}
+  {% if ports_checkpoint_result.last_feedback %}<div class="gateway-feedback {% if ports_checkpoint_result.complete %}is-success{% else %}is-error{% endif %}"><strong>{% if ports_checkpoint_result.complete %}Correto{% else %}Ainda não{% endif %}</strong><p>{{ ports_checkpoint_result.last_feedback }}</p>{% if not ports_checkpoint_result.complete %}<p>{{ ports_checkpoint_activity.wrong_feedback }}</p>{% endif %}</div>{% endif %}
+  {% if ports_checkpoint_hint_text %}<aside class="gateway-hint"><strong>PISTA</strong><p>{{ ports_checkpoint_hint_text }}</p></aside>{% endif %}
+  <div class="gateway-checkpoint-actions">
+    {% if ports_checkpoint_activity.hints and not ports_checkpoint_result.complete %}<form method="post" action="{% url 'learning:ports_checkpoint_hint' %}" data-ports-checkpoint-form><button>Pedir pista</button>{% csrf_token %}</form>{% endif %}
+    {% if ports_checkpoint_result.complete %}<form method="post" action="{% url 'learning:ports_checkpoint_next' %}" data-ports-checkpoint-form data-next>{% csrf_token %}<button class="gateway-primary">{% if ports_checkpoint_activity.number == 10 %}Concluir{% else %}Próxima situação{% endif %}</button></form>{% endif %}
+    <form method="post" action="{% url 'learning:ports_checkpoint_reset' %}" data-ports-checkpoint-form data-reset>{% csrf_token %}<button>Resetar cenário</button></form>
+  </div>
+{% endif %}
+</div>

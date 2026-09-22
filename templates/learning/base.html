@@ -28,6 +28,7 @@
         <a href="{% url 'learning:inter_vlan_concept' %}" {% if current_topic == 'INTERVLAN' %}aria-current="page"{% endif %}>Inter-VLAN Routing</a>
         <a href="{% url 'learning:icmp_concept' %}" {% if current_topic == 'ICMP' %}aria-current="page"{% endif %}>ICMP + Ping + Traceroute</a>
         <a href="{% url 'learning:transport_concept' %}" {% if current_topic == 'TRANSPORT' %}aria-current="page"{% endif %}>TCP × UDP</a>
+        <a href="{% url 'learning:ports_concept' %}" {% if current_topic == 'PORTS' %}aria-current="page"{% endif %}>Portas + Cliente/Servidor</a>
       </nav>
       {% if current_topic == 'ARP' %}<ol class="stage-list" aria-label="Etapas da sessão">
         {% for stage in stage_status %}

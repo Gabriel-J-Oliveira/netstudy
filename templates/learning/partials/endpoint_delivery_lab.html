@@ -1,0 +1,16 @@
+<section class="endpoint-lab" id="endpoint-lab" data-endpoint-lab aria-label="Endpoint Delivery Lab" tabindex="-1">
+  <header><span>ENDPOINT DELIVERY LAB</span><strong data-lab-title>Um servidor, vários endpoints</strong></header>
+  <div class="endpoint-topology"><div><small>APLICAÇÃO CLIENTE</small><strong data-lab-client>192.168.10.20 : 53012</strong></div><span>↓ REDE IP ↓</span><div><small>SERVIDOR · 192.168.20.30</small><button type="button" data-lab-service="web">TCP 443 · Serviço web</button><button type="button" data-lab-service="ssh">TCP 22 · SSH</button><button type="button" data-lab-service="dns">UDP 53 · DNS</button></div></div>
+  <div class="endpoint-inspector" aria-label="Packet Inspector simplificado"><strong>PACKET INSPECTOR</strong><pre>IPv4
+├ Source IP
+├ Destination IP
+└ TCP ou UDP
+  ├ Source Port
+  ├ Destination Port
+  └ Dados</pre><div><button type="button" data-lab-field="host">Destination IP <b data-field-host>192.168.20.30</b></button><button type="button" data-lab-field="endpoint">Protocolo + Destination Port <b data-field-endpoint>TCP 443</b></button></div><p>Source IP: <code data-packet-source-ip>192.168.10.20</code> · Source Port: <code data-packet-source-port>53012</code><br>Destination IP: <code data-packet-destination-ip>192.168.20.30</code> · Destination Port: <code data-packet-destination-port>443</code><br>Protocolo: <code data-packet-protocol>TCP</code> · Dados</p></div>
+  <div class="endpoint-assembly" data-lab-assembly hidden><p>Selecione os três elementos deste envio:</p><div><button type="button" data-assemble="service">Serviço web · TCP 443</button><button type="button" data-assemble="client">Porta temporária · 53012</button><button type="button" data-assemble="protocol">Protocolo · TCP</button></div></div>
+  <div class="endpoint-flows" data-lab-flows hidden><p><b>Fluxo A</b> <code>192.168.10.20:53012 → 192.168.20.30:443</code></p><p><b>Fluxo B</b> <code>192.168.10.21:53013 → 192.168.20.30:443</code></p></div>
+  <ol data-lab-steps aria-live="polite"><li>Selecione uma ação em uma das áreas para começar.</li></ol>
+  <p class="endpoint-feedback" data-lab-feedback role="status" aria-live="polite"></p>
+  <div class="endpoint-controls"><button type="button" data-lab-next hidden>Próxima etapa</button><button type="button" data-lab-reply hidden>Enviar resposta</button><button type="button" data-lab-reset>Reiniciar cenário</button></div>
+</section>

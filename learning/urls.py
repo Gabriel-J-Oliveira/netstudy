@@ -107,4 +107,11 @@ urlpatterns = [
     path("tcp-udp/checkpoint/refazer/", views.transport_checkpoint_restart, name="transport_checkpoint_restart"),
     path("tcp-udp/checkpoint/pista/", views.transport_checkpoint_hint, name="transport_checkpoint_hint"),
     path("tcp-udp/checkpoint/resetar-cenario/", views.transport_checkpoint_reset, name="transport_checkpoint_reset"),
+    path("portas-cliente-servidor/", views.ports_concept, name="ports_concept"),
+    path("portas-cliente-servidor/checkpoint/iniciar/", views.ports_checkpoint_start, name="ports_checkpoint_start"),
+    path("portas-cliente-servidor/checkpoint/responder/", views.ports_checkpoint_answer, name="ports_checkpoint_answer"),
+    path("portas-cliente-servidor/checkpoint/avancar/", views.ports_checkpoint_next, name="ports_checkpoint_next"),
+    path("portas-cliente-servidor/checkpoint/refazer/", views.ports_checkpoint_restart, name="ports_checkpoint_restart"),
+    path("portas-cliente-servidor/checkpoint/pista/", views.ports_checkpoint_hint, name="ports_checkpoint_hint"),
+    path("portas-cliente-servidor/checkpoint/resetar-cenario/", views.ports_checkpoint_reset, name="ports_checkpoint_reset"),
 ]

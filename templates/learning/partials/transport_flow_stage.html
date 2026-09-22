@@ -1,19 +1,12 @@
-<section class="transport-stage" data-transport-stage data-protocol="{{ protocol }}" data-scenario="{{ scenario }}" aria-label="Transport Flow Stage">
-  <header><div><span>TRANSPORT FLOW STAGE</span><strong>{% if protocol == 'tcp' %}TCP · fluxo de bytes{% else %}UDP · datagramas{% endif %}</strong></div><button type="button" data-stage-reset>↻ Resetar cenário</button></header>
-  <div class="transport-path">
-    <article><small>ORIGEM</small><b>Aplicação A</b><span>CLIENTE</span></article>
-    <div class="transport-layer"><small>CAMADA DE TRANSPORTE</small><b>{{ protocol|upper }}</b><div data-stage-source aria-label="Dados enviados"></div></div>
-    <div class="ip-cloud"><b>REDE IP</b><span>IPv4 transporta entre hosts</span></div>
-    <div class="transport-layer"><small>CAMADA DE TRANSPORTE</small><b>{{ protocol|upper }}</b><div data-stage-destination aria-label="Dados recebidos"></div></div>
-    <article><small>DESTINO</small><b>Aplicação B</b><span>SERVIDOR</span></article>
+<section class="transport-stage" id="transport-lab" data-transport-stage aria-label="Transport Behavior Lab" tabindex="-1">
+  <header><span>TRANSPORT BEHAVIOR LAB</span><strong data-stage-heading>Escolha uma observação</strong></header>
+  <div class="transport-modes" role="group" aria-label="Protocolo ativo"><button type="button" data-stage-mode="udp" aria-pressed="false">UDP</button><button type="button" data-stage-mode="tcp" aria-pressed="false">TCP</button></div>
+  <div class="transport-path" aria-label="Aplicação A, Transporte, Rede IP, Transporte, Aplicação B">
+    <span>Aplicação A</span><button type="button" data-stage-layer aria-label="Selecionar Camada de Transporte">Transporte</button><span>Rede IP</span><span>Transporte</span><span>Aplicação B</span>
   </div>
-  <div class="stage-controls">
-    {% if scenario == 'normal' %}<button type="button" data-stage-run>Enviar A, B e C</button>
-    {% elif scenario == 'loss' and protocol == 'udp' %}<button type="button" data-stage-run>Simular perda do datagrama 3</button>
-    {% elif scenario == 'loss' and protocol == 'tcp' %}<button type="button" data-stage-run>Observar TCP</button>
-    {% elif scenario == 'order' %}<button type="button" data-stage-run>Entregar 1, 3 e 2</button>
-    {% elif scenario == 'boundaries' %}<button type="button" data-stage-run>Comparar os envios</button>{% endif %}
-  </div>
-  <ol class="stage-timeline" data-stage-timeline aria-live="polite"><li>Use o controle para observar o comportamento.</li></ol>
-  <p class="stage-result" data-stage-result aria-live="polite"></p>
+  <p class="transport-prompt" data-stage-prompt>Selecione a Camada de Transporte no caminho ou escolha uma observação em uma das áreas.</p>
+  <div class="transport-observation"><div><small>ORIGEM / REDE</small><div class="transport-units" data-stage-source></div></div><div><small>APLICAÇÃO B</small><div class="transport-units" data-stage-destination></div></div></div>
+  <ol class="transport-timeline" data-stage-timeline aria-live="polite"><li>O percurso aparecerá aqui, uma etapa por clique.</li></ol>
+  <p class="transport-result" data-stage-result role="status" aria-live="polite"></p>
+  <div class="transport-controls"><button type="button" data-stage-next hidden>Próxima etapa</button><button type="button" data-stage-reset>Resetar cenário</button></div>
 </section>

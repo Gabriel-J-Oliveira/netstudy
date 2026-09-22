@@ -2283,29 +2283,29 @@ class TransportConceptTests(TestCase):
         self.assertContains(response, "OSI · CAMADA 4 — TRANSPORTE")
         self.assertContains(response, "comunicação entre aplicações nos hosts finais")
 
-    def test_transport_flow_stage_udp_datagrams_boundaries_loss_and_order(self):
+    def test_single_shared_lab_udp_datagrams_boundaries_loss_and_order(self):
         response = self.client.get(reverse("learning:transport_concept"))
-        self.assertContains(response, "data-transport-stage", count=6, html=False)
-        for value in ("UDP DATAGRAM A", "O limite entre cada datagrama é preservado", "UDP não reordena datagramas"):
+        self.assertContains(response, "data-transport-stage", count=1, html=False)
+        for value in ("Transport Behavior Lab", "Aplicação A", "Rede IP", "Aplicação B", "data-stage-mode=\"udp\"", "data-transport-open=\"boundaries\""):
             self.assertContains(response, value)
         source = (settings.BASE_DIR / "static" / "js" / "transport-concept.js").read_text(encoding="utf-8")
-        for fragment in ("Datagrama 3 — perdido", "UDP não retransmitiu 3 automaticamente", "A rede entregou 1, 3 e 2"):
+        for fragment in ("A, B e C partem como datagramas independentes", "UDP não retransmite 3 automaticamente", "A rede entrega 1, 3, 2", "Os limites dos datagramas ABC e DEF são preservados"):
             self.assertIn(fragment, source)
 
     def test_tcp_stream_retransmission_order_and_connection(self):
         response = self.client.get(reverse("learning:transport_concept"))
-        for value in ("fluxo de bytes orientado a conexão", "TCP não preserva esses limites", "ESTABELECER CONEXÃO", "TCP NÃO É MÁGICO"):
+        for value in ("fluxo de bytes orientado a conexão", "limites das operações de envio não são preservados", "Observar conexão", "não torna uma comunicação impossível de falhar"):
             self.assertContains(response, value)
         source = (settings.BASE_DIR / "static" / "js" / "transport-concept.js").read_text(encoding="utf-8")
-        for fragment in ("C foi retransmitido", "TCP reorganizou conceitualmente o fluxo", "fluxo A, B, C e D"):
+        for fragment in ("C está ausente", "D pode ter chegado fisicamente", "TCP recupera conceitualmente C", "TCP reorganiza conceitualmente o fluxo", "Os limites dos dois envios não são mensagens preservadas"):
             self.assertIn(fragment, source)
 
     def test_no_udp_always_faster_packet_inspector_and_ports_teaser(self):
         response = self.client.get(reverse("learning:transport_concept"))
-        self.assertContains(response, "não significa que toda aplicação usando UDP será automaticamente mais rápida")
+        self.assertContains(response, "Desempenho depende da aplicação, rede, implementação e protocolo superior")
         self.assertContains(response, "PACKET INSPECTOR · ESTRUTURA SIMPLIFICADA")
-        self.assertContains(response, "Source Port: …", count=2)
-        self.assertContains(response, "QUAL ENDPOINT DE APLICAÇÃO?")
+        self.assertContains(response, "Source Port e Destination Port")
+        self.assertContains(response, "endpoint da aplicação")
 
     def test_checkpoint_exact_shape_and_misconceptions(self):
         self.assertEqual(len(TRANSPORT_ACTIVITIES), 10)
@@ -2340,8 +2340,18 @@ class TransportConceptTests(TestCase):
         response = self.client.get(reverse("learning:transport_concept"))
         self.assertContains(response, "Resetar cenário")
         source = (settings.BASE_DIR / "static" / "js" / "transport-concept.js").read_text(encoding="utf-8")
-        self.assertIn("Datagrama 3 — perdido", source)
-        self.assertIn("Byte block C — retransmitido", source)
+        for marker in ('aria-live="polite"', 'aria-pressed="false"', 'tabindex="-1"', 'data-stage-next', 'data-stage-reset'):
+            self.assertContains(response, marker)
+        self.assertIn('state = {protocol: null, scenario: "intro", step: -1}', source)
+        self.assertIn("prefers-reduced-motion", source)
+        self.assertNotIn("setTimeout", source)
+        for marker in ("data-transport-rapid", "data-rapid-question", "data-udp-check", "data-tcp-check", "data-loss-visible"):
+            self.assertNotContains(response, marker)
+        self.assertNotIn("setTimeout", source)
+        css = (settings.BASE_DIR / "static" / "css" / "transport-concept.css").read_text(encoding="utf-8")
+        self.assertIn("position:sticky", css)
+        self.assertIn("position:static", css)
+        self.assertIn("prefers-reduced-motion", css)
         self.assertContains(response, reverse("learning:icmp_concept"))
         self.assertContains(response, 'aria-current="page"', html=False)
         self.assertContains(self.client.get(reverse("learning:home")), reverse("learning:transport_concept"))

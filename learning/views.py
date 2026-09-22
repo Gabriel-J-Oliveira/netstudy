@@ -80,6 +80,8 @@ from .inter_vlan_checkpoint import ACTIVITIES as IV_ACTIVITIES, ACTIVITY_MAP as 
 from .icmp_checkpoint import ACTIVITIES as ICMP_ACTIVITIES, ACTIVITY_MAP as ICMP_ACTIVITY_MAP, CAPABILITIES as ICMP_CAPABILITIES, MISCONCEPTION_LABELS as ICMP_MISCONCEPTION_LABELS
 from .transport_checkpoint import ACTIVITIES as TRANSPORT_ACTIVITIES, ACTIVITY_MAP as TRANSPORT_ACTIVITY_MAP, CAPABILITIES as TRANSPORT_CAPABILITIES, MISCONCEPTION_LABELS as TRANSPORT_MISCONCEPTION_LABELS
 from .ports_checkpoint import ACTIVITIES as PORTS_ACTIVITIES, ACTIVITY_MAP as PORTS_ACTIVITY_MAP, CAPABILITIES as PORTS_CAPABILITIES, MISCONCEPTION_LABELS as PORTS_MISCONCEPTION_LABELS
+from .dns_checkpoint import ACTIVITIES as DNS_ACTIVITIES, ACTIVITY_MAP as DNS_ACTIVITY_MAP, CAPABILITIES as DNS_CAPABILITIES, MISCONCEPTION_LABELS as DNS_MISCONCEPTION_LABELS
+from .dhcp_checkpoint import ACTIVITIES as DHCP_ACTIVITIES, ACTIVITY_MAP as DHCP_ACTIVITY_MAP, CAPABILITIES as DHCP_CAPABILITIES, MISCONCEPTION_LABELS as DHCP_MISCONCEPTION_LABELS
 
 
 def _new_progress():
@@ -1865,6 +1867,156 @@ def ports_checkpoint_reset(request):
         checkpoint.get("answers", {}).pop(str(checkpoint["current"]), None)
         request.session.modified = True
     return _ports_response(request)
+
+
+_NETWORK_MODULES = {
+    "dns": (DNS_ACTIVITIES, DNS_ACTIVITY_MAP, DNS_CAPABILITIES, DNS_MISCONCEPTION_LABELS),
+    "dhcp": (DHCP_ACTIVITIES, DHCP_ACTIVITY_MAP, DHCP_CAPABILITIES, DHCP_MISCONCEPTION_LABELS),
+}
+
+
+def _network_context(request, kind):
+    activities, activity_map, capabilities, labels = _NETWORK_MODULES[kind]
+    checkpoint = request.session.get(f"{kind}_checkpoint")
+    result = {f"{kind}_checkpoint_started": bool(checkpoint)}
+    if not checkpoint:
+        return result
+    answers = checkpoint.get("answers", {})
+    if checkpoint.get("complete"):
+        codes = list(dict.fromkeys(code for answer in answers.values() for code in answer.get("misconception_codes", [])))
+        outcomes = [answer.get("result_type") for answer in answers.values()]
+        result.update({
+            f"{kind}_checkpoint_complete": True,
+            f"{kind}_checkpoint_immediate": outcomes.count("immediate"),
+            f"{kind}_checkpoint_guided": outcomes.count("guided"),
+            f"{kind}_checkpoint_capabilities": capabilities,
+            f"{kind}_checkpoint_misconceptions": [labels[code] for code in codes if code in labels],
+        })
+    else:
+        activity = activity_map[str(checkpoint.get("current", 1))]
+        stored = answers.get(activity["id"])
+        hints = activity.get("hints", [])
+        level = stored.get("hint_level", 0) if stored else 0
+        result.update({
+            f"{kind}_checkpoint_activity": activity, f"{kind}_checkpoint_result": stored,
+            f"{kind}_checkpoint_total": len(activities),
+            f"{kind}_checkpoint_hint_text": hints[min(level, len(hints)) - 1] if level and hints else None,
+        })
+    return result
+
+
+def _network_response(request, kind):
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        html = render_to_string(f"learning/partials/{kind}_checkpoint.html", _network_context(request, kind), request=request)
+        checkpoint = request.session.get(f"{kind}_checkpoint", {})
+        current = checkpoint.get("current")
+        stored = checkpoint.get("answers", {}).get(str(current), {}) if current else {}
+        return JsonResponse({
+            "html": html, "complete": bool(checkpoint.get("complete")),
+            "correct": bool(stored.get("complete")), "guided": stored.get("result_type") == "guided",
+            "feedback": stored.get("last_feedback", stored.get("ui_error", "")),
+        })
+    return redirect(f"{reverse(f'learning:{kind}_concept')}#{kind}-checkpoint")
+
+
+def dns_concept(request):
+    return render(request, "learning/dns_concept.html", _context(request, current_topic="DNS", **_network_context(request, "dns")))
+
+
+def dhcp_concept(request):
+    return render(request, "learning/dhcp_concept.html", _context(request, current_topic="DHCP", **_network_context(request, "dhcp")))
+
+
+def _network_start(request, kind):
+    request.session[f"{kind}_checkpoint"] = {"current": 1, "answers": {}, "complete": False}
+    return _network_response(request, kind)
+
+
+def _network_answer(request, kind):
+    checkpoint = request.session.get(f"{kind}_checkpoint")
+    if not checkpoint or checkpoint.get("complete"):
+        return _network_response(request, kind)
+    item = _NETWORK_MODULES[kind][1][str(checkpoint["current"])]
+    stored = checkpoint["answers"].get(item["id"])
+    if not (stored and stored.get("complete")):
+        stored = stored or _initial_answer()
+        decoded = _decode_payload(request.POST.get("answer_payload"), dict)
+        raw = json.dumps({key: value.strip().lower() if isinstance(value, str) else value for key, value in decoded.items()}) if decoded else None
+        stored, error = _submit_mapping(item, stored, raw)
+        if error:
+            stored["ui_error"] = error
+        if not stored.get("complete") and stored.get("attempt_count", 0) >= 2:
+            stored["last_feedback"] = item["wrong_feedback"]
+            stored["hint_level"] = max(1, stored.get("hint_level", 0))
+        if stored.get("complete"):
+            stored.pop("ui_error", None)
+            if stored.get("hint_level", 0):
+                stored["result_type"] = stored["outcome"] = "guided"
+        checkpoint["answers"][item["id"]] = stored
+    request.session.modified = True
+    return _network_response(request, kind)
+
+
+def _network_next(request, kind):
+    checkpoint = request.session.get(f"{kind}_checkpoint")
+    if not checkpoint or checkpoint.get("complete"):
+        return _network_response(request, kind)
+    if not checkpoint["answers"].get(str(checkpoint["current"]), {}).get("complete"):
+        return _network_response(request, kind)
+    if checkpoint["current"] == len(_NETWORK_MODULES[kind][0]):
+        checkpoint["complete"] = True
+    else:
+        checkpoint["current"] += 1
+    request.session.modified = True
+    return _network_response(request, kind)
+
+
+def _network_hint(request, kind):
+    checkpoint = request.session.get(f"{kind}_checkpoint")
+    if not checkpoint or checkpoint.get("complete"):
+        return _network_response(request, kind)
+    item = _NETWORK_MODULES[kind][1][str(checkpoint["current"])]
+    stored = checkpoint["answers"].get(item["id"]) or _initial_answer()
+    stored["hint_level"] = min(stored.get("hint_level", 0) + 1, len(item.get("hints", [])))
+    checkpoint["answers"][item["id"]] = stored
+    request.session.modified = True
+    return _network_response(request, kind)
+
+
+def _network_reset(request, kind):
+    checkpoint = request.session.get(f"{kind}_checkpoint")
+    if checkpoint and not checkpoint.get("complete"):
+        checkpoint.get("answers", {}).pop(str(checkpoint["current"]), None)
+        request.session.modified = True
+    return _network_response(request, kind)
+
+
+@require_POST
+def dns_checkpoint_start(request): return _network_start(request, "dns")
+@require_POST
+def dns_checkpoint_answer(request): return _network_answer(request, "dns")
+@require_POST
+def dns_checkpoint_next(request): return _network_next(request, "dns")
+@require_POST
+def dns_checkpoint_restart(request): return _network_start(request, "dns")
+@require_POST
+def dns_checkpoint_hint(request): return _network_hint(request, "dns")
+@require_POST
+def dns_checkpoint_reset(request): return _network_reset(request, "dns")
+
+
+@require_POST
+def dhcp_checkpoint_start(request): return _network_start(request, "dhcp")
+@require_POST
+def dhcp_checkpoint_answer(request): return _network_answer(request, "dhcp")
+@require_POST
+def dhcp_checkpoint_next(request): return _network_next(request, "dhcp")
+@require_POST
+def dhcp_checkpoint_restart(request): return _network_start(request, "dhcp")
+@require_POST
+def dhcp_checkpoint_hint(request): return _network_hint(request, "dhcp")
+@require_POST
+def dhcp_checkpoint_reset(request): return _network_reset(request, "dhcp")
 
 
 def _trunk_checkpoint_context(request):

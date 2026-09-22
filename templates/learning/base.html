@@ -29,6 +29,8 @@
         <a href="{% url 'learning:icmp_concept' %}" {% if current_topic == 'ICMP' %}aria-current="page"{% endif %}>ICMP + Ping + Traceroute</a>
         <a href="{% url 'learning:transport_concept' %}" {% if current_topic == 'TRANSPORT' %}aria-current="page"{% endif %}>TCP × UDP</a>
         <a href="{% url 'learning:ports_concept' %}" {% if current_topic == 'PORTS' %}aria-current="page"{% endif %}>Portas + Cliente/Servidor</a>
+        <a href="{% url 'learning:dns_concept' %}" {% if current_topic == 'DNS' %}aria-current="page"{% endif %}>DNS + Resolução de Nomes</a>
+        <a href="{% url 'learning:dhcp_concept' %}" {% if current_topic == 'DHCP' %}aria-current="page"{% endif %}>DHCP + Configuração Dinâmica</a>
       </nav>
       {% if current_topic == 'ARP' %}<ol class="stage-list" aria-label="Etapas da sessão">
         {% for stage in stage_status %}

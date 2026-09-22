@@ -2374,7 +2374,7 @@ class PortsConceptTests(TestCase):
         self.assertContains(response, "UDP 53 · DNS")
         self.assertContains(self.client.get(reverse("learning:home")), reverse("learning:ports_concept"))
         self.assertContains(self.client.get(reverse("learning:transport_concept")), reverse("learning:ports_concept"))
-        self.assertContains(response, "DNS + Resolução de Nomes · em breve")
+        self.assertContains(response, reverse("learning:dns_concept"))
 
     def test_lab_packet_reply_parallel_and_accessibility(self):
         response = self.client.get(reverse("learning:ports_concept"))
@@ -2434,6 +2434,92 @@ class PortsConceptTests(TestCase):
         self.assertIn("Capacidades praticadas", next_response.json()["html"])
         restarted = self.client.post(reverse("learning:ports_checkpoint_restart"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
         self.assertIn("1 / 10", restarted.json()["html"])
+
+
+class NetworkServicesConceptTests(TestCase):
+    def test_pages_navigation_labs_and_accessibility(self):
+        for kind, previous, next_topic in (
+            ("dns", "ports_concept", "dhcp_concept"),
+            ("dhcp", "dns_concept", None),
+        ):
+            with self.subTest(kind=kind):
+                response = self.client.get(reverse(f"learning:{kind}_concept"))
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, f"data-{kind}-area=", count=5, html=False)
+                self.assertContains(response, f"data-{kind}-lab", count=1, html=False)
+                self.assertContains(response, f'id="{kind}-checkpoint"')
+                self.assertContains(response, 'aria-current="page"', html=False)
+                self.assertContains(response, 'aria-live="polite"', html=False)
+                self.assertContains(response, 'tabindex="-1"', html=False)
+                self.assertContains(response, reverse(f"learning:{previous}"))
+                if next_topic:
+                    self.assertContains(response, reverse(f"learning:{next_topic}"))
+                else:
+                    self.assertContains(response, "TCP por dentro · em breve")
+                self.assertContains(self.client.get(reverse("learning:home")), reverse(f"learning:{kind}_concept"))
+        self.assertContains(self.client.get(reverse("learning:ports_concept")), reverse("learning:dns_concept"))
+        css = (settings.BASE_DIR / "static" / "css" / "network-concept.css").read_text(encoding="utf-8")
+        for marker in ("position:sticky", "position:static", "max-width:400px", "focus-visible", "prefers-reduced-motion"):
+            self.assertIn(marker, css)
+
+    def test_labs_terminal_allowlist_and_ajax_memory(self):
+        for kind, commands, fallback in (
+            ("dns", ('nslookup intranet.exemplo.local', 'ipconfig /displaydns'),
+             "Comando não disponível neste cenário. Use nslookup intranet.exemplo.local ou ipconfig /displaydns."),
+            ("dhcp", ('ipconfig /all', 'ipconfig /renew'),
+             "Comando não disponível neste cenário. Use ipconfig /all ou ipconfig /renew."),
+        ):
+            with self.subTest(kind=kind):
+                source = (settings.BASE_DIR / "static" / "js" / f"{kind}-concept.js").read_text(encoding="utf-8")
+                for command in commands:
+                    self.assertIn(f'command === "{command}"', source)
+                for marker in (fallback, "memory = new Map()", "fetch(form.action", "prefers-reduced-motion"):
+                    self.assertIn(marker, source)
+                for forbidden in ("setTimeout", "location.reload", "eval(", "data-rapid"):
+                    self.assertNotIn(forbidden, source)
+        dns = (settings.BASE_DIR / "static" / "js" / "dns-concept.js").read_text(encoding="utf-8")
+        for marker in ("Request:", "Response:", "cache-empty", "cache-full", "diagnose-nslookup", "diagnose-ping", "gateway/rota"):
+            self.assertIn(marker, dns)
+        dhcp = (settings.BASE_DIR / "static" / "js" / "dhcp-concept.js").read_text(encoding="utf-8")
+        for marker in ("Discover:", "Offer:", "Request:", "ACK:", "169.254.x.x", "Máscara /24", "Gateway 192.168.10.1"):
+            self.assertIn(marker, dhcp)
+
+    def test_checkpoints_ten_items_wrong_hint_lock_reset_and_completion(self):
+        from .dns_checkpoint import ACTIVITIES as DNS_ACTIVITIES
+        from .dhcp_checkpoint import ACTIVITIES as DHCP_ACTIVITIES
+        for kind, activities in (("dns", DNS_ACTIVITIES), ("dhcp", DHCP_ACTIVITIES)):
+            with self.subTest(kind=kind):
+                self.assertEqual(len(activities), 10)
+                self.client.post(reverse(f"learning:{kind}_checkpoint_start"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+                first = activities[0]
+                field = first["fields"][0]
+                wrong_value = next(option.lower() for option in field["options"] if option.lower() != first["correct_map"][field["name"]])
+                wrong = self.client.post(reverse(f"learning:{kind}_checkpoint_answer"),
+                    {"answer_payload": json.dumps({field["name"]: wrong_value})}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+                self.assertFalse(wrong.json()["correct"])
+                self.assertEqual(wrong.json()["feedback"], first["wrong_feedback"])
+                hint = self.client.post(reverse(f"learning:{kind}_checkpoint_hint"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+                self.assertIn("PISTA", hint.json()["html"])
+                correct = self.client.post(reverse(f"learning:{kind}_checkpoint_answer"),
+                    {"answer_payload": json.dumps(first["correct_map"])}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+                self.assertTrue(correct.json()["correct"])
+                self.assertTrue(correct.json()["guided"])
+                locked = self.client.post(reverse(f"learning:{kind}_checkpoint_answer"),
+                    {"answer_payload": json.dumps({field["name"]: wrong_value})}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+                self.assertTrue(locked.json()["correct"])
+                self.client.post(reverse(f"learning:{kind}_checkpoint_next"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+                reset = self.client.post(reverse(f"learning:{kind}_checkpoint_reset"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+                self.assertIn("2 / 10", reset.json()["html"])
+                for activity in activities[1:]:
+                    answer = self.client.post(reverse(f"learning:{kind}_checkpoint_answer"),
+                        {"answer_payload": json.dumps(activity["correct_map"])}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+                    self.assertTrue(answer.json()["correct"], activity["id"])
+                    response = self.client.post(reverse(f"learning:{kind}_checkpoint_next"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+                self.assertTrue(response.json()["complete"])
+                self.assertIn("Capacidades praticadas", response.json()["html"])
+                self.assertIn("Pontos a revisar", response.json()["html"])
+                restarted = self.client.post(reverse(f"learning:{kind}_checkpoint_restart"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+                self.assertIn("1 / 10", restarted.json()["html"])
 
 
 class RapidFireTests(TestCase):

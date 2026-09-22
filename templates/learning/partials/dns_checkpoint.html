@@ -1,0 +1,29 @@
+<div class="gateway-checkpoint" data-dns-checkpoint-panel>
+{% if not dns_checkpoint_started %}
+  <span class="gateway-index">CHECKPOINT · 10 SITUAÇÕES</span><h2>Resolver sem extrapolar</h2>
+  <p>Interprete nome, resposta A, cache e limites das evidências.</p>
+  <form method="post" action="{% url 'learning:dns_checkpoint_start' %}" data-dns-checkpoint-form>{% csrf_token %}<button class="gateway-primary">Iniciar checkpoint</button></form>
+{% elif dns_checkpoint_complete %}
+  <span class="gateway-index">CHECKPOINT CONCLUÍDO</span><h2>DNS consolidado</h2>
+  <div class="gateway-score"><strong>{{ dns_checkpoint_immediate }}</strong><span>sem apoio</span><strong>{{ dns_checkpoint_guided }}</strong><span>com orientação</span></div>
+  <h3>Capacidades praticadas</h3><ul>{% for x in dns_checkpoint_capabilities %}<li>{{ x }}</li>{% endfor %}</ul>
+  {% if dns_checkpoint_misconceptions %}<h3>Pontos a revisar</h3><ul>{% for x in dns_checkpoint_misconceptions %}<li>{{ x }}</li>{% endfor %}</ul>{% endif %}
+  <form method="post" action="{% url 'learning:dns_checkpoint_restart' %}" data-dns-checkpoint-form data-restart>{% csrf_token %}<button>Refazer checkpoint</button></form>
+{% else %}
+  <header class="gateway-checkpoint-header"><div><span>[{{ dns_checkpoint_activity.primary }}]</span>{% for x in dns_checkpoint_activity.related %}<small>{{ x }}</small>{% endfor %}</div><strong>{{ dns_checkpoint_activity.number }} / {{ dns_checkpoint_total }}</strong></header>
+  <span class="difficulty-badge">NÍVEL {{ dns_checkpoint_activity.difficulty_level }} · {{ dns_checkpoint_activity.category }}</span>
+  <h2>{{ dns_checkpoint_activity.title }}</h2><p class="gateway-scenario">{{ dns_checkpoint_activity.scenario }}</p><p>{{ dns_checkpoint_activity.instruction }}</p>
+  <form method="post" action="{% url 'learning:dns_checkpoint_answer' %}" data-dns-checkpoint-form data-answer-form>{% csrf_token %}
+    <div class="gateway-checkpoint-fields">{% for f in dns_checkpoint_activity.fields %}<label><span>{{ f.label }}</span><select data-dns-answer="{{ f.name }}" {% if dns_checkpoint_result.complete %}disabled{% endif %}><option></option>{% for o in f.options %}<option value="{{ o|lower }}">{{ o }}</option>{% endfor %}</select></label>{% endfor %}</div>
+    <input type="hidden" name="answer_payload" data-payload>{% if not dns_checkpoint_result.complete %}<button class="gateway-primary">Verificar resposta</button>{% endif %}
+  </form>
+  {% if dns_checkpoint_result.ui_error %}<p class="gateway-feedback is-error">{{ dns_checkpoint_result.ui_error }}</p>{% endif %}
+  {% if dns_checkpoint_result.last_feedback %}<div class="gateway-feedback {% if dns_checkpoint_result.complete %}is-success{% else %}is-error{% endif %}"><strong>{% if dns_checkpoint_result.complete %}Correto{% else %}Ainda não{% endif %}</strong><p>{{ dns_checkpoint_result.last_feedback }}</p>{% if not dns_checkpoint_result.complete %}<p>{{ dns_checkpoint_activity.wrong_feedback }}</p>{% endif %}</div>{% endif %}
+  {% if dns_checkpoint_hint_text %}<aside class="gateway-hint"><strong>PISTA</strong><p>{{ dns_checkpoint_hint_text }}</p></aside>{% endif %}
+  <div class="gateway-checkpoint-actions">
+    {% if dns_checkpoint_activity.hints and not dns_checkpoint_result.complete %}<form method="post" action="{% url 'learning:dns_checkpoint_hint' %}" data-dns-checkpoint-form><button>Pedir pista</button>{% csrf_token %}</form>{% endif %}
+    {% if dns_checkpoint_result.complete %}<form method="post" action="{% url 'learning:dns_checkpoint_next' %}" data-dns-checkpoint-form data-next>{% csrf_token %}<button class="gateway-primary">{% if dns_checkpoint_activity.number == 10 %}Concluir{% else %}Próxima situação{% endif %}</button></form>{% endif %}
+    <form method="post" action="{% url 'learning:dns_checkpoint_reset' %}" data-dns-checkpoint-form data-reset>{% csrf_token %}<button>Resetar cenário</button></form>
+  </div>
+{% endif %}
+</div>

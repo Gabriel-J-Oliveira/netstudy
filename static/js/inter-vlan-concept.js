@@ -1,2 +1,77 @@
-(()=>{"use strict";const one=(s,r=document)=>r.querySelector(s),all=(s,r=document)=>[...r.querySelectorAll(s)];function say(n,t,ok=null){if(!n)return;n.textContent=t;n.classList.toggle("feedback-ok",ok===true);n.classList.toggle("feedback-error",ok===false)}const iso=one("[data-isolation-choice]");all("[data-value]",iso||document).forEach(b=>b.addEventListener("click",()=>say(all("p[aria-live]",iso)[0],b.dataset.value==="nao"?"Correto. São contextos L2 distintos.":"Não. Um switch L2 preserva a separação entre VLANs.",b.dataset.value==="nao")));all("[data-function]",iso||document).forEach(b=>b.addEventListener("click",()=>say(all("p[aria-live]",iso)[1],b.dataset.function==="l3"?"Correto. É necessária uma função de Camada 3.":"Camada 2 não encaminha entre as redes associadas às VLANs.",b.dataset.function==="l3")));const src=one("[data-source-choice]");all("[data-remote]",src||document).forEach(b=>b.addEventListener("click",()=>say(one("p:last-child",src),b.dataset.remote==="remoto"?"Correto. B pertence a outra /24.":"Compare as redes /24 de A e B.",b.dataset.remote==="remoto")));one("[data-check-arp]",src||document)?.addEventListener("click",()=>{const ok=one("input",src).value.trim()==="10.10.10.1";say(one("p:last-child",src),ok?"Correto. A resolve seu gateway local.":"B é remoto. Procure o gateway da rede de A.",ok)});const rc=one("[data-route-choice]");all("[data-context-answer]",rc||document).forEach(b=>b.addEventListener("click",()=>say(one("p:last-child",rc),b.dataset.contextAnswer==="20"?"Correto. 192.168.20.0/24 está diretamente conectada à VLAN20.":"O Destination IP pertence à rede associada à VLAN20.",b.dataset.contextAnswer==="20")));const ins=one("[data-iv-inspector]");all("[data-inspect]",ins||document).forEach(b=>b.addEventListener("click",()=>{const m={f1:"Frame #1 · VLAN10: AA → R10. Pacote A IP → B IP.",ip:"No L3, o Frame #1 terminou. O pacote A IP → B IP permanece.",f2:"Frame #2 · VLAN20: R20 → BB. O mesmo pacote segue dentro."};say(one("p",ins),m[b.dataset.inspect])}));const fb=one("[data-frame-builder]");one("button",fb||document)?.addEventListener("click",()=>{const ok=one("[data-build='f1']",fb).value==="AA → R10"&&one("[data-build='f2']",fb).value==="R20 → BB";say(one("p",fb),ok?"Correto. Os MACs mudam entre os enlaces; o pacote IP permanece.":"Frame #1 vai ao gateway da origem; Frame #2 parte da presença L3 na VLAN20 para B.",ok)});const rapid=[{q:"1. Para A, B é local ou remoto?",o:[["remoto","Remoto"],["local","Local"]],a:"remoto"},{q:"2. Para quem A entrega o primeiro frame?",o:[["gw","Gateway local"],["b","PC-B"]],a:"gw"},{q:"3. O L3 escolhe rota usando qual campo?",o:[["ip","Destination IP"],["mac","Destination MAC"]],a:"ip"},{q:"4. O mesmo frame é reutilizado na VLAN20?",o:[["nao","Não"],["sim","Sim"]],a:"nao"}],rr=one("[data-iv-rapid]");let ri=0;function render(){const x=rapid[ri];one("[data-q]",rr).textContent=x.q;all("button",rr).forEach((b,i)=>{b.dataset.a=x.o[i][0];b.textContent=x.o[i][1]})}all("button",rr||document).forEach(b=>b.addEventListener("click",()=>{const ok=b.dataset.a===rapid[ri].a;say(one("[data-feedback]",rr),ok?"Correto.":"Revise a separação L2 e a decisão L3.",ok);if(ok&&ri<3){ri++;setTimeout(()=>{render();say(one("[data-feedback]",rr),"")},350)}}));one("[data-reference-reveal]")?.addEventListener("click",e=>one("[data-reference]",e.target.parentElement).hidden=false);
-const checkpoint=one("#inter-vlan-checkpoint"),memory=new Map(),num=()=>one(".gateway-checkpoint-header>strong",checkpoint)?.textContent.split(" ")[0]||"start";function capture(){const v={};all("[data-iv-answer]",checkpoint).forEach(f=>v[f.dataset.ivAnswer]=f.value);memory.set(num(),v);return v}function restore(){const v=memory.get(num())||{};all("[data-iv-answer]",checkpoint).forEach(f=>{if(v[f.dataset.ivAnswer]!==undefined)f.value=v[f.dataset.ivAnswer]})}checkpoint?.addEventListener("submit",async e=>{const f=e.target.closest("[data-iv-checkpoint-form]");if(!f)return;e.preventDefault();if(f.matches("[data-answer-form]"))one("[data-payload]",f).value=JSON.stringify(capture());if(f.matches("[data-reset]"))memory.delete(num());if(f.matches("[data-next],[data-restart]"))memory.clear();try{const r=await fetch(f.action,{method:"POST",body:new FormData(f),headers:{"X-Requested-With":"XMLHttpRequest"}});if(!r.ok)throw Error("Falha ao atualizar checkpoint.");const d=await r.json();checkpoint.innerHTML=d.html;restore()}catch(x){const p=document.createElement("p");p.className="gateway-feedback is-error";p.textContent=x.message;checkpoint.appendChild(p)}})})();
+(() => {
+  "use strict";
+  const one = (selector, root = document) => root.querySelector(selector);
+  const all = (selector, root = document) => [...root.querySelectorAll(selector)];
+  const stageRoot = one("[data-iv-stage]");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const stageDetails = {
+    isolation: ["Área 01 · Domínios L2", "Identifique quem pode encaminhar entre as VLANs."],
+    host: ["Área 02 · Decisão do host", "Preencha o IPv4 que PC-A deve resolver com ARP."],
+    router: ["Área 03 · Frame e rota", "Construa o primeiro frame e inspecione a rota correta."],
+    frames: ["Área 04 · Packet Inspector", "Compare o pacote e construa as duas entregas Ethernet."],
+    journey: ["Área 05 · Percurso completo", "Avance manualmente do PC-A até o PC-B."],
+  };
+
+  function activate(mode) {
+    if (!stageRoot?.interVlanStage) return;
+    stageRoot.interVlanStage.setMode(mode);
+    one("[data-iv-stage-title]").textContent = stageDetails[mode][0];
+    one("[data-iv-stage-copy]").textContent = stageDetails[mode][1];
+  }
+
+  all("[data-iv-stage-link]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      activate(link.dataset.ivStageLink);
+      one("#iv-shared-lab")?.scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "start" });
+    });
+  });
+
+  stageRoot?.addEventListener("ivstage:feedback", (event) => {
+    const target = one(`[data-${event.detail.mode}-feedback]`);
+    if (!target) return;
+    target.textContent = event.detail.text;
+    target.classList.toggle("feedback-ok", event.detail.ok === true);
+    target.classList.toggle("feedback-error", event.detail.ok === false);
+  });
+
+  one("[data-reference-reveal]")?.addEventListener("click", (event) => {
+    one("[data-reference]", event.currentTarget.parentElement).hidden = false;
+  });
+
+  const checkpoint = one("#inter-vlan-checkpoint");
+  const memory = new Map();
+  const number = () => one(".gateway-checkpoint-header>strong", checkpoint)?.textContent.split(" ")[0] || "start";
+  function capture() {
+    const values = {};
+    all("[data-iv-answer]", checkpoint).forEach((field) => { values[field.dataset.ivAnswer] = field.value; });
+    memory.set(number(), values);
+    return values;
+  }
+  function restore() {
+    const values = memory.get(number()) || {};
+    all("[data-iv-answer]", checkpoint).forEach((field) => {
+      if (values[field.dataset.ivAnswer] !== undefined) field.value = values[field.dataset.ivAnswer];
+    });
+  }
+  checkpoint?.addEventListener("submit", async (event) => {
+    const f = event.target.closest("[data-iv-checkpoint-form]");
+    if (!f) return;
+    event.preventDefault();
+    if (f.matches("[data-answer-form]")) one("[data-payload]", f).value = JSON.stringify(capture());
+    if (f.matches("[data-reset]")) memory.delete(number());
+    if (f.matches("[data-next],[data-restart]")) memory.clear();
+    try {
+      const response = await fetch(f.action, { method: "POST", body: new FormData(f), headers: { "X-Requested-With": "XMLHttpRequest" } });
+      if (!response.ok) throw Error("Falha ao atualizar checkpoint.");
+      const data = await response.json();
+      checkpoint.innerHTML = data.html;
+      restore();
+    } catch (error) {
+      const message = document.createElement("p");
+      message.className = "gateway-feedback is-error";
+      message.textContent = error.message;
+      checkpoint.appendChild(message);
+    }
+  });
+})();

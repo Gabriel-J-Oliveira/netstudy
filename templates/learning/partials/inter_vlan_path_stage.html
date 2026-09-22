@@ -1,6 +1,20 @@
-<section class="iv-stage" data-iv-stage data-stage-id="{{ stage_id|default:'iv-main' }}" aria-label="Inter-VLAN Path Stage de PC-A na VLAN 10 até PC-B na VLAN 20">
-<header><div><span>INTER-VLAN PATH STAGE</span><strong>PC-A → função L3 → PC-B</strong></div><button type="button" data-iv-reset>↻ Resetar cenário</button></header>
-<div class="iv-topology"><button type="button" data-iv-node="a"><b>PC-A</b><small>VLAN 10</small><code>192.168.10.20 · AA</code></button><span>Access VLAN 10</span><button type="button" data-iv-node="sw">SW1</button><span class="iv-boundary">CONTEXTO L2</span><button type="button" data-iv-node="l3"><b>FUNÇÃO L3</b><small>R10 ↔ R20</small></button><span class="iv-boundary v20">NOVO CONTEXTO L2</span><button type="button" data-iv-node="b"><b>PC-B</b><small>VLAN 20</small><code>192.168.20.30 · BB</code></button></div>
-<div class="iv-layers"><article data-iv-frame><span>FRAME ETHERNET ATUAL</span><dl><dt>Source MAC</dt><dd data-frame-source>AA</dd><dt>Destination MAC</dt><dd data-frame-destination>?</dd></dl></article><article class="iv-packet"><span>PACOTE IPv4 · PERMANECE</span><dl><dt>Source</dt><dd>192.168.10.20</dd><dt>Destination</dt><dd>192.168.20.30</dd></dl></article></div>
-<div class="iv-state"><span data-iv-phase>PASSO 0 / 9</span><p data-iv-message>PC-A quer alcançar PC-B em outra VLAN.</p><div data-iv-extra></div></div><button class="iv-next" type="button" data-iv-next>PRÓXIMO PASSO</button>
+<section class="iv-stage" data-iv-stage data-stage-id="{{ stage_id|default:'iv-main' }}" aria-label="Percurso de PC-A na VLAN 10 até PC-B na VLAN 20">
+  <header><div><span>INTER-VLAN PATH STAGE</span><strong>PC-A → função L3 → PC-B</strong></div><button type="button" data-iv-reset>↻ Reiniciar área</button></header>
+  <div class="iv-topology">
+    <button type="button" data-iv-node="a"><b>PC-A</b><small>VLAN 10</small><code>192.168.10.20/24 · AA</code></button>
+    <span class="iv-link">VLAN 10</span>
+    <button type="button" data-iv-node="l3"><b>FUNÇÃO L3</b><small>R10 · 192.168.10.1</small><small>R20 · 192.168.20.1</small></button>
+    <span class="iv-link v20">VLAN 20</span>
+    <button type="button" data-iv-node="b"><b>PC-B</b><small>VLAN 20</small><code>192.168.20.30/24 · BB</code></button>
+  </div>
+  <div class="iv-layers">
+    <article data-iv-frame hidden><span>FRAME ETHERNET ATUAL</span><dl><dt>Source MAC</dt><dd data-frame-source>AA</dd><dt>Destination MAC</dt><dd data-frame-destination>?</dd></dl></article>
+    <article class="iv-packet"><span>PACOTE IPv4 · PERMANECE</span><dl><dt>Source</dt><dd>192.168.10.20</dd><dt>Destination</dt><dd>192.168.20.30</dd></dl></article>
+  </div>
+  <div class="iv-state"><span data-iv-phase>ÁREA 01</span><p data-iv-message aria-live="polite">VLAN 10 e VLAN 20 são domínios Ethernet separados.</p><div data-iv-extra></div></div>
+  <div class="iv-stage-controls" data-iv-control="isolation"><p>Acione a função que permite a travessia entre VLANs.</p><button type="button" data-select-l3>USAR FUNÇÃO DE CAMADA 3</button></div>
+  <div class="iv-stage-controls" data-iv-control="host" hidden><label>IPv4 que PC-A deve resolver com ARP <input type="text" inputmode="decimal" autocomplete="off" data-arp-target aria-describedby="iv-arp-feedback"></label><button type="button" data-check-arp>VERIFICAR ALVO ARP</button><p id="iv-arp-feedback" data-arp-feedback aria-live="polite"></p></div>
+  <div class="iv-stage-controls" data-iv-control="router" hidden><button type="button" data-router-next>INICIAR PRIMEIRO FRAME</button><div class="iv-route-table" role="group" aria-label="Tabela de rotas"><button type="button" data-route-prefix="192.168.10.0/24"><code>192.168.10.0/24</code><span>Direct VLAN 10</span></button><button type="button" data-route-prefix="192.168.20.0/24"><code>192.168.20.0/24</code><span>Direct VLAN 20</span></button></div><p data-route-feedback aria-live="polite"></p></div>
+  <div class="iv-stage-controls" data-iv-control="frames" hidden><section class="iv-inspector" data-iv-inspector><b>PACKET INSPECTOR</b><div><button type="button" data-inspect="f1">FRAME 1</button><button type="button" data-inspect="ip">PACOTE IP</button><button type="button" data-inspect="f2">FRAME 2</button></div><p aria-live="polite">Selecione um momento para inspecionar.</p></section><div class="frame-builder" data-frame-builder><label>Frame 1 <select data-build="f1"><option value="">Selecione</option><option>AA → R10</option><option>AA → BB</option></select></label><label>Frame 2 <select data-build="f2"><option value="">Selecione</option><option>R20 → BB</option><option>R10 → BB</option></select></label><button type="button" data-build-check>VERIFICAR FRAMES</button><p aria-live="polite"></p></div></div>
+  <div class="iv-stage-controls" data-iv-control="journey" hidden><button type="button" class="iv-next" data-iv-next>INICIAR PERCURSO</button></div>
 </section>

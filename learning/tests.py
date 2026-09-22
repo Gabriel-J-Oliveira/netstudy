@@ -2143,14 +2143,25 @@ class RouteConceptTests(TestCase):
 class InterVlanConceptTests(TestCase):
     def start(self):return self.client.post(reverse("learning:iv_checkpoint_start"),HTTP_X_REQUESTED_WITH="XMLHttpRequest")
     def test_page_and_exact_five_areas(self):
-        r=self.client.get(reverse("learning:inter_vlan_concept"));self.assertEqual(r.status_code,200);self.assertContains(r,"data-iv-area=",count=5,html=False);self.assertContains(r,"Como dispositivos em VLANs diferentes conseguem se comunicar?")
+        r=self.client.get(reverse("learning:inter_vlan_concept"));self.assertEqual(r.status_code,200);self.assertContains(r,"data-iv-area=",count=5,html=False);self.assertContains(r,"Como dispositivos em VLANs diferentes conseguem se comunicar?");self.assertContains(r,"data-iv-stage data-stage-id",count=1,html=False)
     def test_stage_and_full_path(self):
-        r=self.client.get(reverse("learning:inter_vlan_concept"));self.assertContains(r,"data-iv-stage",count=2,html=False)
-        for x in ("192.168.10.1 is at R10","Ethernet AA → R10","Destination 192.168.20.30","192.168.20.0/24 → diretamente conectada","192.168.20.30 is at BB","R20 → BB"):self.assertContains(r,x)
-        src=(settings.BASE_DIR/"static"/"js"/"inter-vlan-path-stage.js").read_text(encoding="utf-8");self.assertIn("frame.hidden",src);self.assertIn("Route lookup",src)
+        r=self.client.get(reverse("learning:inter_vlan_concept"))
+        for x in ("192.168.10.20/24","192.168.10.1","192.168.20.30/24","192.168.20.1","192.168.20.0/24","AA → R10","R20 → BB"):self.assertContains(r,x)
+        self.assertNotContains(r,"10.10.10.");self.assertNotContains(r,"10.10.20.")
+        src=(settings.BASE_DIR/"static"/"js"/"inter-vlan-path-stage.js").read_text(encoding="utf-8");self.assertIn("frame.hidden",src);self.assertIn("Route lookup",src);self.assertIn("this.phase = Math.min(9",src)
     def test_vlan_isolation_frames_packet_and_router_on_stick(self):
         r=self.client.get(reverse("learning:inter_vlan_concept"))
         for x in ("ROTEAR ENTRE VLANs NÃO REMOVE","O PACOTE CONTINUA. O FRAME MUDA","FRAME #1 · VLAN 10","FRAME #2 · VLAN 20","Router-on-a-Stick","trunk preserva os contextos","não realiza routing"):self.assertContains(r,x)
+        self.assertContains(r,"<details class=\"iv-implementation\">",html=False)
+    def test_shared_lab_actions_replace_declarative_quizzes_and_rapidfire(self):
+        r=self.client.get(reverse("learning:inter_vlan_concept"))
+        for x in ("data-select-l3","data-arp-target","data-route-prefix","data-iv-inspector","data-frame-builder","data-iv-next","aria-live=\"polite\""):self.assertContains(r,x,html=False)
+        for removed in ("data-isolation-choice","data-source-choice","data-route-choice","data-iv-rapid","RAPID FIRE"):self.assertNotContains(r,removed)
+        stage=(settings.BASE_DIR/"static"/"js"/"inter-vlan-path-stage.js").read_text(encoding="utf-8");concept=(settings.BASE_DIR/"static"/"js"/"inter-vlan-concept.js").read_text(encoding="utf-8")
+        self.assertNotIn("setTimeout",stage+concept);self.assertIn('event.key === "Enter"',stage);self.assertIn("prefers-reduced-motion",concept)
+    def test_responsive_sticky_and_visible_focus(self):
+        css=(settings.BASE_DIR/"static"/"css"/"inter-vlan-concept.css").read_text(encoding="utf-8")+(settings.BASE_DIR/"static"/"css"/"inter-vlan-path-stage.css").read_text(encoding="utf-8")
+        for x in ("position:sticky","position:static","max-width:360px",":focus-visible","prefers-reduced-motion"):self.assertIn(x,css)
     def test_checkpoint_shape_and_misconceptions(self):
         self.assertEqual(len(IV_ACTIVITIES),10);self.assertEqual([x["difficulty_level"] for x in IV_ACTIVITIES],[3,3,4,4,4,4,5,5,5,5]);self.assertEqual(IV_ACTIVITY_MAP["5"]["correct_map"]["f2"],"r20 → bb")
         for x in ("assumes_trunk_performs_inter_vlan_routing","assumes_router_reuses_same_ethernet_frame","assumes_arp_broadcast_crosses_vlan","confuses_trunk_problem_with_routing_problem"):self.assertIn(x,IV_MISCONCEPTION_LABELS)

@@ -2197,12 +2197,34 @@ class IcmpConceptTests(TestCase):
 
     def test_diagnostic_stage_ttl_and_time_exceeded(self):
         response = self.client.get(reverse("learning:icmp_concept"))
-        self.assertContains(response, "data-diag-stage", count=2, html=False)
+        self.assertContains(response, "data-diag-stage", count=1, html=False)
         self.assertContains(response, "ICMP Time Exceeded")
         self.assertContains(response, "TTL LIMITA ATÉ ONDE O PACOTE PODE IR")
         source = (settings.BASE_DIR / "static" / "js" / "diagnostic-path-stage.js").read_text(encoding="utf-8")
-        for fragment in ("runPing", "runTrace", "showMissingHop", "Time Exceeded", "TTL ${ttl}"):
+        for fragment in ("runPing", "runTrace", "showMissingHop", "Time Exceeded", "this.phase = Math.min(5", "ttl - hop"):
             self.assertIn(fragment, source)
+
+    def test_shared_modes_are_manual_and_remove_declarative_quizzes(self):
+        response = self.client.get(reverse("learning:icmp_concept"))
+        for fragment in ('data-diag-mode-link="ping"', 'data-diag-mode-link="messages"', 'data-diag-mode-link="evidence"', 'data-diag-mode-link="trace"', "data-ping-next", "data-ttl-control", "data-diag-run", "data-icmp-inspector", "data-evidence-board"):
+            self.assertContains(response, fragment, html=False)
+        for removed in ("data-reply-choice", "data-safe-choice", "data-ttl-choice", "data-icmp-rapid", "data-rapid-question", "RAPID FIRE"):
+            self.assertNotContains(response, removed)
+        stage = (settings.BASE_DIR / "static" / "js" / "diagnostic-path-stage.js").read_text(encoding="utf-8")
+        concept = (settings.BASE_DIR / "static" / "js" / "icmp-concept.js").read_text(encoding="utf-8")
+        self.assertNotIn("setTimeout", stage + concept)
+        self.assertIn('this.mode !== "trace"', stage)
+        self.assertIn('this.mode !== "ping"', stage)
+        self.assertIn("prefers-reduced-motion", concept)
+
+    def test_terminal_rejects_unsupported_commands_and_layout_is_accessible(self):
+        source = (settings.BASE_DIR / "static" / "js" / "icmp-concept.js").read_text(encoding="utf-8")
+        self.assertIn("Comando não disponível neste cenário", source)
+        self.assertIn("commands[normalized]", source)
+        self.assertNotIn('c.startsWith("tracert")', source)
+        css = (settings.BASE_DIR / "static" / "css" / "icmp-concept.css").read_text(encoding="utf-8") + (settings.BASE_DIR / "static" / "css" / "diagnostic-path-stage.css").read_text(encoding="utf-8")
+        for fragment in ("position:sticky", "position:static", "max-width:360px", ":focus-visible", "prefers-reduced-motion", "[hidden]"):
+            self.assertIn(fragment, css)
 
     def test_missing_hop_later_hops_and_packet_inspector(self):
         response = self.client.get(reverse("learning:icmp_concept"))

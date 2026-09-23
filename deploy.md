@@ -114,7 +114,7 @@ A configuração presente em `netstudy/settings.py` é deliberadamente voltada a
 
 - `DEBUG = True`;
 - chave de desenvolvimento local;
-- `ALLOWED_HOSTS` vazio;
+- `ALLOWED_HOSTS` restrito a localhost, com IPs adicionais configuráveis por `DJANGO_ALLOWED_HOSTS` para uso na LAN;
 - servidor iniciado por `runserver`;
 - arquivos estáticos servidos no fluxo de desenvolvimento;
 - SQLite como banco local.
@@ -144,7 +144,7 @@ DJANGO_DEBUG=false
 DJANGO_ALLOWED_HOSTS=netstudy.exemplo.com
 ```
 
-Essas variáveis ainda precisam ser lidas por `settings.py` antes de um deploy real. Nenhum segredo verdadeiro deve ser colocado no repositório.
+`settings.py` já lê `DJANGO_ALLOWED_HOSTS` como uma lista separada por vírgulas. As variáveis de segredo e `DEBUG` acima ainda exigem configuração própria antes de um deploy real. Nenhum segredo verdadeiro deve ser colocado no repositório.
 
 ## Fluxo conceitual de publicação
 

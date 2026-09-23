@@ -1,9 +1,32 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Switch Ethernet · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}?v=switch-guided-1"><link rel="stylesheet" href="{% static 'css/switch-concept.css' %}?v=switch-guided-1"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}?v=switch-guided-1"><link rel="stylesheet" href="{% static 'css/switch-concept.css' %}?v=layout-2"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}">{% endblock %}
 {% block content %}
 <div class="switch-concept switch-guided">
   <header class="switch-page-heading"><span class="switch-index">SWITCH ETHERNET · EXPERIÊNCIA GUIADA</span><h1>Como o switch aprende e encaminha</h1><p>Um único cenário, da primeira entrada ao caminho aprendido.</p></header>
+  <section class="switch-concept-prelude" aria-labelledby="switch-concept-title">
+    <span>CONCEITO</span>
+    <h2 id="switch-concept-title">Aprender a origem, consultar o destino</h2>
+    <p>Ao receber um frame, o switch usa o <strong>MAC de origem</strong> e a <strong>porta de entrada</strong> para o <span class="switch-glossary-anchor"><button type="button" class="switch-glossary-term" data-switch-glossary aria-expanded="false" aria-controls="switch-tip-learning" aria-describedby="switch-tip-learning">aprendizado dinâmico</button><span class="switch-glossary-popover" id="switch-tip-learning" role="tooltip" hidden>O switch atualiza automaticamente onde um MAC de origem foi visto. Aqui, AA foi recebido pela Gi0/1 na VLAN 1.</span></span> na <span class="switch-glossary-anchor"><button type="button" class="switch-glossary-term" data-switch-glossary aria-expanded="false" aria-controls="switch-tip-table" aria-describedby="switch-tip-table">MAC Address Table</button><span class="switch-glossary-popover" id="switch-tip-table" role="tooltip" hidden>Tabela que associa MAC, VLAN e interface. Neste exemplo, AA fica associado à VLAN 1 e à Gi0/1; ela não armazena endereços IP para decidir essa saída.</span></span>.</p>
+    <p>Depois consulta o <strong>MAC de destino</strong>: se o conhece, envia pela interface correspondente; se não, pode fazer <span class="switch-glossary-anchor"><button type="button" class="switch-glossary-term" data-switch-glossary aria-expanded="false" aria-controls="switch-tip-flooding" aria-describedby="switch-tip-flooding">flooding</button><span class="switch-glossary-popover" id="switch-tip-flooding" role="tooltip" hidden>O switch copia o frame para outras portas participantes da mesma VLAN, exceto a entrada. Isso pode ocorrer com um destino unicast ainda desconhecido.</span></span> dentro da VLAN. A tabela associa <strong>MAC, VLAN e interface</strong>, não endereços IP.</p>
+    <figure class="switch-static-figure" aria-labelledby="switch-static-title" aria-describedby="switch-static-caption">
+      <figcaption id="switch-static-title">O mesmo SW1, da entrada à saída</figcaption>
+      <div class="switch-static-topology" role="img" aria-label="PC-A envia o frame AA para BB pela Gi0/1 ao único switch SW1. PC-B está na Gi0/4 e PC-C na Gi0/3. Quando BB é conhecido, a saída é só Gi0/4; enquanto desconhecido, pode haver flooding na VLAN, exceto pela Gi0/1 de entrada.">
+        <div class="switch-static-host"><strong>PC-A</strong><small>AA · VLAN 1</small><b>Gi0/1 · entrada</b></div>
+        <span class="switch-static-arrow" aria-hidden="true">→</span>
+        <div class="switch-static-device"><strong>SW1</strong><small>um switch físico</small></div>
+        <span class="switch-static-arrow" aria-hidden="true">→</span>
+        <div class="switch-static-destinations"><div><strong>PC-B</strong><small>BB · Gi0/4 · saída conhecida</small></div><div><strong>PC-C</strong><small>CC · Gi0/3 · recebe cópia só no flooding</small></div></div>
+      </div>
+      <ol class="switch-static-process">
+        <li><b>1</b><span><strong>Entrada:</strong> frame AA → BB chega de PC-A pela Gi0/1, na VLAN 1.</span></li>
+        <li><b>2</b><span><strong>Aprendizado:</strong> a tabela registra <code>MAC AA · VLAN 1 · Gi0/1</code>.</span></li>
+        <li><b>3</b><span><strong>Consulta:</strong> SW1 procura o MAC de destino BB na tabela.</span></li>
+        <li><b>4</b><span><strong>Saída:</strong> BB conhecido → só Gi0/4; BB desconhecido → flooding na VLAN 1, sem retornar pela Gi0/1.</span></li>
+      </ol>
+      <p id="switch-static-caption">A tabela registra a interface onde cada MAC de origem foi visto em uma VLAN. O destino determina a saída do frame.</p>
+    </figure>
+  </section>
   <nav class="switch-stepper" data-switch-stepper aria-label="Etapas do laboratório">
     <button type="button" data-step-target="1" aria-current="step"><span>1</span>Entrada</button>
     <button type="button" data-step-target="2" disabled><span>2</span>Aprendizagem</button>
@@ -62,4 +85,4 @@ Mac Address          Port
   </section>
 </div>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}?v=switch-guided-1"></script><script src="{% static 'js/switch-workbench.js' %}"></script><script src="{% static 'js/switch-concept.js' %}?v=switch-guided-1"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}?v=switch-guided-1"></script><script src="{% static 'js/switch-workbench.js' %}"></script><script src="{% static 'js/switch-concept.js' %}?v=switch-static-1"></script>{% endblock %}

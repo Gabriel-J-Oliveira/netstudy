@@ -1,6 +1,6 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}MAC Address · Conceito{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/mac-concept.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/mac-concept.css' %}?v=layout-2"><link rel="stylesheet" href="{% static 'css/context-glossary.css' %}">{% endblock %}
 {% block content %}
 <div class="mac-concept">
   <section class="mac-section mac-opening" id="mac-meaning" data-mac-area="01" aria-labelledby="mac-title">
@@ -44,13 +44,13 @@
     <span class="mac-index">02 · COMO RECONHECER E ONDE ELE APARECE?</span><h2 id="mac-format-title">Como um MAC aparece</h2>
     <div class="mac-format-display"><code>AA:BB:CC:DD:EE:FF</code><span>6 grupos · 2 dígitos hexadecimais por grupo</span></div>
     <div class="format-variants"><code>AA:BB:CC:DD:EE:FF</code><code>AA-BB-CC-DD-EE-FF</code></div>
-    <div class="hex-strip" aria-label="Símbolos hexadecimais">0 1 2 3 4 5 6 7 8 9 A B C D E F</div><p>Neste momento basta reconhecer que MACs são normalmente exibidos em hexadecimal. Os separadores podem variar.</p>
+    <div class="hex-strip" aria-label="Símbolos hexadecimais">0 1 2 3 4 5 6 7 8 9 A B C D E F</div><p>Neste momento basta reconhecer que MACs são normalmente exibidos em <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="mac-tip-hex" aria-describedby="mac-tip-hex">hexadecimal</button><span id="mac-tip-hex" role="tooltip" hidden>Sistema de numeração que usa 0–9 e A–F. No exemplo, cada grupo do MAC tem dois dígitos desse sistema.</span></span>. Os separadores podem variar.</p>
     <div class="content-interaction" data-mac-explorer><span class="action-label label-explore">EXPLORAR</span><div class="explore-values"><button type="button" data-explore-kind="ipv4">192.168.10.25</button><button type="button" data-explore-kind="mac">AA:BB:CC:DD:EE:FF</button><button type="button" data-explore-kind="transport">443</button><button type="button" data-explore-kind="interface">Gi0/7</button></div><p data-explore-feedback>Selecione um valor para reconhecer seu papel.</p></div>
     <div class="content-interaction" data-ipconfig-proof><span class="action-label label-try">EXPERIMENTE</span><pre>ipconfig /all
 
 Endereço IPv4:   192.168.10.25
 Endereço Físico: AA-BB-CC-DD-EE-FF
-Gateway:         192.168.10.1</pre><p>Se você precisar preencher o Source MAC de um frame originado nesta interface, qual evidência fornece essa informação?</p><div class="proof-values"><button type="button" data-proof-value="ip">192.168.10.25</button><button type="button" data-proof-value="mac">AA-BB-CC-DD-EE-FF</button><button type="button" data-proof-value="gateway">192.168.10.1</button></div><div data-proof-use hidden><p>Onde essa informação será utilizada?</p><button type="button" data-proof-use="source">Source MAC do frame</button><button type="button" data-proof-use="destination">Destination MAC do frame</button></div><p data-proof-feedback></p></div>
+Gateway:         192.168.10.1</pre><p>Se você precisar preencher o Source MAC de um frame originado nesta <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="mac-tip-interface" aria-describedby="mac-tip-interface">interface de rede</button><span id="mac-tip-interface" role="tooltip" hidden>Conexão de rede do host pela qual ele envia e recebe frames. O endereço físico exibido no ipconfig pertence a essa interface.</span></span>, qual evidência fornece essa informação?</p><div class="proof-values"><button type="button" data-proof-value="ip">192.168.10.25</button><button type="button" data-proof-value="mac">AA-BB-CC-DD-EE-FF</button><button type="button" data-proof-value="gateway">192.168.10.1</button></div><div data-proof-use hidden><p>Onde essa informação será utilizada?</p><button type="button" data-proof-use="source">Source MAC do frame</button><button type="button" data-proof-use="destination">Destination MAC do frame</button></div><p data-proof-feedback></p></div>
   </section>
 
   <section class="mac-section" id="mac-direction" data-mac-area="03" aria-labelledby="mac-direction-title">
@@ -105,4 +105,4 @@ Gateway:         192.168.10.1</pre><p>Se você precisar preencher o Source MAC d
   <section class="next-concept"><span>PRÓXIMO</span><h2>Switch</h2><p>Agora sabemos o que está dentro do frame e quais endereços MAC ele carrega. O próximo passo é entender como o switch utiliza essas informações quando recebe o frame.</p><strong>Em breve</strong></section>
 </div>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/mac-concept.js' %}"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/mac-concept.js' %}"></script><script src="{% static 'js/context-glossary.js' %}"></script>{% endblock %}

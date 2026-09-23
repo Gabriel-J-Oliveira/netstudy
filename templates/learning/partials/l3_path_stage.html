@@ -1,3 +1,26 @@
+{% if stage_mode == "shared" %}
+<section class="l3-path-stage gateway-lab-stage" data-l3-stage data-stage-id="gateway-shared" data-stage-mode="shared" aria-label="Topologia e estado da primeira entrega">
+  <div class="gateway-lab-topology" role="img" aria-label="PC-A envia pela rede local ao switch SW1. No destino remoto, o primeiro frame termina em R1; a rede depois de R1 fica fora do percurso. No destino local, SW1 entrega a PC-L.">
+    <div class="gateway-lab-node" data-path-node="host"><strong>PC-A</strong><small>192.168.10.25/24</small><code>MAC AA</code></div>
+    <span class="gateway-lab-link" aria-hidden="true">→</span>
+    <div class="gateway-lab-node" data-path-node="switch"><strong>SW1</strong><small>switch · Camada 2</small></div>
+    <span class="gateway-lab-link" aria-hidden="true">→</span>
+    <div class="gateway-lab-node" data-path-node="receiver"><strong data-receiver-name>R1</strong><small data-receiver-role>Default Gateway</small><code data-receiver-address>192.168.10.1 · MAC RR</code></div>
+    <span class="gateway-lab-remote" data-remote-tail>··· rede remota ···</span>
+    <div class="gateway-lab-node gateway-lab-final" data-remote-tail><strong>PC-B</strong><small>destino IP final</small><code>192.168.20.50</code></div>
+  </div>
+  <div class="gateway-lab-state">
+    <div><strong>Comparação com 192.168.10.0/24</strong><p data-network-result>192.168.20.50 está fora da LAN de PC-A: destino remoto.</p></div>
+    <div><strong>ARP Cache</strong><code data-l3-cache>vazio · próximo MAC desconhecido</code></div>
+  </div>
+  <div class="gateway-lab-frame" data-l3-transit data-delivery="pending">
+    <span>PRIMEIRO FRAME NA LAN</span>
+    <dl><dt>Source MAC</dt><dd>AA</dd><dt>Destination MAC</dt><dd data-frame-mac>aguardando ARP</dd></dl>
+    <div><span>PACOTE IPv4</span><dl><dt>Source IP</dt><dd>192.168.10.25</dd><dt>Destination IP</dt><dd data-frame-ip>192.168.20.50</dd></dl></div>
+    <p data-frame-position>Frame ainda não enviado.</p>
+  </div>
+</section>
+{% else %}
 <section class="l3-path-stage" data-l3-stage data-stage-id="{{ stage_id|default:'gateway-stage' }}" data-stage-mode="{{ stage_mode|default:'demonstration' }}" data-host-ip="{{ host_ip|default:'192.168.10.25' }}" data-host-prefix="{{ host_prefix|default:'24' }}" data-host-mac="{{ host_mac|default:'AA' }}" data-gateway-ip="{{ gateway_ip|default:'192.168.10.1' }}" data-gateway-mac="{{ gateway_mac|default:'RR' }}" data-destination-ip="{{ destination_ip|default:'192.168.20.50' }}" data-destination-mac="{{ destination_mac|default:'BB' }}" aria-label="Caminho de Camada 3 entre PC-A, gateway R1 e PC-B remoto">
   <header><div><span>L3 PATH STAGE</span><strong>Entrega local × destino final</strong></div><button type="button" data-l3-reset aria-label="Resetar cenário do caminho de Camada 3">↻ Resetar cenário</button></header>
   <div class="l3-topology">
@@ -17,3 +40,4 @@
   <div class="l3-stage-state"><span>ARP Cache</span><code data-l3-cache>{{ gateway_ip|default:'192.168.10.1' }} → desconhecido</code><p data-l3-message>Destino remoto identificado. Escolha o próximo salto local.</p></div>
   <div class="l3-controls"><button type="button" data-l3-next>Ver o primeiro salto</button></div>
 </section>
+{% endif %}

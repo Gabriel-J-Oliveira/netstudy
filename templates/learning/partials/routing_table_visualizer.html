@@ -1,13 +1,14 @@
 <section class="route-visualizer" data-route-visualizer aria-label="Routing Table Visualizer">
-  <header><div><span>ROUTING TABLE VISUALIZER</span><strong>Destination IP → melhor rota</strong></div><button type="button" data-route-reset>↻ Resetar cenário</button></header>
-  <div class="route-input"><label for="route-shared-destination">Destination IP</label><input id="route-shared-destination" type="text" value="{{ visualizer_destination|default:'192.168.20.50' }}" inputmode="decimal" autocomplete="off" data-route-destination><button type="button" data-route-run>TESTAR E ESCOLHER</button></div>
+  <header><div><span>ROUTING TABLE VISUALIZER</span><strong>Destination IP → prefixos → rota → entrega</strong></div><button type="button" data-route-reset>↻ Reiniciar tabela</button></header>
+  <div class="route-input"><label for="route-shared-destination">1 · Destination IP</label><input id="route-shared-destination" type="text" value="{{ visualizer_destination|default:'192.168.20.50' }}" inputmode="decimal" autocomplete="off" data-route-destination><button type="button" data-route-run>2 · Testar correspondências</button></div>
   <div class="route-table" role="table" aria-label="Tabela de rotas didática">
-    <div class="route-row route-head" role="row"><span>DESTINATION PREFIX</span><span>NEXT HOP</span><span>INTERFACE</span><span>RESULTADO</span></div>
+    <div class="route-row route-head" role="row"><span>DESTINATION PREFIX</span><span>NEXT HOP</span><span>INTERFACE</span><span>RESULTADO</span><span>ESCOLHA</span></div>
     <div data-route-rows>
       {% for route in visualizer_routes %}<div class="route-row" role="row" data-prefix="{{ route.prefix }}" data-next-hop="{{ route.next_hop }}" data-interface="{{ route.interface }}">
-        <button type="button" data-route-field="prefix" aria-label="Destination Prefix {{ route.aria_prefix|default:route.prefix }}">{{ route.prefix }}</button><button type="button" data-route-field="nextHop" aria-label="Next Hop {{ route.next_hop }}">{{ route.next_hop }}</button><button type="button" data-route-field="interface" aria-label="Interface {{ route.interface }}">{{ route.interface }}</button><strong data-route-label>AGUARDANDO</strong>
+        <span class="route-cell" data-cell-label="Prefixo">{{ route.prefix }}</span><span class="route-cell" data-cell-label="Próximo salto">{{ route.next_hop }}</span><span class="route-cell" data-cell-label="Interface">{{ route.interface }}</span><strong data-route-label data-cell-label="Resultado">AGUARDANDO</strong><button type="button" data-route-select aria-label="Escolher rota {{ route.aria_prefix|default:route.prefix }}" disabled>Escolher esta rota</button>
       </div>{% endfor %}
     </div>
   </div>
-  <p class="route-result" data-route-result aria-live="polite">Informe um destino e teste as linhas.</p>
+  <div class="route-action"><button type="button" data-route-reveal disabled>4 · Revelar consequência</button></div>
+  <p class="route-result" data-route-result role="status" aria-live="polite">Informe um destino e teste as correspondências.</p>
 </section>

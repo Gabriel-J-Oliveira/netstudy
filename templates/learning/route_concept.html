@@ -1,79 +1,51 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Tabela de Rotas + Escolha de Caminho · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}"><link rel="stylesheet" href="{% static 'css/routing-table-visualizer.css' %}?v=route-shared-1"><link rel="stylesheet" href="{% static 'css/route-concept.css' %}?v=route-shared-1">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}?v=layout-2"><link rel="stylesheet" href="{% static 'css/context-glossary.css' %}"><link rel="stylesheet" href="{% static 'css/routing-table-visualizer.css' %}?v=route-flow-2"><link rel="stylesheet" href="{% static 'css/route-concept.css' %}?v=layout-2">{% endblock %}
 {% block content %}
 <div class="route-concept">
   {{ basic_routes|json_script:"route-basic-data" }}
   {{ specific_routes|json_script:"route-specific-data" }}
-  <div class="route-learning-layout">
-    <main class="route-learning-content">
-      <section class="route-area route-hero" data-route-area="01" data-route-page-stage="decision" id="route-decision">
-        <span class="route-index">TABELA DE ROTAS + ESCOLHA DE CAMINHO · ÁREA 01</span>
-        <p class="route-kicker">Como um host ou roteador decide qual caminho usar?</p>
-        <h1>O Destination IP escolhe uma rota</h1>
-        <p>R1 lê o <strong>Destination IP <code>192.168.20.50</code></strong> e o compara com os prefixos da Routing Table.</p>
-        <blockquote>Rotas que não combinam são descartadas. Entre as compatíveis, a rota mais específica informa o Next Hop e a interface de saída.</blockquote>
-        <aside class="route-anchor">O DESTINO ESCOLHE A ROTA.</aside>
-        <div class="route-task"><a href="#route-shared-lab" data-route-stage-link="decision">ABRIR DECISÃO NO LABORATÓRIO</a><p>Use <strong>TESTAR E ESCOLHER</strong> para avaliar <code>192.168.20.50</code>.</p><p data-decision-feedback aria-live="polite">A rota esperada conduz a R2 pelo Next Hop 10.0.0.2 e pela WAN1.</p></div>
-        <p class="area-transition">A linha escolhida reúne três informações com funções diferentes.</p>
-      </section>
+  <main class="route-learning-content">
+    <header class="route-intro" id="route-decision">
+      <span class="route-index">TABELA DE ROTAS + ESCOLHA DE CAMINHO</span>
+      <h1>O Destination IP orienta o caminho</h1>
+      <p>Uma tabela de rotas associa um <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="route-tip-prefix" aria-describedby="route-tip-prefix">prefixo de destino</button><span id="route-tip-prefix" role="tooltip" hidden>Conjunto de endereços descrito por rede e comprimento de máscara. 192.168.20.0/24 inclui 192.168.20.50.</span></span> à forma de encaminhar um pacote. O equipamento lê o <strong>Destination IP</strong>, identifica as rotas compatíveis e escolhe a de <strong>prefixo mais longo</strong>: a que cobre o conjunto mais específico de destinos.</p>
+      <p>A rota escolhida indica entrega direta ou <strong>next hop</strong> (o próximo roteador), além da <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="route-tip-interface" aria-describedby="route-tip-interface">interface de saída</button><span id="route-tip-interface" role="tooltip" hidden>Conexão local pela qual o equipamento envia o novo frame. Na rota para PC-B, R1 usa WAN1 para alcançar R2.</span></span>. Na entrega <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="route-tip-onlink" aria-describedby="route-tip-onlink">on-link</button><span id="route-tip-onlink" role="tooltip" hidden>Destino diretamente alcançável na rede da interface, sem outro roteador como próximo salto.</span></span>, o destinatário do frame está na própria rede da interface. <code>0.0.0.0/0</code> é a rota padrão quando nenhuma mais específica combina. Sem rota compatível, não há caminho para encaminhar o pacote.</p>
+    </header>
 
-      <section class="route-area" data-route-area="02" data-route-page-stage="anatomy" id="route-anatomy">
-        <span class="route-index">ÁREA 02 · ANATOMIA</span>
-        <h2>Uma rota descreve destinos e como alcançá-los</h2>
-        <p>Clique nos três campos da linha <code>192.168.20.0/24 → 10.0.0.2 → WAN1</code>.</p>
-        <div class="route-task"><a href="#route-shared-lab" data-route-stage-link="anatomy">INSPECIONAR A ROTA NO LABORATÓRIO</a><ol class="route-checklist"><li data-anatomy-field="prefix">Destination Prefix</li><li data-anatomy-field="nextHop">Next Hop</li><li data-anatomy-field="interface">Interface</li></ol><p data-anatomy-feedback aria-live="polite">Cada campo responde a uma parte da decisão.</p></div>
-        <div class="route-compare"><article><strong>DIRECTLY CONNECTED / ON-LINK</strong><span>Nenhum roteador intermediário</span><span>ARP pelo host da rede local</span></article><article><strong>VIA NEXT HOP</strong><span>Outro roteador recebe o novo frame</span><span>ARP/MAC do próximo roteador</span></article></div>
-        <p class="area-transition">Com essa anatomia, podemos observar três resultados de encaminhamento.</p>
-      </section>
-
-      <section class="route-area" data-route-area="03" data-route-page-stage="outcomes" id="route-outcomes">
-        <span class="route-index">ÁREA 03 · TRÊS RESULTADOS</span>
-        <h2>Direct, Next Hop ou Default Route</h2>
-        <p>Troque o Destination IP livremente e observe as rotas compatíveis, a vencedora e a consequência Ethernet.</p>
-        <div class="route-task"><a href="#route-shared-lab" data-route-stage-link="outcomes">TESTAR DESTINOS NO LABORATÓRIO</a><p data-outcome-feedback aria-live="polite">Escolha um dos três destinos abaixo do visualizador.</p></div>
-        <blockquote>No host, a rota padrão explica o uso do gateway. No roteador, a tabela inteira é consultada.</blockquote>
-        <aside class="route-anchor">DEFAULT GATEWAY É UMA CONSEQUÊNCIA DA ROTA PADRÃO.</aside>
-        <p class="area-transition">A rota padrão só vence quando nenhuma rota compatível mais específica está disponível.</p>
-      </section>
-
-      <section class="route-area route-strong" data-route-area="04" data-route-page-stage="specificity" id="route-specificity">
-        <span class="route-index">ÁREA 04 · LONGEST PREFIX MATCH</span>
-        <h2>Primeiro match. Depois especificidade.</h2>
-        <p>Teste <code>10.10.20.50</code> para revelar quatro rotas compatíveis; então escolha a mais específica. Depois compare com <code>10.50.1.20</code>.</p>
-        <div class="route-task"><a href="#route-shared-lab" data-route-stage-link="specificity">ABRIR LONGEST PREFIX MATCH</a><p data-specificity-feedback aria-live="polite">Escolha um destino, teste as correspondências e só depois revele a vencedora.</p></div>
-        <aside class="route-anchor">PRIMEIRO: A ROTA PRECISA COMBINAR.<br>DEPOIS: ENTRE AS COMPATÍVEIS, A MAIS ESPECÍFICA VENCE.</aside>
-        <small>Existem outros critérios quando rotas igualmente específicas estão disponíveis; eles serão estudados posteriormente.</small>
-        <p class="area-transition">A síntese aplicará essa mesma ordem antes de construir a entrega L2.</p>
-      </section>
-
-      <section class="route-area route-summary" data-route-area="05" data-route-page-stage="summary" id="route-summary">
-        <span class="route-index">ÁREA 05 · SÍNTESE</span>
-        <h2>Destination IP → rota → Next Hop → novo frame</h2>
-        <p>Avance manualmente pelas seis decisões no mesmo visualizador.</p>
-        <div class="route-task"><a href="#route-shared-lab" data-route-stage-link="summary">ABRIR SÍNTESE NO LABORATÓRIO</a><ol class="route-steps"><li data-summary-step="1">Ler Destination IP 192.168.20.50</li><li data-summary-step="2">Testar as rotas</li><li data-summary-step="3">Identificar /24 e /0 compatíveis</li><li data-summary-step="4">Selecionar /24 por especificidade</li><li data-summary-step="5">Escolher Next Hop 10.0.0.2 e WAN1</li><li data-summary-step="6">Criar novo frame R1 → R2</li></ol><p data-summary-feedback aria-live="polite">Comece lendo o Destination IP.</p></div>
-        <aside class="route-anchor">IP FINAL CONTINUA 192.168.20.50. O MAC REFERE-SE AO NEXT HOP DO NOVO ENLACE.</aside>
-        <section class="route-terminal" data-route-terminal><h3>Confirme no terminal</h3>{% include "learning/partials/netstudy_terminal.html" with terminal_title="NetStudy Terminal · Rotas" %}<div class="terminal-shortcuts"><button type="button" data-command="route print">route print</button><button type="button" data-command="Get-NetRoute">Get-NetRoute</button><button type="button" data-command="show ip route">show ip route · leitura opcional</button></div><p data-terminal-explain aria-live="polite"></p></section>
-        <div class="gateway-explanation" data-route-explanation><h3>Explique antes de revelar</h3><p>Por que <code>10.10.20.0/24</code> é escolhida em vez de <code>10.0.0.0/8</code> para alcançar <code>10.10.20.50</code>?</p><textarea rows="4" aria-label="Sua explicação"></textarea><button type="button" data-reference-reveal>CONFERIR RESPOSTA DE REFERÊNCIA</button><div data-reference hidden><strong>Resposta de referência</strong><p>As duas rotas correspondem ao destino, mas /24 possui um prefixo mais longo e representa um conjunto de destinos mais específico. Por isso ela é preferida pelo longest prefix match.</p></div></div>
-        <nav class="concept-sequence"><a href="{% url 'learning:gateway_concept' %}">← Default Gateway + Next Hop</a><a href="{% url 'learning:inter_vlan_concept' %}">Inter-VLAN Routing →</a></nav>
-        <p class="next-description">Agora sabemos como um equipamento escolhe uma rota. No próximo módulo aplicamos isso a duas VLANs diferentes.</p>
-      </section>
-    </main>
-
-    <aside class="route-shared-lab" id="route-shared-lab" aria-labelledby="route-shared-title">
-      <header class="route-shared-heading"><span>LABORATÓRIO COMPARTILHADO</span><strong id="route-shared-title" data-route-stage-title>Área 01 · Destination IP escolhe uma rota</strong><p data-route-stage-copy>Teste 192.168.20.50 contra todas as linhas.</p></header>
-      {% include "learning/partials/routing_table_visualizer.html" with visualizer_routes=basic_routes visualizer_destination="192.168.20.50" %}
-      <div class="route-context-controls">
-        <div data-outcome-controls hidden><button type="button" data-route-preset="192.168.10.80">DIRECT · 192.168.10.80</button><button type="button" data-route-preset="192.168.20.50">NEXT HOP · 192.168.20.50</button><button type="button" data-route-preset="8.8.8.8">DEFAULT · 8.8.8.8</button></div>
-        <div data-specificity-controls hidden><button type="button" data-specificity-destination="10.10.20.50">TESTAR 10.10.20.50</button><button type="button" data-specificity-destination="10.50.1.20">TESTAR 10.50.1.20</button><button type="button" data-specificity-winner disabled>ESCOLHER A MAIS ESPECÍFICA</button></div>
-        <button type="button" class="route-primary" data-summary-next hidden>INICIAR PASSO 1</button>
+    <section class="route-section" aria-labelledby="route-overview-title">
+      <h2 id="route-overview-title">Visão geral · decisão de R1</h2>
+      <div class="route-overview" role="img" aria-label="R1 recebe pacote para 192.168.20.50. A rota local 192.168.10.0/24 não combina; 192.168.20.0/24 e 0.0.0.0/0 combinam. A rota /24 vence e R1 envia novo frame pela WAN1 ao MAC de R2, next hop 10.0.0.2. O Destination IP segue 192.168.20.50.">
+        <div class="route-overview-packet"><strong>Pacote em R1</strong><span>Destination IP <code>192.168.20.50</code></span></div>
+        <div class="route-overview-rows"><div class="is-incompatible"><b>Não combina</b><code>192.168.10.0/24</code></div><div class="is-winner"><b>Compatível · vencedora</b><code>192.168.20.0/24</code></div><div class="is-compatible"><b>Compatível · menos específica</b><code>0.0.0.0/0</code></div></div>
+        <div class="route-overview-outcome"><strong>WAN1 → R2 · 10.0.0.2</strong><span>Novo frame: Destination MAC de R2</span><span>Pacote: Destination IP continua <code>192.168.20.50</code></span></div>
       </div>
-      <div class="route-shared-legend"><article><strong>DIRECT / ON-LINK</strong><span>ARP pelo host local</span></article><article><strong>VIA NEXT HOP</strong><span>Novo frame para outro roteador</span></article></div>
-      <div class="route-new-frame" data-route-new-frame hidden><strong>NOVO FRAME · R1 → R2</strong><span>Ethernet Destination: MAC de R2 naquele enlace</span><span>IPv4 Destination continua 192.168.20.50</span></div>
-      <p class="route-shared-feedback" data-route-lab-feedback aria-live="polite">Informe ou confirme o Destination IP e teste as rotas.</p>
-    </aside>
-  </div>
+      <p>WAN1 de R1 usa <code>10.0.0.1/30</code> e alcança R2 em <code>10.0.0.2</code>. A rota padrão usa WAN2 <code>203.0.113.2/30</code> e próximo salto <code>203.0.113.1</code>. O novo frame segue apenas pelo enlace da saída escolhida.</p>
+    </section>
+
+    <section class="route-section route-lab" id="route-shared-lab" aria-labelledby="route-lab-title">
+      <h2 id="route-lab-title">Laboratório · teste e escolha</h2>
+      <p>Escolha ou informe um destino. Teste quais prefixos combinam; depois selecione manualmente a melhor rota e revele a entrega.</p>
+      <div class="route-scenarios" role="group" aria-label="Cenários da tabela principal"><button type="button" data-route-preset="192.168.10.80">Direto · 192.168.10.80</button><button type="button" data-route-preset="192.168.20.50">Via R2 · 192.168.20.50</button><button type="button" data-route-preset="8.8.8.8">Padrão · 8.8.8.8</button></div>
+      {% include "learning/partials/routing_table_visualizer.html" with visualizer_routes=basic_routes visualizer_destination="192.168.20.50" %}
+      <div class="route-consequence" data-route-consequence hidden><strong>Consequência da rota escolhida</strong><p data-route-consequence-copy></p><p data-route-frame-copy></p></div>
+      <div class="route-specificity">
+        <h3>Pratique a especificidade na mesma tabela</h3>
+        <p>Compare <code>10.10.20.50</code> e <code>10.50.1.20</code>. Os próximos saltos desta prática usam enlaces didáticos: WAN1 <code>10.0.0.0/30</code>, WAN3 <code>10.0.1.0/30</code>, WAN4 <code>10.0.2.0/30</code> e WAN2 <code>203.0.113.0/30</code>.</p>
+        <div class="route-scenarios" role="group" aria-label="Exercício de especificidade"><button type="button" data-specificity-destination="10.10.20.50">Testar 10.10.20.50</button><button type="button" data-specificity-destination="10.50.1.20">Testar 10.50.1.20</button><button type="button" data-route-basic>Voltar aos três cenários</button></div>
+      </div>
+      <p class="route-synthesis" data-route-synthesis>Escolha uma rota para ver a síntese da decisão.</p>
+    </section>
+
+    <section class="route-section route-evidence" aria-labelledby="route-evidence-title">
+      <h2 id="route-evidence-title">Evidências e fechamento</h2>
+      <section class="route-terminal" data-route-terminal><h3>Terminal · escolha o equipamento</h3><div class="route-terminal-context" role="group" aria-label="Equipamento do terminal"><button type="button" data-terminal-device="host" aria-pressed="true">Host PC-A · Windows</button><button type="button" data-terminal-device="router" aria-pressed="false">Roteador R1 · simulado</button></div>{% include "learning/partials/netstudy_terminal.html" with terminal_title="NetStudy Terminal · Rotas" %}<div class="terminal-shortcuts"><button type="button" data-command="route print">route print</button><button type="button" data-command="Get-NetRoute">Get-NetRoute</button><button type="button" data-command="show ip route">show ip route</button></div><p data-terminal-explain aria-live="polite"></p></section>
+      <p>A tabela seleciona o caminho pelo Destination IP. O quadro de encaminhamento da rota escolhida mostra a interface e o destinatário do novo frame; o IP final do pacote não muda nessa decisão.</p>
+      <div class="gateway-explanation" data-route-explanation><h3>Explique antes de revelar</h3><p>Por que <code>10.10.20.0/24</code> vence <code>10.0.0.0/8</code> para <code>10.10.20.50</code>?</p><textarea rows="4" aria-label="Sua explicação"></textarea><button type="button" data-reference-reveal>Conferir resposta de referência</button><div data-reference hidden><strong>Resposta de referência</strong><p>Ambas combinam, mas /24 tem o prefixo mais longo e representa um conjunto de destinos mais específico. A rota padrão também combina, mas perde para /24.</p></div></div>
+      <nav class="concept-sequence"><a href="{% url 'learning:gateway_concept' %}">← Default Gateway + Next Hop</a><a href="{% url 'learning:inter_vlan_concept' %}">Inter-VLAN Routing →</a></nav>
+    </section>
+  </main>
   <section class="route-checkpoint-shell" id="route-checkpoint" aria-live="polite">{% include "learning/partials/route_checkpoint.html" %}</section>
 </div>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/routing-table-visualizer.js' %}?v=route-shared-1"></script><script src="{% static 'js/route-concept.js' %}?v=route-shared-1"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/context-glossary.js' %}"></script><script src="{% static 'js/routing-table-visualizer.js' %}?v=route-flow-2"></script><script src="{% static 'js/route-concept.js' %}?v=route-flow-2"></script>{% endblock %}

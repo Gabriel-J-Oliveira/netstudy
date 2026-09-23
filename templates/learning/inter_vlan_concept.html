@@ -1,70 +1,46 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Inter-VLAN Routing · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}"><link rel="stylesheet" href="{% static 'css/inter-vlan-path-stage.css' %}?v=shared-1"><link rel="stylesheet" href="{% static 'css/inter-vlan-concept.css' %}?v=shared-1">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}"><link rel="stylesheet" href="{% static 'css/inter-vlan-path-stage.css' %}?v=continuous-1"><link rel="stylesheet" href="{% static 'css/inter-vlan-concept.css' %}?v=continuous-1">{% endblock %}
 {% block content %}
 <div class="iv-concept">
-  <div class="iv-learning-layout">
-    <main class="iv-learning-content">
-      <section class="iv-area iv-hero" data-iv-area="01" data-iv-page-stage="isolation" id="iv-isolation">
-        <span class="iv-index">INTER-VLAN ROUTING · ÁREA 01</span>
-        <p class="iv-kicker">Como dispositivos em VLANs diferentes conseguem se comunicar?</p>
-        <h1>VLANs separam domínios de Camada 2</h1>
-        <div class="vlan-split"><article><b>VLAN 10</b><span>PC-A · MAC AA</span></article><span>DOMÍNIOS L2 SEPARADOS</span><article><b>VLAN 20</b><span>PC-B · MAC BB</span></article></div>
-        <p>O switching L2 não encaminha diretamente um frame da VLAN 10 para a VLAN 20. A travessia exige uma função de Camada 3.</p>
-        <aside class="iv-anchor">ROTEAR ENTRE VLANs NÃO REMOVE A SEPARAÇÃO ENTRE ELAS.</aside>
-        <div class="iv-task"><a href="#iv-shared-lab" data-iv-stage-link="isolation">IDENTIFICAR A FUNÇÃO RESPONSÁVEL</a><p data-isolation-feedback aria-live="polite">No laboratório, acione o elemento que permite atravessar os dois domínios.</p></div>
-        <p class="iv-transition">A função L3 permite a travessia. Antes disso, PC-A precisa decidir a quem entregar o primeiro frame.</p>
-      </section>
-
-      <section class="iv-area" data-iv-area="02" data-iv-page-stage="host" id="iv-host-decision">
-        <span class="iv-index">ÁREA 02 · DECISÃO DO HOST</span>
-        <h2>O destino é remoto para PC-A</h2>
-        <div class="host-pair"><article><b>PC-A · VLAN 10</b><code>192.168.10.20/24</code><span>MAC AA · Gateway 192.168.10.1</span></article><article><b>PC-B · VLAN 20</b><code>192.168.20.30/24</code><span>MAC BB · Gateway 192.168.20.1</span></article></div>
-        <p>As redes <code>192.168.10.0/24</code> e <code>192.168.20.0/24</code> são diferentes. PC-A não procura o MAC de PC-B na VLAN 10: ele precisa do MAC de seu gateway.</p>
-        <div class="iv-task"><a href="#iv-shared-lab" data-iv-stage-link="host">PREENCHER O ALVO ARP</a><p data-host-feedback aria-live="polite">Informe no laboratório qual IPv4 PC-A deve resolver primeiro.</p></div>
-        <aside class="iv-anchor">O PRÓXIMO SALTO ETHERNET É O GATEWAY. O DESTINO IP CONTINUA SENDO PC-B.</aside>
-        <p class="iv-transition">Com R10 resolvido, PC-A consegue construir a primeira entrega Ethernet.</p>
-      </section>
-
-      <section class="iv-area iv-strong" data-iv-area="03" data-iv-page-stage="router" id="iv-router">
-        <span class="iv-index">ÁREA 03 · O PRIMEIRO FRAME TERMINA</span>
-        <h2>O frame termina. O pacote continua.</h2>
-        <div class="frame-termination"><article><b>FRAME · VLAN 10</b><code>AA → R10</code><strong>TERMINA NO ROTEADOR</strong></article><article><b>PACOTE IPv4</b><code>192.168.10.20 → 192.168.20.30</code><strong>CONTINUA</strong></article></div>
-        <p>O roteador remove o frame recebido e consulta a tabela usando o Destination IP do pacote.</p>
-        <div class="iv-task"><a href="#iv-shared-lab" data-iv-stage-link="router">ACOMPANHAR E INSPECIONAR A ROTA</a><p data-router-feedback aria-live="polite">Avance até a consulta e selecione a linha que corresponde ao destino.</p></div>
-        <aside class="iv-anchor">FRAME = ENTREGA DE UM ENLACE.<br>PACOTE IP = COMUNICAÇÃO ENTRE REDES.</aside>
-        <p class="iv-transition">A rota leva à VLAN 20. Agora o roteador precisa criar uma nova entrega Ethernet.</p>
-      </section>
-
-      <section class="iv-area" data-iv-area="04" data-iv-page-stage="frames" id="iv-new-frame">
-        <span class="iv-index">ÁREA 04 · NOVO ARP, NOVO FRAME</span>
-        <h2>Os MACs mudam; os IPs permanecem</h2>
-        <div class="two-frames"><article><b>FRAME #1 · VLAN 10</b><code>AA → R10</code><span>IP 192.168.10.20 → 192.168.20.30</span></article><article><b>FRAME #2 · VLAN 20</b><code>R20 → BB</code><span>IP 192.168.10.20 → 192.168.20.30</span></article></div>
-        <p>Na VLAN 20, o roteador usa ARP para resolver <code>192.168.20.30 → BB</code> e monta outro frame. O pacote IP não é reendereçado nesse processo.</p>
-        <div class="iv-task"><a href="#iv-shared-lab" data-iv-stage-link="frames">ABRIR PACKET INSPECTOR E CONSTRUTOR</a><p data-frames-feedback aria-live="polite">Inspecione os três momentos e construa os dois frames.</p></div>
-        <aside class="iv-anchor">O PACOTE CONTINUA. O FRAME MUDA.<br>O PACOTE IP CONTINUA. O FRAME ETHERNET MUDA EM CADA SEGMENTO.</aside>
-        <details class="iv-implementation"><summary>Router-on-a-Stick · implementação opcional</summary><p>Um trunk pode transportar VLAN 10 e VLAN 20 até subinterfaces que oferecem <code>192.168.10.1</code> e <code>192.168.20.1</code>. O trunk preserva os contextos com 802.1Q; ele não realiza routing.</p></details>
-        <p class="iv-transition">Com as decisões isoladas, acompanhe agora o percurso completo no seu ritmo.</p>
-      </section>
-
-      <section class="iv-area iv-summary" data-iv-area="05" data-iv-page-stage="journey" id="iv-journey">
-        <span class="iv-index">ÁREA 05 · PERCURSO COMPLETO</span>
-        <h2>De PC-A até PC-B, passo a passo</h2>
-        <p>Use o mesmo laboratório para iniciar, continuar e reiniciar as nove decisões. Não há reprodução automática.</p>
-        <div class="iv-task"><a href="#iv-shared-lab" data-iv-stage-link="journey">INICIAR PERCURSO COMPLETO</a><ol class="iv-steps"><li>PC-A identifica o destino remoto.</li><li>Escolhe e resolve o gateway R10.</li><li>Cria o frame AA → R10.</li><li>O roteador consulta a rota.</li><li>Resolve BB e cria R20 → BB.</li><li>PC-B recebe o mesmo pacote IP.</li></ol><p data-journey-feedback aria-live="polite">Avance uma decisão por vez no laboratório.</p></div>
-        <div class="return-path"><b>RETORNO · PC-B → PC-A</b><p>PC-B aplica a mesma lógica no sentido inverso: reconhece o destino remoto e cria primeiro um frame destinado a <strong>R20</strong>.</p></div>
-        <section class="iv-cli"><h3>CLI · exploração opcional</h3><pre>R1# show ip route&#10;C 192.168.10.0/24&#10;C 192.168.20.0/24</pre></section>
-        <div class="gateway-explanation" data-iv-explanation><h3>Explique antes de revelar</h3><p>Por que PC-A não envia simplesmente um frame diretamente para PC-B em outra VLAN?</p><textarea rows="4" aria-label="Sua explicação"></textarea><button type="button" data-reference-reveal>Conferir resposta de referência</button><div data-reference hidden><p>Porque as VLANs são contextos separados de Camada 2 e PC-A identifica PC-B como remoto. A entrega inicial vai ao gateway; a função L3 escolhe a rota e cria uma nova entrega Ethernet na VLAN de destino.</p></div></div>
-        <nav class="concept-sequence"><a href="{% url 'learning:route_concept' %}">← Tabela de Rotas</a><a href="{% url 'learning:icmp_concept' %}">ICMP + Ping + Traceroute →</a></nav>
-      </section>
-    </main>
-
-    <aside class="iv-shared-lab" id="iv-shared-lab" aria-labelledby="iv-shared-title">
-      <header class="iv-shared-heading"><span>LABORATÓRIO INTER-VLAN COMPARTILHADO</span><strong id="iv-shared-title" data-iv-stage-title>Área 01 · Domínios L2</strong><p data-iv-stage-copy>Identifique quem pode encaminhar entre as VLANs.</p></header>
+  <main class="iv-learning-content">
+    <header class="iv-intro" id="iv-concept">
+      <span class="iv-index">INTER-VLAN ROUTING</span>
+      <h1>Uma entrega em cada VLAN</h1>
+      <p>VLAN 10 e VLAN 20 são domínios de Camada 2 separados. PC-A (<code>192.168.10.20/24</code>) reconhece PC-B (<code>192.168.20.30/24</code>) como remoto: a entrega inicial vai ao gateway <code>192.168.10.1</code>, não diretamente ao MAC de PC-B.</p>
+      <p><strong>Inter-VLAN Routing</strong> é o encaminhamento entre essas redes. Uma <strong>função de Camada 3</strong> com presença nas duas redes recebe o pacote na VLAN 10, consulta a rota e cria outra entrega na VLAN 20. Essa função pode estar em um roteador ou switch L3.</p>
+    </header>
+    <section class="iv-section" aria-labelledby="iv-overview-title">
+      <h2 id="iv-overview-title">Visão geral · dois frames, um pacote</h2>
+      <figure class="iv-overview" role="img" aria-label="PC-A na VLAN 10 envia Frame 1, MAC AA para R10, à função L3. Ela encaminha o pacote de 192.168.10.20 para 192.168.20.30 e cria Frame 2, MAC R20 para BB, na VLAN 20 até PC-B.">
+        <div class="iv-overview-path">
+          <div class="iv-overview-node iv-v10"><b>PC-A</b><span>VLAN 10 · MAC AA</span><code>192.168.10.20/24</code></div>
+          <div class="iv-overview-link iv-v10"><small>Fronteira da VLAN 10</small><b>Frame 1</b><span>AA → R10</span></div>
+          <div class="iv-overview-node iv-l3"><b>Função L3</b><span>VLAN 10: 192.168.10.1 / MAC R10</span><span>VLAN 20: 192.168.20.1 / MAC R20</span></div>
+          <div class="iv-overview-link iv-v20"><small>Fronteira da VLAN 20</small><b>Frame 2</b><span>R20 → BB</span></div>
+          <div class="iv-overview-node iv-v20"><b>PC-B</b><span>VLAN 20 · MAC BB</span><code>192.168.20.30/24</code></div>
+        </div>
+        <figcaption><strong>Pacote IP:</strong> 192.168.10.20 → 192.168.20.30. As fronteiras de VLAN encerram o primeiro frame e exigem outro na saída L3.</figcaption>
+      </figure>
+    </section>
+    <section class="iv-section" id="iv-shared-lab" aria-labelledby="iv-lab-title">
+      <h2 id="iv-lab-title">Laboratório · acompanhe a entrega</h2>
+      <p>Comece com a comunicação L3 indisponível. Resolva cada decisão e avance manualmente até PC-B.</p>
       {% include "learning/partials/inter_vlan_path_stage.html" with stage_id="iv-shared" %}
-    </aside>
-  </div>
+    </section>
+    <section class="iv-section iv-closing" aria-labelledby="iv-closing-title">
+      <h2 id="iv-closing-title">O que mudou no caminho?</h2>
+      <p><strong>Frame 1:</strong> AA → R10, na VLAN 10. <strong>Frame 2:</strong> R20 → BB, na VLAN 20. Os endereços IP de origem e destino permanecem neste cenário, sem NAT. Ao encaminhar, R1 reduz o TTL do pacote.</p>
+      <div class="gateway-explanation" data-iv-explanation><h3>Explique antes de revelar</h3><p>Por que PC-A não envia simplesmente um frame diretamente para PC-B em outra VLAN?</p><textarea rows="3" aria-label="Sua explicação"></textarea><button type="button" data-reference-reveal>Conferir resposta de referência</button><div data-reference hidden><p>PC-B está em outra rede e em outro domínio de Camada 2. PC-A entrega o primeiro frame ao gateway R10; R1 consulta a rota e cria um novo frame na VLAN 20.</p></div></div>
+      <details class="iv-implementation"><summary>Router-on-a-Stick · implementação opcional</summary><p>Um Trunk pode transportar as duas VLANs até subinterfaces com <code>192.168.10.1</code> e <code>192.168.20.1</code>. Nesse arranjo, 802.1Q distingue as VLANs; o encaminhamento entre elas é feito pela função L3.</p></details>
+      <details class="iv-implementation"><summary>Evidência opcional · show ip route em R1</summary><pre>R1# show ip route
+C 192.168.10.0/24 is directly connected, VLAN 10 (192.168.10.1)
+C 192.168.20.0/24 is directly connected, VLAN 20 (192.168.20.1)</pre></details>
+      <details class="iv-implementation"><summary>Como seria o retorno?</summary><p>PC-B reconhece PC-A como remoto e entrega seu primeiro frame ao gateway R20.</p></details>
+      <nav class="concept-sequence"><a href="{% url 'learning:route_concept' %}">← Tabela de Rotas</a><a href="{% url 'learning:icmp_concept' %}">ICMP + Ping + Traceroute →</a></nav>
+    </section>
+  </main>
   <section id="inter-vlan-checkpoint" class="iv-checkpoint-shell" aria-live="polite">{% include "learning/partials/inter_vlan_checkpoint.html" %}</section>
 </div>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/inter-vlan-path-stage.js' %}?v=shared-1"></script><script src="{% static 'js/inter-vlan-concept.js' %}?v=shared-1"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/inter-vlan-path-stage.js' %}?v=continuous-1"></script><script src="{% static 'js/inter-vlan-concept.js' %}?v=continuous-1"></script>{% endblock %}

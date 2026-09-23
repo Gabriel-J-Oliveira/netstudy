@@ -11,6 +11,101 @@
   };
   const state = { vlan: 10, step: 0, allowed: [10, 20] };
 
+  const glossaryTriggers = [...document.querySelectorAll("[data-glossary-trigger]")];
+  let openGlossaryTrigger = null;
+
+  function closeGlossary(trigger, dismissed = false) {
+    if (!trigger) return;
+    const popover = document.getElementById(trigger.getAttribute("aria-controls"));
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.removeAttribute("data-glossary-open");
+    if (dismissed) trigger.setAttribute("data-glossary-dismissed", "true");
+    else trigger.removeAttribute("data-glossary-dismissed");
+    if (popover) popover.hidden = true;
+    if (openGlossaryTrigger === trigger) openGlossaryTrigger = null;
+  }
+
+  function positionGlossary(trigger, popover) {
+    const triggerRect = trigger.getBoundingClientRect();
+    const viewportPadding = 8;
+    const width = Math.min(352, window.innerWidth - viewportPadding * 2);
+    popover.style.width = `${width}px`;
+    popover.style.left = `${viewportPadding}px`;
+    popover.style.top = `${viewportPadding}px`;
+    const popoverRect = popover.getBoundingClientRect();
+    const left = Math.max(viewportPadding, Math.min(
+      triggerRect.left + (triggerRect.width - popoverRect.width) / 2,
+      window.innerWidth - popoverRect.width - viewportPadding,
+    ));
+    const above = triggerRect.top - popoverRect.height - viewportPadding;
+    const top = above >= viewportPadding
+      ? above
+      : Math.min(window.innerHeight - popoverRect.height - viewportPadding, triggerRect.bottom + viewportPadding);
+    popover.style.left = `${left}px`;
+    popover.style.top = `${Math.max(viewportPadding, top)}px`;
+  }
+
+  function openGlossary(trigger) {
+    if (openGlossaryTrigger && openGlossaryTrigger !== trigger) closeGlossary(openGlossaryTrigger);
+    const popover = document.getElementById(trigger.getAttribute("aria-controls"));
+    if (!popover) return;
+    trigger.removeAttribute("data-glossary-dismissed");
+    trigger.setAttribute("data-glossary-open", "true");
+    trigger.setAttribute("aria-expanded", "true");
+    popover.hidden = false;
+    openGlossaryTrigger = trigger;
+    positionGlossary(trigger, popover);
+  }
+
+  glossaryTriggers.forEach((trigger) => {
+    trigger.addEventListener("pointerenter", (event) => {
+      if (event.pointerType === "mouse") openGlossary(trigger);
+    });
+    trigger.addEventListener("pointerleave", (event) => {
+      if (event.pointerType === "mouse" && !trigger.matches(":focus") && !event.relatedTarget?.closest(".trunk-glossary-popover")) closeGlossary(trigger);
+    });
+    trigger.addEventListener("focus", () => {
+      if (!trigger.dataset.glossaryTouch) openGlossary(trigger);
+    });
+    trigger.addEventListener("blur", () => {
+      if (!trigger.matches(":hover")) closeGlossary(trigger);
+    });
+    trigger.addEventListener("pointerdown", (event) => {
+      if (event.pointerType !== "touch") return;
+      trigger.dataset.glossaryTouch = "true";
+      if (trigger === openGlossaryTrigger) closeGlossary(trigger);
+      else openGlossary(trigger);
+    });
+    trigger.addEventListener("click", () => {
+      if (trigger.dataset.glossaryTouch) {
+        delete trigger.dataset.glossaryTouch;
+        return;
+      }
+      openGlossary(trigger);
+    });
+    document.getElementById(trigger.getAttribute("aria-controls"))?.addEventListener("pointerleave", (event) => {
+      if (event.pointerType === "mouse" && !trigger.matches(":focus")) closeGlossary(trigger);
+    });
+  });
+
+  document.addEventListener("pointerdown", (event) => {
+    if (openGlossaryTrigger && !event.target.closest("[data-glossary-trigger], .trunk-glossary-popover")) {
+      closeGlossary(openGlossaryTrigger);
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && openGlossaryTrigger) {
+      closeGlossary(openGlossaryTrigger, true);
+      event.stopPropagation();
+    }
+  });
+  window.addEventListener("resize", () => {
+    if (openGlossaryTrigger) positionGlossary(openGlossaryTrigger, document.getElementById(openGlossaryTrigger.getAttribute("aria-controls")));
+  });
+  window.addEventListener("scroll", () => {
+    if (openGlossaryTrigger) positionGlossary(openGlossaryTrigger, document.getElementById(openGlossaryTrigger.getAttribute("aria-controls")));
+  }, true);
+
   function text(selector, value) {
     const node = one(selector);
     if (node) node.textContent = value;

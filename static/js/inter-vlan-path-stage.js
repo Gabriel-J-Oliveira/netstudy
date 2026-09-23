@@ -1,274 +1,86 @@
 (() => {
   "use strict";
-
   const one = (selector, root = document) => root.querySelector(selector);
   const all = (selector, root = document) => [...root.querySelectorAll(selector)];
-
+  const steps = [["enable", "Habilite a função L3"], ["arp10", "Decida a primeira entrega"], ["frame1", "Monte o Frame 1"], ["receive", "R1 recebe o Frame 1"], ["route", "Selecione a rota"], ["arp20", "Resolva o destino na VLAN 20"], ["frame2", "Monte o Frame 2"], ["deliver", "Entregue a PC-B"], ["done", "Entrega concluída"]];
   class InterVlanStage {
-    constructor(root) {
-      this.root = root;
-      this.mode = "isolation";
-      this.phase = 0;
-      this.routerPhase = 0;
-      this.bind();
-      this.reset();
-    }
-
+    constructor(root) { this.root = root; this.bind(); this.reset(); }
     bind() {
       one("[data-iv-reset]", this.root).addEventListener("click", () => this.reset());
-      one("[data-select-l3]", this.root).addEventListener("click", () => this.selectLayer3());
-      one("[data-check-arp]", this.root).addEventListener("click", () => this.checkArp());
-      one("[data-arp-target]", this.root).addEventListener("keydown", (event) => {
-        if (event.key === "Enter") this.checkArp();
-      });
-      one("[data-router-next]", this.root).addEventListener("click", () => this.advanceRouter());
-      all("[data-route-prefix]", this.root).forEach((button) => {
-        button.addEventListener("click", () => this.inspectRoute(button));
-      });
-      all("[data-inspect]", this.root).forEach((button) => {
-        button.addEventListener("click", () => this.inspectPacket(button));
-      });
-      one("[data-build-check]", this.root).addEventListener("click", () => this.checkFrames());
-      one("[data-iv-next]", this.root).addEventListener("click", () => this.advanceJourney());
-      all("[data-iv-node]", this.root).forEach((node) => {
-        node.addEventListener("click", () => this.describeNode(node));
-      });
+      one("[data-select-l3]", this.root).addEventListener("click", () => this.advance(1, "Função L3 habilitada. PC-A compara o destino com 192.168.10.0/24: PC-B é remoto."));
+      const submit = (selector, action) => one(selector, this.root).addEventListener("submit", (event) => { event.preventDefault(); action.call(this); });
+      submit('[data-iv-control="arp10"]', this.checkArp10);
+      submit('[data-iv-control="frame1"]', this.checkFrame1);
+      submit('[data-iv-control="arp20"]', this.checkArp20);
+      submit('[data-iv-control="frame2"]', this.checkFrame2);
+      one("[data-iv-next]", this.root).addEventListener("click", () => this.advance(4, "R1 encerrou o Frame 1. Agora consulta o Destination IP 192.168.20.30 na tabela de rotas."));
+      all("[data-route-prefix]", this.root).forEach((button) => button.addEventListener("click", () => this.checkRoute(button)));
+      one("[data-iv-deliver]", this.root).addEventListener("click", () => this.advance(8, "PC-B recebeu o pacote dentro do Frame 2. Os endereços IP de origem e destino permaneceram neste cenário, sem NAT."));
+      all("[data-inspect]", this.root).forEach((button) => button.addEventListener("click", () => this.inspect(button)));
     }
-
-    setMode(mode) {
-      if (!one(`[data-iv-control="${mode}"]`, this.root)) return;
-      this.mode = mode;
-      this.reset();
-    }
-
     reset() {
       this.phase = 0;
-      this.routerPhase = 0;
-      all("[data-iv-control]", this.root).forEach((panel) => {
-        panel.hidden = panel.dataset.ivControl !== this.mode;
-      });
-      all("[data-iv-node], [data-route-prefix], [data-inspect]", this.root).forEach((item) => {
-        item.classList.remove("is-active", "is-correct", "is-error");
-        item.removeAttribute("aria-current");
-      });
-      all("[data-route-prefix]", this.root).forEach((button) => { button.disabled = true; });
-      all("select", this.root).forEach((field) => { field.value = ""; });
-      const arp = one("[data-arp-target]", this.root);
-      if (arp) arp.value = "";
-      this.setFrame(false, "AA", "?");
-      this.setExtra("");
-      this.clearFeedback();
-
-      const initial = {
-        isolation: ["ÁREA 01", "VLAN 10 e VLAN 20 são domínios Ethernet separados."],
-        host: ["ÁREA 02", "PC-A compara 192.168.20.30 com sua rede 192.168.10.0/24."],
-        router: ["ÁREA 03 · PASSO 0 / 4", "Comece construindo o primeiro frame."],
-        frames: ["ÁREA 04", "Inspecione Frame 1, pacote IP e Frame 2; depois construa os frames."],
-        journey: ["PASSO 0 / 9", "PC-A quer alcançar PC-B em outra VLAN."],
-      }[this.mode];
-      this.setState(initial[0], initial[1]);
-      const next = one("[data-iv-next]", this.root);
-      next.disabled = false;
-      next.textContent = "INICIAR PERCURSO";
-      one("[data-router-next]", this.root).textContent = "INICIAR PRIMEIRO FRAME";
-      this.root.classList.remove("in-vlan20");
+      one("[data-arp-target]", this.root).value = "";
+      one("[data-arp20-target]", this.root).value = "";
+      all("[data-build]", this.root).forEach((field) => { field.value = ""; });
+      all("[data-route-prefix], [data-inspect]", this.root).forEach((button) => button.classList.remove("is-active", "is-error"));
+      one("[data-inspector-detail]", this.root).textContent = "Selecione o pacote IP; os frames ficam disponíveis quando forem criados.";
+      this.render("Sem encaminhamento L3, PC-A não alcança PC-B em outra VLAN.");
     }
-
-    clearFeedback() {
-      all("[aria-live]", this.root).forEach((node) => {
-        if (node.matches("[data-iv-message]")) return;
-        node.textContent = "";
-        node.classList.remove("feedback-ok", "feedback-error");
-      });
+    advance(phase, message) { this.phase = phase; this.render(message); }
+    feedback(message, error = false) { const output = one("[data-iv-message]", this.root); output.textContent = message; output.classList.toggle("is-error", error); }
+    render(message) {
+      const root = this.root;
+      all("[data-iv-control]", root).forEach((panel) => { panel.hidden = panel.dataset.ivControl !== steps[this.phase][0]; });
+      one("[data-iv-phase]", root).textContent = this.phase === 8 ? "Concluído" : `Etapa ${this.phase + 1} de 8`;
+      one("[data-iv-task]", root).textContent = steps[this.phase][1];
+      one("[data-l3-status]", root).textContent = this.phase ? "Habilitada" : "Desabilitada";
+      one("[data-cache-r10]", root).textContent = this.phase >= 2 ? "R10" : "desconhecido";
+      one("[data-cache-bb]", root).textContent = this.phase >= 6 ? "BB" : "desconhecido";
+      one('[data-inspect="f1"]', root).disabled = this.phase < 3;
+      one('[data-inspect="f2"]', root).disabled = this.phase < 7;
+      const first = this.phase === 3, second = this.phase >= 7;
+      one("[data-frame-source]", root).textContent = first ? "AA" : second ? "R20" : "—";
+      one("[data-frame-destination]", root).textContent = first ? "R10" : second ? "BB" : "—";
+      one("[data-frame-location]", root).textContent = first ? "VLAN 10 · a caminho de R1" : this.phase === 8 ? "VLAN 20 · entregue a PC-B" : second ? "VLAN 20 · a caminho de PC-B" : "Nenhum frame em trânsito";
+      all("[data-iv-node]", root).forEach((node) => node.classList.toggle("is-active", node.dataset.ivNode === (this.phase === 8 ? "b" : this.phase >= 4 ? "l3" : "a")));
+      root.classList.toggle("in-vlan20", this.phase >= 6);
+      this.feedback(message);
     }
-
-    setState(label, message) {
-      one("[data-iv-phase]", this.root).textContent = label;
-      one("[data-iv-message]", this.root).textContent = message;
+    checkArp10() {
+      const value = one("[data-arp-target]", this.root).value.trim();
+      if (value === "192.168.10.1") this.advance(2, "ARP na VLAN 10: 192.168.10.1 → R10. O IP de destino do pacote continua 192.168.20.30.");
+      else this.feedback(value === "192.168.20.30" ? "PC-B é o destino IP final, mas está fora da VLAN 10. Resolva por ARP o gateway local 192.168.10.1." : "PC-A precisa do MAC de seu gateway na VLAN 10: resolva 192.168.10.1.", true);
     }
-
-    setExtra(text) {
-      one("[data-iv-extra]", this.root).textContent = text;
+    checkFrame1() {
+      const value = one('[data-build="f1"]', this.root).value;
+      if (value === "AA → R10") this.advance(3, "Frame 1 criado: AA → R10 na VLAN 10. O pacote segue destinado a 192.168.20.30.");
+      else this.feedback(value === "AA → BB" ? "AA → BB atravessaria dois domínios L2. PC-A deve entregar o primeiro frame a R10." : value === "R10 → BB" ? "R10 não é a origem do primeiro frame. PC-A usa seu MAC AA e o MAC R10 do gateway." : "Selecione os MACs do primeiro frame na VLAN 10.", true);
     }
-
-    setFrame(visible, source, destination) {
-      const frame = one("[data-iv-frame]", this.root);
-      frame.hidden = !visible;
-      one("[data-frame-source]", this.root).textContent = source;
-      one("[data-frame-destination]", this.root).textContent = destination;
+    checkRoute(button) {
+      all("[data-route-prefix]", this.root).forEach((item) => item.classList.remove("is-active", "is-error"));
+      if (button.dataset.routePrefix === "192.168.20.0/24") { button.classList.add("is-active"); this.advance(5, "Rota 192.168.20.0/24 selecionada: entrega direta pela interface da VLAN 20."); }
+      else { button.classList.add("is-error"); this.feedback("192.168.10.0/24 é a rede de origem. O Destination IP 192.168.20.30 combina com 192.168.20.0/24.", true); }
     }
-
-    activateNode(name) {
-      all("[data-iv-node]", this.root).forEach((node) => {
-        const active = node.dataset.ivNode === name;
-        node.classList.toggle("is-active", active);
-        if (active) node.setAttribute("aria-current", "step");
-        else node.removeAttribute("aria-current");
-      });
+    checkArp20() {
+      const value = one("[data-arp20-target]", this.root).value.trim();
+      if (value === "192.168.20.30") this.advance(6, "ARP na VLAN 20: 192.168.20.30 → BB. R1 pode criar uma nova entrega Ethernet.");
+      else this.feedback("Na VLAN 20, R1 resolve o IP do host diretamente conectado: 192.168.20.30.", true);
     }
-
-    feedback(node, text, ok = null) {
-      if (node) {
-        node.textContent = text;
-        node.classList.toggle("feedback-ok", ok === true);
-        node.classList.toggle("feedback-error", ok === false);
-      }
-      this.root.dispatchEvent(new CustomEvent("ivstage:feedback", {
-        bubbles: true,
-        detail: { mode: this.mode, text, ok },
-      }));
+    checkFrame2() {
+      const value = one('[data-build="f2"]', this.root).value;
+      if (value === "R20 → BB") this.advance(7, "Frame 2 criado: R20 → BB na VLAN 20. R1 usa sua interface dessa VLAN.");
+      else this.feedback(value === "R10 → BB" ? "R10 pertence à interface da VLAN 10. O novo frame sai pela interface R20 na VLAN 20." : value === "AA → BB" ? "AA é o MAC de PC-A na VLAN 10. R1 cria um novo frame R20 → BB na VLAN 20." : "Selecione os MACs do novo frame na VLAN 20.", true);
     }
-
-    selectLayer3() {
-      this.activateNode("l3");
-      this.setExtra("CAMADA 3 · ENCAMINHA ENTRE AS REDES DAS VLANs");
-      const text = "Correto. O roteador ou switch L3 atua entre as VLANs; switching L2 puro não atravessa essa separação.";
-      this.setState("ÁREA 01 · FUNÇÃO L3", text);
-      this.feedback(null, text, true);
-    }
-
-    checkArp() {
-      const input = one("[data-arp-target]", this.root);
-      const value = input.value.trim();
-      const output = one("[data-arp-feedback]", this.root);
-      if (value === "192.168.10.1") {
-        this.activateNode("l3");
-        this.setExtra("ARP · 192.168.10.1 IS AT R10");
-        const text = "Correto. O próximo salto Ethernet é o gateway R10; o Destination IP continua 192.168.20.30, PC-B.";
-        this.setState("ÁREA 02 · ARP CONCLUÍDO", text);
-        this.feedback(output, text, true);
-        return;
-      }
-      let text = "PC-B está fora da rede local de PC-A. Use o IPv4 do gateway da VLAN 10.";
-      if (value === "192.168.20.30") text = "Esse é o Destination IP final. PC-A precisa resolver o próximo salto local, não PC-B.";
-      if (value === "192.168.10.20") text = "Esse é o IPv4 do próprio PC-A. O ARP precisa localizar quem receberá o primeiro frame.";
-      this.feedback(output, text, false);
-    }
-
-    advanceRouter() {
-      this.routerPhase = Math.min(3, this.routerPhase + 1);
-      const button = one("[data-router-next]", this.root);
-      if (this.routerPhase === 1) {
-        this.activateNode("a");
-        this.setFrame(true, "AA", "R10");
-        this.setState("ÁREA 03 · PASSO 1 / 4", "PC-A cria o Frame 1: AA → R10. Dentro dele, o pacote ainda aponta para PC-B.");
-        button.textContent = "ENTREGAR AO ROTEADOR";
-      } else if (this.routerPhase === 2) {
-        this.activateNode("l3");
-        this.setFrame(false, "AA", "R10");
-        this.setState("ÁREA 03 · PASSO 2 / 4", "O roteador recebe o frame. A entrega Ethernet da VLAN 10 termina; o pacote IP continua.");
-        button.textContent = "CONSULTAR TABELA DE ROTAS";
-      } else {
-        this.setExtra("ROUTE LOOKUP · DESTINATION 192.168.20.30");
-        this.setState("ÁREA 03 · PASSO 3 / 4", "Selecione na tabela a rota que corresponde ao Destination IP 192.168.20.30.");
-        all("[data-route-prefix]", this.root).forEach((route) => { route.disabled = false; });
-        button.disabled = true;
-        button.textContent = "SELECIONE A ROTA";
-      }
-    }
-
-    inspectRoute(button) {
-      const output = one("[data-route-feedback]", this.root);
-      all("[data-route-prefix]", this.root).forEach((route) => route.classList.remove("is-correct", "is-error"));
-      if (button.dataset.routePrefix === "192.168.20.0/24") {
-        button.classList.add("is-correct");
-        this.setExtra("ROUTE LOOKUP · 192.168.20.0/24 → DIRECT VLAN 20");
-        const text = "Correto. 192.168.20.30 pertence a 192.168.20.0/24; a saída é diretamente conectada à VLAN 20.";
-        this.setState("ÁREA 03 · PASSO 4 / 4", text);
-        this.feedback(output, text, true);
-      } else {
-        button.classList.add("is-error");
-        this.feedback(output, "Essa linha representa a rede de origem. Compare o Destination IP com o prefixo da VLAN 20.", false);
-      }
-    }
-
-    inspectPacket(button) {
+    inspect(button) {
+      if (button.disabled) return;
+      const details = { f1: "Frame 1 · VLAN 10 · Source MAC AA · Destination MAC R10. Termina em R1.", ip: "Pacote IP · 192.168.10.20 → 192.168.20.30. Esses endereços permanecem neste cenário, sem NAT; R1 reduz o TTL.", f2: "Frame 2 · VLAN 20 · Source MAC R20 · Destination MAC BB. Novo frame para PC-B." };
       all("[data-inspect]", this.root).forEach((item) => item.classList.toggle("is-active", item === button));
-      const messages = {
-        f1: "Frame 1 · VLAN 10: AA → R10. Pacote: 192.168.10.20 → 192.168.20.30.",
-        ip: "No roteador, o Frame 1 terminou. O pacote mantém Source e Destination IP.",
-        f2: "Frame 2 · VLAN 20: R20 → BB. O mesmo pacote IP segue dentro.",
-      };
-      if (button.dataset.inspect === "f1") this.setFrame(true, "AA", "R10");
-      if (button.dataset.inspect === "ip") this.setFrame(false, "AA", "R10");
-      if (button.dataset.inspect === "f2") {
-        this.setFrame(true, "R20", "BB");
-        this.setExtra("ARP VLAN 20 · 192.168.20.30 → BB");
-        this.root.classList.add("in-vlan20");
-      }
-      this.feedback(one("[data-iv-inspector] p", this.root), messages[button.dataset.inspect]);
-    }
-
-    checkFrames() {
-      const first = one("[data-build='f1']", this.root).value;
-      const second = one("[data-build='f2']", this.root).value;
-      const output = one("[data-frame-builder] p", this.root);
-      if (first === "AA → R10" && second === "R20 → BB") {
-        this.setFrame(true, "R20", "BB");
-        this.root.classList.add("in-vlan20");
-        this.feedback(output, "Correto. AA → R10 termina na VLAN 10; R20 → BB é criado para a VLAN 20. Os IPs permanecem iguais.", true);
-      } else if (first === "AA → BB") {
-        this.feedback(output, "No primeiro segmento, PC-B é remoto. PC-A entrega o frame ao gateway R10, não diretamente a BB.", false);
-      } else if (second === "R10 → BB") {
-        this.feedback(output, "Na VLAN 20, o novo frame parte da presença L3 R20, não da interface R10 da VLAN 10.", false);
-      } else {
-        this.feedback(output, "Complete os dois frames: observe quem envia e quem recebe em cada domínio Ethernet.", false);
-      }
-    }
-
-    advanceJourney() {
-      this.phase = Math.min(9, this.phase + 1);
-      this.renderJourney();
-    }
-
-    renderJourney() {
-      const messages = [
-        "PC-A quer alcançar PC-B em outra VLAN.",
-        "PC-A compara IP e máscara: 192.168.20.30 é remoto.",
-        "PC-A escolhe o gateway 192.168.10.1 da VLAN 10.",
-        "ARP na VLAN 10 resolve 192.168.10.1 → R10.",
-        "Frame 1: AA → R10; o pacote continua para 192.168.20.30.",
-        "A função L3 recebe o frame. O frame da VLAN 10 termina.",
-        "Route lookup: 192.168.20.0/24 → Direct VLAN 20.",
-        "ARP na VLAN 20 resolve 192.168.20.30 → BB.",
-        "Frame 2: R20 → BB; o pacote IP permanece igual.",
-        "PC-B recebe o mesmo pacote IP em um novo frame Ethernet.",
-      ];
-      const extras = {
-        3: "ARP CACHE VLAN 10 · 192.168.10.1 → R10",
-        6: "ROUTING TABLE · 192.168.20.0/24 → DIRECT VLAN 20",
-        7: "ARP CACHE VLAN 20 · 192.168.20.30 → BB",
-      };
-      this.setState(`PASSO ${this.phase} / 9`, messages[this.phase]);
-      this.setExtra(extras[this.phase] || "");
-      this.setFrame(this.phase === 4 || this.phase === 8 || this.phase === 9, this.phase >= 8 ? "R20" : "AA", this.phase >= 8 ? "BB" : "R10");
-      this.activateNode(this.phase === 9 ? "b" : this.phase >= 5 ? "l3" : "a");
-      this.root.classList.toggle("in-vlan20", this.phase >= 7);
-      const next = one("[data-iv-next]", this.root);
-      next.disabled = this.phase === 9;
-      next.textContent = this.phase === 9 ? "PERCURSO CONCLUÍDO" : "CONTINUAR PERCURSO";
-      this.feedback(null, messages[this.phase], this.phase === 9 ? true : null);
-    }
-
-    describeNode(node) {
-      const messages = {
-        a: "PC-A origina o pacote e o primeiro frame na VLAN 10.",
-        l3: "A função L3 possui presença nas duas redes e cria uma nova entrega Ethernet.",
-        b: "PC-B recebe o pacote dentro do Frame 2 na VLAN 20.",
-      };
-      this.activateNode(node.dataset.ivNode);
-      this.setState(one("[data-iv-phase]", this.root).textContent, messages[node.dataset.ivNode]);
+      one("[data-inspector-detail]", this.root).textContent = details[button.dataset.inspect];
+      this.feedback(details[button.dataset.inspect]);
     }
   }
-
-  function init(scope = document) {
-    scope.querySelectorAll("[data-iv-stage]").forEach((root) => {
-      if (root.dataset.ivReady) return;
-      root.dataset.ivReady = "true";
-      root.interVlanStage = new InterVlanStage(root);
-    });
-  }
-
+  function init(scope = document) { scope.querySelectorAll("[data-iv-stage]").forEach((root) => { if (root.dataset.ivReady) return; root.dataset.ivReady = "true"; root.interVlanStage = new InterVlanStage(root); }); }
   window.NetStudyInterVlan = { InterVlanStage, init };
   init();
 })();

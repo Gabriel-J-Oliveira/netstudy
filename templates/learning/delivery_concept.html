@@ -1,9 +1,25 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Unicast × Broadcast · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}?v=delivery-bench-5"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}"><link rel="stylesheet" href="{% static 'css/delivery-concept.css' %}?v=delivery-bench-5"><link rel="stylesheet" href="{% static 'css/delivery-board.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}?v=delivery-bench-5"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}"><link rel="stylesheet" href="{% static 'css/delivery-concept.css' %}?v=layout-2"><link rel="stylesheet" href="{% static 'css/delivery-board.css' %}">{% endblock %}
 {% block content %}
 <div class="delivery-concept">
   <header class="delivery-heading"><span>UNICAST × BROADCAST · CAMADA 2</span><h1>Unicast ou broadcast? Leia primeiro o Destination MAC.</h1><p>Compare três resultados no mesmo switch, sem confundir a intenção do frame com a ação de encaminhamento.</p></header>
+
+  <section class="delivery-prelude" aria-labelledby="delivery-concept-title">
+    <span>CONCEITO</span>
+    <h2 id="delivery-concept-title">O destino define a intenção do frame</h2>
+    <p><strong>Unicast:</strong> o frame tem um Destination MAC específico. Se o switch conhece esse MAC, encaminha por uma única porta. Se não conhece, pode fazer <span class="delivery-glossary-anchor"><button type="button" class="delivery-glossary-term" data-delivery-glossary aria-expanded="false" aria-controls="delivery-tip-flooding" aria-describedby="delivery-tip-flooding">flooding</button><span class="delivery-glossary-popover" id="delivery-tip-flooding" role="tooltip" hidden>O switch copia o frame para outras portas da mesma VLAN, exceto a porta por onde ele entrou. No unknown unicast, o destino continua sendo um MAC específico.</span></span> dentro da VLAN; a intenção continua sendo alcançar aquele destino.</p>
+    <p><strong>Broadcast:</strong> o Destination MAC é <code>FF:FF:FF:FF:FF:FF</code>. O switch replica o frame pelas portas participantes da mesma VLAN, exceto a <span class="delivery-glossary-anchor"><button type="button" class="delivery-glossary-term" data-delivery-glossary aria-expanded="false" aria-controls="delivery-tip-ingress" aria-describedby="delivery-tip-ingress">porta de entrada</button><span class="delivery-glossary-popover" id="delivery-tip-ingress" role="tooltip" hidden>Interface pela qual o frame chegou ao switch. No exemplo, o switch não devolve o broadcast por essa porta.</span></span>. O alcance fica no <span class="delivery-glossary-anchor"><button type="button" class="delivery-glossary-term" data-delivery-glossary aria-expanded="false" aria-controls="delivery-tip-domain" aria-describedby="delivery-tip-domain">domínio de broadcast</button><span class="delivery-glossary-popover" id="delivery-tip-domain" role="tooltip" hidden>Conjunto de dispositivos que pode receber um broadcast dentro da mesma VLAN. A outra VLAN permanece fora desse alcance.</span></span> dessa VLAN.</p>
+    <figure class="delivery-overview" aria-labelledby="delivery-overview-title" aria-describedby="delivery-overview-caption">
+      <figcaption id="delivery-overview-title">Mesmo switch, destinos diferentes</figcaption>
+      <div class="delivery-flow-diagram" role="img" aria-label="Exemplo estático: PC-A envia na VLAN 10. No unicast conhecido para PC-B, só PC-B recebe. No broadcast para FF:FF:FF:FF:FF:FF, PC-B e PC-C da VLAN 10 recebem; o host da VLAN 20 não recebe. No unknown unicast para PC-C, o switch faz flooding na VLAN 10; PC-B descarta e PC-C aceita. A porta de entrada fica excluída das saídas.">
+        <div class="delivery-flow-row delivery-flow-known"><strong>Unicast conhecido</strong><span>PC-A → SW1</span><span class="delivery-flow-targets"><b>→ PC-B recebe</b><small>PC-C não recebe · outra VLAN não recebe</small></span></div>
+        <div class="delivery-flow-row delivery-flow-broadcast"><strong>Broadcast · FF:FF:FF:FF:FF:FF</strong><span>PC-A → SW1</span><span class="delivery-flow-targets"><b>↗ PC-B recebe · ↘ PC-C recebe</b><small>Host da VLAN 20 não recebe</small></span></div>
+        <div class="delivery-flow-row delivery-flow-unknown"><strong>Unknown unicast · MAC de PC-C</strong><span>PC-A → SW1</span><span class="delivery-flow-targets"><b>↗ PC-B descarta · ↘ PC-C aceita</b><small>Flooding na VLAN 10 · outra VLAN não recebe</small></span></div>
+      </div>
+      <p id="delivery-overview-caption">PC-A, PC-B e PC-C estão na VLAN 10. Cada linha mostra um envio independente; nenhuma saída retorna pela porta de entrada. Múltiplas saídas no unknown unicast não o transformam em broadcast.</p>
+    </figure>
+  </section>
 
   <nav class="experiment-selector" aria-label="Experimentos de entrega Ethernet">
     <button type="button" data-experiment="known" aria-pressed="true"><span>1</span>Unicast conhecido</button>
@@ -55,4 +71,4 @@
   {% include "learning/partials/delivery_checkpoint.html" %}
 </div>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}?v=delivery-bench-5"></script><script src="{% static 'js/switch-workbench.js' %}"></script><script src="{% static 'js/delivery-concept.js' %}?v=delivery-bench-5"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}?v=delivery-bench-5"></script><script src="{% static 'js/switch-workbench.js' %}"></script><script src="{% static 'js/delivery-concept.js' %}?v=delivery-overview-1"></script>{% endblock %}

@@ -66,7 +66,7 @@
     highlight(kind) { this.inspect(kind); }
   }
   function init(scope = document) {
-    scope.querySelectorAll("[data-l3-stage]").forEach((root) => { if (root.dataset.l3Ready) return; root.dataset.l3Ready = "true"; const stage = new L3PathStage(root); stages[stage.id] = stage; root.l3PathStage = stage; });
+    scope.querySelectorAll("[data-l3-stage]").forEach((root) => { if (root.dataset.l3Ready || root.dataset.stageMode === "shared") return; root.dataset.l3Ready = "true"; const stage = new L3PathStage(root); stages[stage.id] = stage; root.l3PathStage = stage; });
     return stages;
   }
   window.NetStudyL3Path = {L3PathStage, stages, init}; init();

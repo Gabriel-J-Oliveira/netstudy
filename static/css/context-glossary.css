@@ -1,0 +1,7 @@
+.context-glossary { display: inline; }
+.context-glossary button { appearance: none; display: inline; padding: 0; border: 0; border-bottom: 1px dotted currentColor; border-radius: 0; background: transparent; color: #125c83; font: inherit; font-weight: 700; line-height: inherit; text-align: inherit; cursor: pointer; }
+.context-glossary button:hover { border-bottom-style: solid; }
+.context-glossary button:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }
+.context-glossary [role="tooltip"][hidden] { display: none; }
+.context-glossary [role="tooltip"]:not([hidden]) { box-sizing: border-box; position: fixed; z-index: 1200; width: min(22rem, calc(100vw - 1rem)); max-height: calc(100vh - 1rem); overflow: auto; padding: .65rem .75rem; border: 1px solid #9db6c9; border-radius: 9px; background: #102f49; color: #fff; box-shadow: 0 8px 24px #102b4850; font-size: .88rem; font-weight: 450; line-height: 1.45; text-align: left; }
+@media (prefers-reduced-motion: reduce) { .context-glossary * { transition: none !important; animation: none !important; } }

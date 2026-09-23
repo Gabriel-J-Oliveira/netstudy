@@ -1359,10 +1359,10 @@ def route_concept(request):
         {"prefix":"0.0.0.0/0","next_hop":"203.0.113.1","interface":"WAN2","aria_prefix":"0.0.0.0 slash 0"},
     ]
     specific_routes = [
-        {"prefix":"10.0.0.0/8","next_hop":"R2","interface":"WAN1"},
-        {"prefix":"10.10.0.0/16","next_hop":"R3","interface":"WAN2"},
-        {"prefix":"10.10.20.0/24","next_hop":"R4","interface":"WAN3"},
-        {"prefix":"0.0.0.0/0","next_hop":"Internet","interface":"WAN4"},
+        {"prefix":"10.0.0.0/8","next_hop":"10.0.0.2","interface":"WAN1"},
+        {"prefix":"10.10.0.0/16","next_hop":"10.0.1.2","interface":"WAN3"},
+        {"prefix":"10.10.20.0/24","next_hop":"10.0.2.2","interface":"WAN4"},
+        {"prefix":"0.0.0.0/0","next_hop":"203.0.113.1","interface":"WAN2"},
     ]
     complete_routes = [basic_routes[0], basic_routes[1], {"prefix":"10.0.0.0/8","next_hop":"10.0.0.2","interface":"WAN1"}, basic_routes[2]]
     return render(request, "learning/route_concept.html", _context(request, current_topic="ROUTES", basic_routes=basic_routes, specific_routes=specific_routes, complete_routes=complete_routes, **_route_checkpoint_context(request)))

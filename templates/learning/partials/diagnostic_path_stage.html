@@ -1,16 +1,17 @@
-<section class="diag-stage" data-diag-stage aria-label="Diagnostic Path Stage de PC-A até PC-B por R1, R2 e R3">
-  <header><div><span>DIAGNOSTIC PATH STAGE</span><strong>PC-A → R1 → R2 → R3 → PC-B</strong></div><button type="button" data-diag-reset>↻ Reiniciar modo</button></header>
-  <div class="diag-path">
-    <button type="button" data-hop="0" aria-label="Origem PC-A 192.168.10.20"><b>PC-A</b><code>192.168.10.20</code></button><i>→</i>
-    <button type="button" data-hop="1" aria-label="Hop 1 R1"><b>R1</b><small>HOP 1</small></button><i>→</i>
-    <button type="button" data-hop="2" aria-label="Hop 2 R2"><b>R2</b><small>HOP 2</small></button><i>→</i>
-    <button type="button" data-hop="3" aria-label="Hop 3 R3"><b>R3</b><small>HOP 3</small></button><i>→</i>
-    <button type="button" data-hop="4" aria-label="Destino PC-B 192.168.50.30"><b>PC-B</b><code>192.168.50.30</code></button>
+<section class="diag-stage" data-diag-stage data-diag-initial="{{ stage_mode|default:'ping' }}" data-diag-ttl="{{ stage_ttl|default:'1' }}" aria-label="Diagnostic Path Stage de PC-A até PC-B por R1, R2 e R3">
+  <header><div><span>DIAGNOSTIC PATH STAGE</span><strong>PC-A → R1 → R2 → R3 → PC-B</strong></div><button type="button" data-diag-reset>↻ Reiniciar percurso</button></header>
+  <div class="diag-path" aria-label="Percurso observado"><span data-hop="0"><b>PC-A</b><code>192.168.10.20</code></span><i>→</i><span data-hop="1"><b>R1</b><small>hop 1</small></span><i>→</i><span data-hop="2"><b>R2</b><small>hop 2</small></span><i>→</i><span data-hop="3"><b>R3</b><small>hop 3</small></span><i>→</i><span data-hop="4"><b>PC-B</b><code>192.168.50.30</code></span></div>
+  <div class="diag-body">
+    <div class="diag-action"><span data-diag-step>Ping · pronto</span><h3 data-diag-task>Envie o Echo Request</h3>
+      <div data-ping-controls><button type="button" data-ping-next>Enviar Echo Request</button></div>
+      <div data-trace-intro hidden><button type="button" data-start-trace>Iniciar Traceroute</button></div>
+      <div data-trace-controls hidden><label for="diag-scenario">Cenário</label><select id="diag-scenario" data-trace-scenario><option value="normal">Todos os hops respondem</option><option value="silent">Hop 2 silencioso</option></select><label for="diag-ttl">TTL inicial</label><select id="diag-ttl" data-ttl-control><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select><button type="button" data-diag-run>Executar nova sonda</button></div>
+      <div class="diag-facts"><p><b>Enviado</b><span data-diag-sent>—</span></p><p><b>Chegou a</b><span data-diag-arrived>—</span></p><p><b>Voltou</b><span data-diag-returned>—</span></p><p><b>Ainda não conclui</b><span data-diag-unknown>Sem teste, não há evidência de alcance.</span></p></div>
+      <p class="diag-result" data-diag-result aria-live="polite">Inicie o Ping.</p>
+    </div>
+    <div class="diag-observation"><div class="diag-packet"><article><b>IPv4 do pacote exibido</b><dl><dt>Source IP</dt><dd data-ip-source>192.168.10.20</dd><dt>Destination IP</dt><dd data-ip-destination>192.168.50.30</dd><dt>TTL do pacote</dt><dd data-ttl>—</dd></dl></article><article><b>ICMP observado</b><dl><dt>Type</dt><dd data-icmp-type>—</dd><dt>Mensagem</dt><dd data-icmp-message>Nenhuma ainda</dd></dl></article></div>
+      <div class="diag-inspector" data-icmp-inspector><b>Packet Inspector</b><div><button type="button" data-message="request" disabled>Echo Request</button><button type="button" data-message="reply" disabled>Echo Reply</button></div><p data-inspector-detail>Inspecione as mensagens depois que aparecerem no percurso.</p></div>
+      <ol class="diag-timeline" data-diag-timeline aria-label="Resultados acumulados por sonda"></ol>
+    </div>
   </div>
-  <div class="diag-packet"><article><span>IPv4</span><dl><dt>Source IP</dt><dd data-ip-source>192.168.10.20</dd><dt>Destination IP</dt><dd data-ip-destination>192.168.50.30</dd><dt data-ttl-label hidden>TTL</dt><dd data-ttl hidden>—</dd></dl></article><article><span>ICMP</span><dl><dt>Type</dt><dd data-icmp-type>Echo Request</dd><dt>Message</dt><dd data-icmp-message>Teste ainda não executado</dd></dl></article></div>
-  <div class="diag-controls" data-ping-controls><button type="button" data-ping-next>INICIAR ECHO REQUEST</button></div>
-  <div class="diag-controls" data-message-controls hidden><div class="diag-inspector" data-icmp-inspector><strong>PACKET INSPECTOR</strong><button type="button" data-message="request">INSPECIONAR REQUEST</button><button type="button" data-message="reply">INSPECIONAR REPLY</button><p data-inspector-feedback aria-live="polite">Selecione uma mensagem.</p></div></div>
-  <div class="diag-controls" data-evidence-controls hidden><button type="button" data-evidence-next>OBSERVAR TIMEOUT</button><div class="diag-evidence" data-evidence-board hidden><span>EVIDÊNCIA OBSERVADA</span><strong>Request timed out.</strong><span>CONCLUSÃO SEGURA</span><strong>Echo Reply não foi recebido no tempo esperado.</strong><span>AINDA NÃO JUSTIFICADO</span><p>Host desligado, ICMP filtrado, perda ou causa específica: os dados não distinguem essas hipóteses.</p></div></div>
-  <div class="diag-controls" data-trace-controls hidden><label>TTL inicial <select data-ttl-control><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label><button type="button" data-diag-run>EXECUTAR SONDA</button></div>
-  <ol class="diag-timeline" data-diag-timeline aria-live="polite"></ol><p class="diag-result" data-diag-result aria-live="polite">Inicie o Ping demonstrativo.</p>
 </section>

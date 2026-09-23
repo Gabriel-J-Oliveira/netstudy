@@ -319,6 +319,39 @@ class ProjectAndConceptTests(TestCase):
         self.assertEqual(activities.status_code, 200)
         self.assertContains(activities, "20 atividades")
 
+    def test_contextual_terms_on_arp_mac_and_frame(self):
+        expected = {
+            "learning:concept": {
+                "arp-tip-resolution": "Descoberta do MAC associado ao IPv4",
+                "arp-tip-cache": "Lista temporária de associações IPv4",
+            },
+            "learning:mac_concept": {
+                "mac-tip-hex": "Sistema de numeração que usa 0–9 e A–F",
+                "mac-tip-interface": "Conexão de rede do host",
+            },
+            "learning:frame_concept": {
+                "frame-tip-fcs": "Frame Check Sequence",
+            },
+        }
+        for route, definitions in expected.items():
+            response = self.client.get(reverse(route))
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'data-context-glossary', count=len(definitions), html=False)
+            self.assertContains(response, "context-glossary.css")
+            self.assertContains(response, "context-glossary.js")
+            for tooltip_id, definition in definitions.items():
+                self.assertContains(response, f'aria-controls="{tooltip_id}"')
+                self.assertContains(response, f'aria-describedby="{tooltip_id}"')
+                self.assertContains(response, f'id="{tooltip_id}" role="tooltip" hidden')
+                self.assertContains(response, definition)
+            self.assertContains(response, "COMEÇAR CHECKPOINT")
+        script = (settings.BASE_DIR / "static" / "js" / "context-glossary.js").read_text(encoding="utf-8")
+        stylesheet = (settings.BASE_DIR / "static" / "css" / "context-glossary.css").read_text(encoding="utf-8")
+        for fragment in ('event.pointerType === "mouse"', 'event.pointerType !== "touch"', 'event.key === "Escape"', 'aria-expanded', 'window.innerWidth'):
+            self.assertIn(fragment, script)
+        for fragment in (":focus-visible", "100vw - 1rem", "[hidden]"):
+            self.assertIn(fragment, stylesheet)
+
 
 class ExerciseSessionTests(TestCase):
     def start(self):
@@ -1166,7 +1199,33 @@ class SwitchConceptAndCheckpointTests(TestCase):
         self.assertNotContains(response, "ABRIR ESTA ETAPA NO LABORATÓRIO")
         self.assertNotContains(response, "data-switch-area=")
         self.assertContains(response, "switch-board.js?v=switch-guided-1")
-        self.assertContains(response, "switch-concept.js?v=switch-guided-1")
+        self.assertContains(response, "switch-concept.js?v=switch-static-1")
+
+    def test_static_switch_explanation_precedes_guided_lab(self):
+        response = self.client.get(reverse("learning:switch_concept"))
+        page = response.content.decode()
+        concept = page.split('<section class="switch-concept-prelude"', 1)[1].split('</section>', 1)[0]
+        diagram = concept.split('<figure class="switch-static-figure"', 1)[1].split('</figure>', 1)[0]
+        self.assertLess(page.index('id="switch-concept-title"'), page.index('class="switch-stepper"'))
+        for text in ("MAC de origem", "porta de entrada", "MAC de destino", "MAC, VLAN e interface", "não endereços IP"):
+            self.assertIn(text, concept)
+        self.assertEqual(diagram.count('class="switch-static-device"'), 1)
+        self.assertIn('role="img" aria-label="PC-A envia', diagram)
+        for text in ("PC-A", "PC-B", "PC-C", "SW1", "Gi0/1", "Gi0/4", "MAC AA · VLAN 1 · Gi0/1", "BB conhecido", "BB desconhecido"):
+            self.assertIn(text, diagram)
+        for number in range(1, 5):
+            self.assertIn(f'<li><b>{number}</b>', diagram)
+        self.assertNotIn("<button", diagram)
+        for glossary_id in ("switch-tip-learning", "switch-tip-table", "switch-tip-flooding"):
+            self.assertIn(f'aria-controls="{glossary_id}"', concept)
+            self.assertIn(f'aria-describedby="{glossary_id}"', concept)
+            self.assertIn(f'id="{glossary_id}" role="tooltip" hidden', concept)
+        self.assertEqual(concept.count("data-switch-glossary"), 3)
+        self.assertIn('data-switch-board', page)
+        self.assertIn('data-checkpoint-start', page)
+        script = (settings.BASE_DIR / "static" / "js" / "switch-concept.js").read_text(encoding="utf-8")
+        for fragment in ('event.pointerType === "mouse"', 'event.pointerType !== "touch"', 'event.key === "Escape"'):
+            self.assertIn(fragment, script)
 
     def test_simplified_buttons_keep_the_javascript_contract(self):
         response = self.client.get(reverse("learning:switch_concept"))
@@ -1399,7 +1458,31 @@ class DeliveryConceptAndCheckpointTests(TestCase):
             self.assertContains(response, label)
         self.assertNotContains(response, "data-delivery-area=")
         self.assertNotContains(response, "ABRIR ESTA ETAPA NO LABORATÓRIO")
-        self.assertContains(response, "delivery-concept.js?v=delivery-bench-5")
+        self.assertContains(response, "delivery-concept.js?v=delivery-overview-1")
+
+    def test_concept_and_static_diagram_precede_existing_experiments(self):
+        response = self.client.get(reverse("learning:delivery_concept"))
+        page = response.content.decode()
+        concept = page.split('<section class="delivery-prelude"', 1)[1].split('</section>', 1)[0]
+        diagram = concept.split('<figure class="delivery-overview"', 1)[1].split('</figure>', 1)[0]
+        self.assertLess(page.index('id="delivery-concept-title"'), page.index('class="experiment-selector"'))
+        for text in ("Destination MAC específico", "uma única porta", "FF:FF:FF:FF:FF:FF", "mesma VLAN", "porta de entrada"):
+            self.assertIn(text, concept)
+        for text in ("Unicast conhecido", "Broadcast · FF:FF:FF:FF:FF:FF", "Unknown unicast", "PC-B recebe", "PC-C recebe", "Host da VLAN 20 não recebe", "PC-B descarta", "PC-C aceita"):
+            self.assertIn(text, diagram)
+        self.assertIn('role="img" aria-label="Exemplo estático:', diagram)
+        self.assertNotIn("<button", diagram)
+        self.assertNotIn("data-experiment=", diagram)
+        for glossary_id in ("delivery-tip-flooding", "delivery-tip-ingress", "delivery-tip-domain"):
+            self.assertIn(f'aria-controls="{glossary_id}"', concept)
+            self.assertIn(f'aria-describedby="{glossary_id}"', concept)
+            self.assertIn(f'id="{glossary_id}" role="tooltip" hidden', concept)
+        self.assertEqual(concept.count("data-delivery-glossary"), 3)
+        self.assertIn('data-switch-board', page)
+        self.assertIn('data-delivery-checkpoint-start', page)
+        script = (settings.BASE_DIR / "static" / "js" / "delivery-concept.js").read_text(encoding="utf-8")
+        for fragment in ('event.pointerType === "mouse"', 'event.pointerType !== "touch"', 'event.key === "Escape"'):
+            self.assertIn(fragment, script)
 
     def test_simplified_delivery_buttons_keep_the_javascript_contract(self):
         response = self.client.get(reverse("learning:delivery_concept"))
@@ -1580,8 +1663,7 @@ class VlanConceptAndCheckpointTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "VLAN: separar redes lógicas no mesmo switch")
         self.assertContains(response, "data-vlan-visualization", html=False)
-        self.assertContains(response, 'data-vlan-mode="single"', html=False)
-        self.assertContains(response, 'data-vlan-mode="split"', html=False)
+        self.assertContains(response, 'class="vlan-static-diagram"', html=False)
         self.assertContains(response, "PC-A")
         self.assertContains(response, "PC-D")
         self.assertNotContains(response, 'id="vlan-shared-lab"', html=False)
@@ -1593,17 +1675,15 @@ class VlanConceptAndCheckpointTests(TestCase):
         self.assertContains(response, "show vlan brief")
         self.assertContains(response, 'data-vlan-cli-proof', html=False)
         self.assertContains(response, "EXPLIQUE COM SUAS PALAVRAS")
-        self.assertContains(response, "vlan-concept.js?v=vlan-visual-1")
+        self.assertContains(response, "vlan-concept.js?v=vlan-static-1")
         self.assertContains(response, reverse("learning:trunk_concept"))
 
-    def test_simplified_vlan_buttons_keep_the_javascript_contract(self):
+    def test_access_exercise_keeps_the_javascript_contract(self):
         response = self.client.get(reverse("learning:vlan_concept"))
         html = response.content.decode()
         script = (settings.BASE_DIR / "static" / "js" / "vlan-concept.js").read_text(encoding="utf-8")
         selectors = (
-            "data-vlan-mode", "data-broadcast-run", "data-pc-e-select",
-            "data-apply-access", "data-test-pc-e", "data-broadcast-title",
-            "data-broadcast-copy", "data-broadcast-recipients",
+            "data-pc-e-select", "data-apply-access", "data-test-pc-e",
             "data-vlan-reference-button",
             "data-vlan-checkpoint-start",
         )
@@ -1637,12 +1717,9 @@ class VlanConceptAndCheckpointTests(TestCase):
         template = (settings.BASE_DIR / "templates" / "learning" / "vlan_concept.html").read_text(encoding="utf-8")
         script = (settings.BASE_DIR / "static" / "js" / "vlan-concept.js").read_text(encoding="utf-8")
         css = (settings.BASE_DIR / "static" / "css" / "vlan-concept.css").read_text(encoding="utf-8")
-        self.assertIn('single: "', script)
-        self.assertIn('split: "', script)
-        self.assertIn('state.mode === "single" ? ["B", "C", "D"] : ["B"]', script)
         self.assertIn('state.pcEVlan === 10', script)
         self.assertIn("function applyAccess()", script)
-        self.assertIn("function renderPcEResult()", script)
+        self.assertIn("function testPcE()", script)
         self.assertIn("unknown-unicast flooding", template)
         self.assertIn("roteamento de Camada 3", template)
         self.assertIn("VLAN não determina automaticamente uma sub-rede IP", template)
@@ -1651,9 +1728,36 @@ class VlanConceptAndCheckpointTests(TestCase):
         self.assertIn("data-cli-pc-e-vlan20", template)
         self.assertNotIn("Unknown Unicast A", template)
         self.assertIn("focus-visible", css)
-        self.assertIn(".vlan-mode-controls button", css)
+        self.assertIn(".vlan-static-diagram", css)
         self.assertIn("@media(max-width:360px)", css)
         self.assertIn("prefers-reduced-motion", css)
+
+    def test_static_vlan_diagram_and_contextual_terms(self):
+        response = self.client.get(reverse("learning:vlan_concept"))
+        page = response.content.decode()
+        concept = page.split('<section class="vlan-concept-copy"', 1)[1].split('</section>', 1)[0]
+        diagram = page.split('<figure class="vlan-static-figure"', 1)[1].split('</figure>', 1)[0]
+        self.assertLess(page.index('id="vlan-concept-title"'), page.index('id="vlan-visual-title"'))
+        self.assertIn("Uma <strong>VLAN</strong> (rede local virtual)", concept)
+        self.assertIn("grupos separados no mesmo equipamento físico", concept)
+        self.assertIn("Cada VLAN delimita um", concept)
+        for text in ("PC-A", "PC-B", "PC-C", "PC-D", "VLAN 10", "VLAN 20", "SW1", "recebe", "não recebe", "roteamento de Camada 3"):
+            self.assertIn(text, diagram)
+        self.assertEqual(diagram.count('class="vlan-static-switch"'), 1)
+        self.assertIn('role="img" aria-label="Um único switch físico', diagram)
+        self.assertNotIn("<button", diagram)
+        self.assertNotIn("data-vlan-mode", page)
+        self.assertNotIn("data-broadcast-run", page)
+        for glossary_id in ("vlan-tip-segmentation", "vlan-tip-domain", "vlan-tip-access"):
+            self.assertIn(f'aria-controls="{glossary_id}"', concept)
+            self.assertIn(f'aria-describedby="{glossary_id}"', page)
+            self.assertIn(f'id="{glossary_id}" role="tooltip" hidden', page)
+        self.assertEqual(page.count("data-vlan-glossary"), 3)
+        self.assertIn("data-access-demo", page)
+        self.assertIn("data-vlan-checkpoint-start", page)
+        script = (settings.BASE_DIR / "static" / "js" / "vlan-concept.js").read_text(encoding="utf-8")
+        for fragment in ('event.pointerType === "mouse"', 'event.pointerType !== "touch"', 'event.key === "Escape"', 'document.addEventListener("pointerdown"'):
+            self.assertIn(fragment, script)
 
     def test_checkpoint_retains_switch_board_scripts_and_ajax(self):
         response = self.client.get(reverse("learning:vlan_concept"))
@@ -1754,8 +1858,21 @@ class TrunkConceptAndCheckpointTests(TestCase):
     def test_page_uses_a_single_frame_journey_without_rendering_switches(self):
         response = self.client.get(reverse("learning:trunk_concept"))
         self.assertEqual(response.status_code, 200)
+        page = response.content.decode()
+        concept_start = page.index('aria-labelledby="trunk-concept-title"')
+        diagram_start = page.index('class="trunk-overview"')
+        example_start = page.index('class="trunk-concrete-example"')
+        journey_start = page.index('data-trunk-journey')
+        self.assertLess(concept_start, diagram_start)
+        self.assertLess(diagram_start, example_start)
+        self.assertLess(example_start, journey_start)
+        self.assertIn("Trunk</strong> é um enlace configurado para transportar tráfego de várias VLANs", page)
+        self.assertIn("802.1Q</strong> é o padrão usado neste cenário", page)
+        self.assertIn("VLAN 10", page)
+        self.assertIn('VLAN ID 20', page)
+        self.assertIn("O Trunk transporta as duas VLANs pelo mesmo enlace", page)
         self.assertContains(response, "data-trunk-journey", html=False)
-        self.assertContains(response, "Access → Trunk identificado → Access")
+        self.assertContains(response, "→ Trunk identificado → Access")
         self.assertContains(response, "data-route-step=", count=3, html=False)
         self.assertContains(response, "Host A")
         self.assertContains(response, "Host C")
@@ -1764,12 +1881,74 @@ class TrunkConceptAndCheckpointTests(TestCase):
         self.assertContains(response, "VLAN ID")
         self.assertContains(response, "Native VLAN")
         self.assertContains(response, "show interfaces trunk")
-        page = response.content.decode().split('<section id="trunk-checkpoint"', 1)[0]
+        page = page.split('<section id="trunk-checkpoint"', 1)[0]
         for legacy in ('data-switch-board', 'data-trunk-stage', 'data-switch-port', 'trunk-shared-lab', 'data-trunk-stage-link'):
             self.assertNotIn(legacy, page)
-        self.assertNotIn("SW1", page)
-        self.assertNotIn("SW2", page)
+        self.assertNotIn('class="dual-switch"', page)
+        self.assertNotIn('data-stage-switch=', page)
         self.assertNotContains(response, "ABRIR ESTA ETAPA NO LABORATÓRIO")
+
+    def test_static_overview_shows_two_vlans_on_one_shared_trunk(self):
+        response = self.client.get(reverse("learning:trunk_concept"))
+        page = response.content.decode()
+        overview = page.split('<figure class="trunk-overview"', 1)[1].split('</figure>', 1)[0]
+        self.assertEqual(overview.count('class="overview-shared-trunk"'), 1)
+        self.assertEqual(overview.count('class="overview-switch '), 2)
+        self.assertEqual(overview.count('class="overview-tagged-frame '), 2)
+        for text in ("Host A", "Host B", "SW1", "SW2", "Host C", "Host D", "VLAN ID 10", "VLAN ID 20", "Trunk físico único", "mesmo enlace físico", "sem tag"):
+            self.assertIn(text, overview)
+        self.assertEqual(overview.count('class="overview-flow vlan-10"'), 4)
+        self.assertEqual(overview.count('class="overview-flow vlan-20"'), 4)
+        self.assertEqual(overview.count('→ Access'), 4)
+        self.assertIn('role="img" aria-label="VLAN 10:', overview)
+        self.assertIn("as VLANs continuam separadas", overview)
+        self.assertIn("A tag identifica a VLAN, não o conteúdo do frame", overview)
+        self.assertNotIn("<button", overview)
+        self.assertNotIn("data-overview-", overview)
+        source = (settings.BASE_DIR / "static" / "js" / "trunk-concept.js").read_text(encoding="utf-8")
+        self.assertNotIn("[data-trunk-overview]", source)
+        self.assertNotIn("setTimeout", source)
+        self.assertIn('data-trunk-journey', page)
+        self.assertIn('data-allowed-toggle', page)
+        self.assertIn('data-trunk-checkpoint-start', page)
+
+    def test_contextual_glossary_has_accessible_definitions_without_replacing_page_content(self):
+        response = self.client.get(reverse("learning:trunk_concept"))
+        self.assertEqual(response.status_code, 200)
+        page = response.content.decode()
+        glossary_ids = (
+            "trunk-tip-link", "trunk-tip-host", "trunk-tip-interface",
+            "trunk-tip-access", "trunk-tip-vlan-id", "trunk-tip-allowed",
+            "trunk-tip-link-up", "trunk-tip-untagged",
+        )
+        self.assertEqual(page.count('data-glossary-trigger'), len(glossary_ids))
+        for glossary_id in glossary_ids:
+            self.assertIn(f'aria-controls="{glossary_id}"', page)
+            self.assertIn(f'aria-describedby="{glossary_id}"', page)
+            self.assertIn(f'<span class="trunk-glossary-popover" id="{glossary_id}" role="tooltip" hidden>', page)
+        self.assertEqual(page.count('aria-controls="trunk-tip-link"'), 1)
+        self.assertEqual(page.count('aria-controls="trunk-tip-access"'), 1)
+        self.assertLess(page.index('aria-controls="trunk-tip-link"'), page.index('id="trunk-concept-title"'))
+        self.assertLess(page.index('aria-controls="trunk-tip-access"'), page.index('data-route-step="access-in"'))
+        for definition in (
+            "conexão lógica, não apenas um cabo", "Dispositivos finais, como PCs ou servidores",
+            "não uma porta TCP/UDP", "tráfego do host à VLAN configurada",
+            "Número que identifica a VLAN indicada pela tag 802.1Q",
+            "não atravessa, mesmo com o enlace ativo", "não garante que todas as VLANs estejam permitidas",
+            "A Native VLAN é um caso opcional relacionado",
+        ):
+            self.assertIn(definition, page)
+        self.assertIn("data-journey-vlan=\"10\"", page)
+        self.assertIn("data-journey-vlan=\"20\"", page)
+        self.assertIn("data-allowed-toggle", page)
+        self.assertIn("data-trunk-checkpoint-start", page)
+        self.assertIn("Native VLAN</summary>", page)
+        source = (settings.BASE_DIR / "static" / "js" / "trunk-concept.js").read_text(encoding="utf-8")
+        for fragment in ("event.key === \"Escape\"", 'event.pointerType !== "touch"', 'event.pointerType === "mouse"', 'trigger.addEventListener("focus"', 'document.addEventListener("pointerdown"'):
+            self.assertIn(fragment, source)
+        css = (settings.BASE_DIR / "static" / "css" / "trunk-concept.css").read_text(encoding="utf-8")
+        self.assertIn("border-bottom:1px dotted", css)
+        self.assertIn("calc(100vw - 1rem)", css)
 
     def test_forwarding_model_supports_allowed_native_broadcast_and_independent_state(self):
         board = (settings.BASE_DIR / "static" / "js" / "switch-board.js").read_text(encoding="utf-8")
@@ -2008,52 +2187,60 @@ class GatewayConceptTests(TestCase):
     def start(self):
         return self.client.post(reverse("learning:gateway_checkpoint_start"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
 
-    def test_page_loads_with_exactly_five_areas(self):
+    def test_page_has_continuous_order_without_side_lab(self):
         response = self.client.get(reverse("learning:gateway_concept"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-gateway-area=", count=5, html=False)
-        self.assertContains(response, "O que o host faz quando o destino está em outra rede?")
+        content = response.content.decode()
+        markers = ["Do destino ao primeiro salto", "Visão geral do primeiro salto", "Laboratório · monte a primeira entrega", "Evidências e fechamento", 'id="gateway-checkpoint"']
+        self.assertEqual([content.index(marker) for marker in markers], sorted(content.index(marker) for marker in markers))
+        self.assertNotContains(response, "data-gateway-stage-link")
+        css = (settings.BASE_DIR / "static" / "css" / "gateway-concept.css").read_text(encoding="utf-8")
+        self.assertNotIn("position: sticky", css)
+        self.assertNotIn("min-height: 70vh", css)
 
     def test_next_hop_and_default_gateway_definitions(self):
         response = self.client.get(reverse("learning:gateway_concept"))
         self.assertContains(response, "Next hop")
-        self.assertContains(response, "ou próximo salto, é o próximo dispositivo de Camada 3")
-        self.assertContains(response, "O Default Gateway é o próximo salto utilizado pelo host")
-        self.assertContains(response, "não existe uma rota mais específica aplicável")
+        self.assertContains(response, "próximo dispositivo de Camada 3 no caminho")
+        self.assertContains(response, "próximo salto padrão quando não há uma")
+        for term in ("localmente alcançável", "interface", "rota mais específica"):
+            self.assertContains(response, term)
+        self.assertContains(response, 'role="tooltip"', count=3)
 
     def test_gateway_reachability_and_arp_contrast(self):
         response = self.client.get(reverse("learning:gateway_concept"))
-        for value in ("192.168.10.1", "192.168.30.1", "ARP procura 192.168.10.80", "ARP procura 192.168.10.1"):
+        for value in ("192.168.10.1", "192.168.30.1", "192.168.10.80", "192.168.20.50"):
             self.assertContains(response, value)
-        self.assertContains(response, "ARP RESOLVE A ENTREGA LOCAL RELEVANTE")
+        self.assertContains(response, 'data-destination-mode="local"')
+        self.assertContains(response, 'data-destination-mode="remote"')
 
     def test_l3_stage_and_layered_destinations(self):
         response = self.client.get(reverse("learning:gateway_concept"))
         self.assertContains(response, "data-l3-stage", count=1, html=False)
         self.assertContains(response, 'data-stage-id="gateway-shared"', count=1, html=False)
-        self.assertContains(response, "R1 — Default Gateway — 192.168.10.1 — MAC RR")
+        self.assertContains(response, "primeiro frame: MAC RR")
         self.assertContains(response, "Destination MAC")
         self.assertContains(response, "Destination IP")
-        self.assertContains(response, "DESTINO FINAL ≠ PRÓXIMO SALTO")
+        self.assertContains(response, "rede remota ···")
+        self.assertContains(response, "A linha pontilhada não representa entrega direta")
 
-    def test_shared_path_has_gateway_arp_builder_and_six_step_actions(self):
+    def test_shared_path_has_gateway_arp_builder_and_reset(self):
         response = self.client.get(reverse("learning:gateway_concept"))
         for fragment in (
             'data-gateway="192.168.10.1"', 'data-gateway="192.168.30.1"',
             "data-arp-target", "data-destination-builder", "data-gateway-inspector",
         ):
             self.assertContains(response, fragment, html=False)
-        self.assertContains(response, "data-summary-step=", count=6, html=False)
+        self.assertContains(response, "data-lab-reset")
         source = (settings.BASE_DIR / "static" / "js" / "l3-path-stage.js").read_text(encoding="utf-8")
         self.assertIn("this.maxPhase = 5", source)
         self.assertIn("l3stage:phase", source)
+        self.assertIn('root.dataset.stageMode === "shared"', source)
 
     def test_remote_ip_and_gateway_mac_are_explicit_and_redundancy_is_removed(self):
         response = self.client.get(reverse("learning:gateway_concept"))
-        self.assertContains(response, "Destination IP 192.168.20.50")
-        self.assertContains(response, "Destination MAC RR")
-        self.assertContains(response, "MAC: “PARA QUEM ENTREGO AGORA?”")
-        self.assertContains(response, "IP: “ONDE A COMUNICAÇÃO PRECISA CHEGAR?”")
+        self.assertContains(response, "destino IP: 192.168.20.50")
+        self.assertContains(response, "primeiro frame: MAC RR")
         self.assertNotContains(response, "Destination IP e Destination MAC representarem dispositivos diferentes indica erro?")
         self.assertNotContains(response, "data-different-question", html=False)
         self.assertNotContains(response, "data-gateway-rapid", html=False)
@@ -2064,11 +2251,11 @@ class GatewayConceptTests(TestCase):
 
     def test_shared_path_accessibility_and_responsive_contract(self):
         response = self.client.get(reverse("learning:gateway_concept"))
-        self.assertContains(response, '<button type="button" class="l3-node', count=4, html=False)
+        self.assertContains(response, 'data-path-node=', count=3, html=False)
         self.assertContains(response, 'aria-live="polite"', html=False)
         css = (settings.BASE_DIR / "static" / "css" / "gateway-concept.css").read_text(encoding="utf-8")
         stage_css = (settings.BASE_DIR / "static" / "css" / "l3-path-stage.css").read_text(encoding="utf-8")
-        for fragment in ("position: sticky", "position: static", "max-width: 360px", "prefers-reduced-motion", ":focus-visible"):
+        for fragment in ("max-width: 360px", "prefers-reduced-motion", ":focus-visible"):
             self.assertTrue(fragment in css or fragment in stage_css)
 
     def test_packet_inspector_terminal_and_cli_consolidation(self):
@@ -2076,10 +2263,13 @@ class GatewayConceptTests(TestCase):
         self.assertContains(response, "PACKET INSPECTOR")
         self.assertContains(response, "ipconfig /all")
         self.assertContains(response, "arp -a")
-        self.assertContains(response, "route print · próximo módulo")
+        self.assertContains(response, "route print")
         source = (settings.BASE_DIR / "static" / "js" / "gateway-concept.js").read_text(encoding="utf-8")
         self.assertIn('command === "arp -a"', source)
-        self.assertIn("Tabela de rotas será estudada no próximo módulo", source)
+        self.assertIn('command === "route print"', source)
+        self.assertIn("Comando não suportado", source)
+        for fragment in ('mode: "remote"', 'mode === "local"', 'state.arp = true', 'state.delivered = true', 'state.gateway !== "192.168.10.1"', 'ip.value === "192.168.10.1"'):
+            self.assertIn(fragment, source)
 
     def test_checkpoint_exact_shape_and_misconceptions(self):
         self.assertEqual(len(GATEWAY_ACTIVITIES), 10)
@@ -2138,31 +2328,32 @@ class RouteConceptTests(TestCase):
     def start(self):
         return self.client.post(reverse("learning:route_checkpoint_start"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
 
-    def test_page_has_exactly_five_areas_and_visualizer(self):
+    def test_page_has_continuous_order_and_single_visualizer(self):
         response = self.client.get(reverse("learning:route_concept"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-route-area=", count=5, html=False)
+        content = response.content.decode()
+        markers = ["O Destination IP orienta o caminho", "Visão geral · decisão de R1", "Laboratório · teste e escolha", "Evidências e fechamento", 'id="route-checkpoint"']
+        self.assertEqual([content.index(marker) for marker in markers], sorted(content.index(marker) for marker in markers))
+        self.assertNotContains(response, "data-route-stage-link")
         self.assertContains(response, "ROUTING TABLE VISUALIZER", count=1)
         self.assertContains(response, "data-route-visualizer", count=1, html=False)
-        self.assertContains(response, "Como um host ou roteador decide qual caminho usar?")
-        self.assertContains(response, "O DESTINO ESCOLHE A ROTA")
         for destination in ("192.168.10.80", "192.168.20.50", "8.8.8.8"):
             self.assertContains(response, destination)
 
     def test_route_anatomy_direct_next_hop_and_default(self):
         response = self.client.get(reverse("learning:route_concept"))
-        for value in ("DESTINATION PREFIX", "NEXT HOP", "INTERFACE", "DIRECTLY CONNECTED / ON-LINK", "0.0.0.0/0"):
+        for value in ("DESTINATION PREFIX", "NEXT HOP", "INTERFACE", "on-link", "0.0.0.0/0"):
             self.assertContains(response, value)
-        self.assertContains(response, "DEFAULT GATEWAY É UMA CONSEQUÊNCIA DA ROTA PADRÃO")
+        self.assertContains(response, 'role="tooltip"', count=3)
+        self.assertContains(response, "Sem rota compatível, não há caminho")
 
     def test_longest_prefix_match_and_multiple_matches(self):
         response = self.client.get(reverse("learning:route_concept"))
-        self.assertContains(response, "LONGEST PREFIX MATCH")
-        self.assertContains(response, "PRIMEIRO: A ROTA PRECISA COMBINAR")
+        self.assertContains(response, "prefixo mais longo")
         for prefix in ("10.0.0.0/8", "10.10.0.0/16", "10.10.20.0/24"):
             self.assertContains(response, prefix)
         source = (settings.BASE_DIR / "static" / "js" / "routing-table-visualizer.js").read_text(encoding="utf-8")
-        for fragment in ("function routeMatches", "function selectRoute", "matches.sort", "test(destination)", "selectBest()", "COMPATÍVEL", "NÃO COMBINA", "VENCEDORA"):
+        for fragment in ("function routeMatches", "function selectRoute", "matches.sort", "test(destination", "choose(row)", "reveal()", "COMPATÍVEL", "NÃO COMBINA", "VENCEDORA"):
             self.assertIn(fragment, source)
 
     def test_guided_actions_replace_old_quizzes_and_rapid_fire(self):
@@ -2173,8 +2364,9 @@ class RouteConceptTests(TestCase):
             'data-route-preset="8.8.8.8"',
             'data-specificity-destination="10.10.20.50"',
             'data-specificity-destination="10.50.1.20"',
-            "data-summary-next",
-            "data-route-new-frame",
+            "data-route-select",
+            "data-route-reveal",
+            "data-route-consequence",
         ):
             self.assertContains(response, fragment, html=False)
         for removed in ("data-human-route", "data-show-decision", "data-route-choice", "data-direct-choice", "data-route-rapid", "RAPID FIRE"):
@@ -2182,22 +2374,51 @@ class RouteConceptTests(TestCase):
 
     def test_visualizer_is_accessible_responsive_and_has_no_timed_sequence(self):
         response = self.client.get(reverse("learning:route_concept"))
-        self.assertContains(response, 'data-route-field="prefix"', count=3, html=False)
+        self.assertContains(response, 'data-route-select', count=3, html=False)
         self.assertContains(response, 'aria-live="polite"', html=False)
         visualizer = (settings.BASE_DIR / "static" / "js" / "routing-table-visualizer.js").read_text(encoding="utf-8")
         concept = (settings.BASE_DIR / "static" / "js" / "route-concept.js").read_text(encoding="utf-8")
         css = (settings.BASE_DIR / "static" / "css" / "route-concept.css").read_text(encoding="utf-8")
         self.assertIn('event.key === "Enter"', visualizer)
         self.assertNotIn("setTimeout", visualizer + concept)
-        for fragment in (":focus-visible", "max-width: 360px", "prefers-reduced-motion", "position: sticky", "position: static"):
+        self.assertNotIn("position: sticky", css)
+        self.assertNotIn("min-height: 70vh", css)
+        for fragment in (":focus-visible", "max-width: 360px", "prefers-reduced-motion"):
             self.assertIn(fragment, css)
+        table_css = (settings.BASE_DIR / "static" / "css" / "routing-table-visualizer.css").read_text(encoding="utf-8")
+        self.assertIn("attr(data-cell-label)", table_css)
 
     def test_l3_to_l2_and_cli_are_delayed(self):
         response = self.client.get(reverse("learning:route_concept"))
-        self.assertContains(response, "MAC de R2 naquele enlace")
-        self.assertContains(response, "IP FINAL CONTINUA 192.168.20.50")
+        self.assertContains(response, "Novo frame: Destination MAC de R2")
+        self.assertContains(response, "Destination IP continua")
         for value in ("route print", "Get-NetRoute", "show ip route"):
             self.assertContains(response, value)
+        source = (settings.BASE_DIR / "static" / "js" / "route-concept.js").read_text(encoding="utf-8")
+        for fragment in ('terminalDevice === "host"', 'terminalDevice === "router"', 'command === "route print"', 'command === "get-netroute"', 'command === "show ip route"', "Comando não disponível"):
+            self.assertIn(fragment, source)
+
+    def test_route_data_and_manual_selection_contract(self):
+        response = self.client.get(reverse("learning:route_concept"))
+        basic = response.context["basic_routes"]
+        specific = response.context["specific_routes"]
+        self.assertEqual([(r["prefix"], r["next_hop"], r["interface"]) for r in basic], [
+            ("192.168.10.0/24", "DIRECT", "LAN"),
+            ("192.168.20.0/24", "10.0.0.2", "WAN1"),
+            ("0.0.0.0/0", "203.0.113.1", "WAN2"),
+        ])
+        self.assertEqual([(r["next_hop"], r["interface"]) for r in specific], [
+            ("10.0.0.2", "WAN1"), ("10.0.1.2", "WAN3"),
+            ("10.0.2.2", "WAN4"), ("203.0.113.1", "WAN2"),
+        ])
+        self.assertContains(response, "10.0.0.1/30")
+        self.assertContains(response, "203.0.113.2/30")
+        visualizer = (settings.BASE_DIR / "static" / "js" / "routing-table-visualizer.js").read_text(encoding="utf-8")
+        self.assertIn('this.root.querySelector("[data-route-run]").addEventListener("click", () => this.test())', visualizer)
+        self.assertIn("this.choose(button.closest", visualizer)
+        self.assertIn('routevisualizer:revealed', visualizer)
+        self.assertIn("menos específica", visualizer)
+        self.assertIn("não combina", visualizer)
 
     def test_checkpoint_exact_shape_and_misconceptions(self):
         self.assertEqual(len(ROUTE_ACTIVITIES), 10)
@@ -2243,26 +2464,38 @@ class RouteConceptTests(TestCase):
 
 class InterVlanConceptTests(TestCase):
     def start(self):return self.client.post(reverse("learning:iv_checkpoint_start"),HTTP_X_REQUESTED_WITH="XMLHttpRequest")
-    def test_page_and_exact_five_areas(self):
-        r=self.client.get(reverse("learning:inter_vlan_concept"));self.assertEqual(r.status_code,200);self.assertContains(r,"data-iv-area=",count=5,html=False);self.assertContains(r,"Como dispositivos em VLANs diferentes conseguem se comunicar?");self.assertContains(r,"data-iv-stage data-stage-id",count=1,html=False)
-    def test_stage_and_full_path(self):
+    def test_page_order_and_single_lab(self):
         r=self.client.get(reverse("learning:inter_vlan_concept"))
-        for x in ("192.168.10.20/24","192.168.10.1","192.168.20.30/24","192.168.20.1","192.168.20.0/24","AA → R10","R20 → BB"):self.assertContains(r,x)
-        self.assertNotContains(r,"10.10.10.");self.assertNotContains(r,"10.10.20.")
-        src=(settings.BASE_DIR/"static"/"js"/"inter-vlan-path-stage.js").read_text(encoding="utf-8");self.assertIn("frame.hidden",src);self.assertIn("Route lookup",src);self.assertIn("this.phase = Math.min(9",src)
-    def test_vlan_isolation_frames_packet_and_router_on_stick(self):
+        self.assertEqual(r.status_code,200)
+        content=r.content.decode()
+        for heading in ("Uma entrega em cada VLAN","Visão geral · dois frames, um pacote","Laboratório · acompanhe a entrega","O que mudou no caminho?","inter-vlan-checkpoint"):
+            self.assertIn(heading,content)
+        positions=[content.index(x) for x in ("Uma entrega em cada VLAN","Visão geral · dois frames, um pacote","Laboratório · acompanhe a entrega","O que mudou no caminho?","id=\"inter-vlan-checkpoint\"")]
+        self.assertEqual(positions,sorted(positions))
+        self.assertContains(r,"data-iv-stage data-stage-id",count=1,html=False)
+        self.assertNotContains(r,"data-iv-area=")
+        self.assertNotContains(r,"data-iv-stage-link")
+    def test_static_overview_two_frames_and_precision(self):
         r=self.client.get(reverse("learning:inter_vlan_concept"))
-        for x in ("ROTEAR ENTRE VLANs NÃO REMOVE","O PACOTE CONTINUA. O FRAME MUDA","FRAME #1 · VLAN 10","FRAME #2 · VLAN 20","Router-on-a-Stick","trunk preserva os contextos","não realiza routing"):self.assertContains(r,x)
+        for x in ("192.168.10.20/24","192.168.10.1 / MAC R10","192.168.20.30/24","192.168.20.1 / MAC R20","192.168.20.0/24","AA → R10","R20 → BB","Os endereços IP de origem e destino permanecem neste cenário, sem NAT","TTL","Router-on-a-Stick"):
+            self.assertContains(r,x)
+        self.assertContains(r,'class="iv-overview" role="img"',html=False)
+        self.assertNotContains(r,"data-iv-area=")
         self.assertContains(r,"<details class=\"iv-implementation\">",html=False)
-    def test_shared_lab_actions_replace_declarative_quizzes_and_rapidfire(self):
+    def test_continuous_lab_actions_and_feedback(self):
         r=self.client.get(reverse("learning:inter_vlan_concept"))
-        for x in ("data-select-l3","data-arp-target","data-route-prefix","data-iv-inspector","data-frame-builder","data-iv-next","aria-live=\"polite\""):self.assertContains(r,x,html=False)
-        for removed in ("data-isolation-choice","data-source-choice","data-route-choice","data-iv-rapid","RAPID FIRE"):self.assertNotContains(r,removed)
-        stage=(settings.BASE_DIR/"static"/"js"/"inter-vlan-path-stage.js").read_text(encoding="utf-8");concept=(settings.BASE_DIR/"static"/"js"/"inter-vlan-concept.js").read_text(encoding="utf-8")
-        self.assertNotIn("setTimeout",stage+concept);self.assertIn('event.key === "Enter"',stage);self.assertIn("prefers-reduced-motion",concept)
-    def test_responsive_sticky_and_visible_focus(self):
+        for x in ("data-select-l3","data-arp-target","data-build=\"f1\"","data-iv-next","data-route-prefix","data-arp20-target","data-build=\"f2\"","data-iv-deliver","data-inspect=\"f1\"","data-inspect=\"ip\"","data-inspect=\"f2\"","data-cache-r10","data-cache-bb"):
+            self.assertContains(r,x,html=False)
+        stage=(settings.BASE_DIR/"static"/"js"/"inter-vlan-path-stage.js").read_text(encoding="utf-8")
+        for x in ("checkArp10", "checkFrame1", "checkRoute", "checkArp20", "checkFrame2", "inspect(button)", "this.phase = 0", "192.168.20.30", "R10 → BB", "AA → BB", "192.168.10.0/24 é a rede de origem"):
+            self.assertIn(x,stage)
+        self.assertNotIn("setMode",stage)
+        self.assertNotIn("setTimeout",stage)
+        self.assertContains(r,'data-iv-message aria-live="polite"',count=1,html=False)
+    def test_responsive_nonsticky_and_visible_focus(self):
         css=(settings.BASE_DIR/"static"/"css"/"inter-vlan-concept.css").read_text(encoding="utf-8")+(settings.BASE_DIR/"static"/"css"/"inter-vlan-path-stage.css").read_text(encoding="utf-8")
-        for x in ("position:sticky","position:static","max-width:360px",":focus-visible","prefers-reduced-motion"):self.assertIn(x,css)
+        for x in ("max-width:360px",":focus-visible","prefers-reduced-motion",".iv-stage [hidden]"):self.assertIn(x,css)
+        self.assertNotIn("position:sticky",css)
     def test_checkpoint_shape_and_misconceptions(self):
         self.assertEqual(len(IV_ACTIVITIES),10);self.assertEqual([x["difficulty_level"] for x in IV_ACTIVITIES],[3,3,4,4,4,4,5,5,5,5]);self.assertEqual(IV_ACTIVITY_MAP["5"]["correct_map"]["f2"],"r20 → bb")
         for x in ("assumes_trunk_performs_inter_vlan_routing","assumes_router_reuses_same_ethernet_frame","assumes_arp_broadcast_crosses_vlan","confuses_trunk_problem_with_routing_problem"):self.assertIn(x,IV_MISCONCEPTION_LABELS)
@@ -2283,56 +2516,67 @@ class IcmpConceptTests(TestCase):
     def start(self):
         return self.client.post(reverse("learning:icmp_checkpoint_start"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
 
-    def test_page_loads_with_exactly_five_areas(self):
+    def test_page_order_and_one_main_lab(self):
         response = self.client.get(reverse("learning:icmp_concept"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-icmp-area=", count=5, html=False)
-        self.assertContains(response, "O que realmente descobrimos quando testamos a comunicação?")
+        content = response.content.decode()
+        markers = ("O que a resposta permite concluir?", "Visão geral · um caminho, duas leituras", "Laboratório · siga o diagnóstico", "Interprete a observação", 'id="icmp-checkpoint"')
+        positions = [content.index(marker) for marker in markers]
+        self.assertEqual(positions, sorted(positions))
+        self.assertContains(response, 'data-diag-stage data-diag-initial="ping"', count=1, html=False)
+        self.assertNotContains(response, "data-icmp-area=")
+        self.assertNotContains(response, "data-diag-mode-link")
 
-    def test_ping_echo_rtt_loss_timeout_and_unreachable(self):
+    def test_concepts_static_path_and_glossary(self):
         response = self.client.get(reverse("learning:icmp_concept"))
-        for value in ("ICMP Echo Request", "Echo Reply", "RTT · 23 ms", "Loss = 25%", "Request timed out", "Destination host unreachable"):
+        for value in ("ICMP Echo Request", "Echo Reply", "Time Exceeded", "TTL 1 → R1", "TTL 4 → PC-B", "sonda nova", "tracert", "192.168.50.30"):
             self.assertContains(response, value)
-        self.assertContains(response, "PERDA É UMA MEDIÇÃO. NÃO É UMA CAUSA")
-        self.assertContains(response, "AUSÊNCIA DE RESPOSTA NÃO É UMA CAUSA")
+        for term in ("rtt", "probe", "ttl", "hop", "timeout"):
+            self.assertContains(response, f'id="icmp-tip-{term}" role="tooltip"', html=False)
+        self.assertContains(response, "uma sonda nova")
+        self.assertContains(response, "não segue ao próximo salto")
 
-    def test_diagnostic_stage_ttl_and_time_exceeded(self):
+    def test_continuous_ping_trace_and_evidence(self):
         response = self.client.get(reverse("learning:icmp_concept"))
-        self.assertContains(response, "data-diag-stage", count=1, html=False)
-        self.assertContains(response, "ICMP Time Exceeded")
-        self.assertContains(response, "TTL LIMITA ATÉ ONDE O PACOTE PODE IR")
+        for fragment in ("data-ping-next", "data-start-trace", "data-trace-scenario", "data-ttl-control", "data-diag-run", "data-diag-sent", "data-diag-arrived", "data-diag-returned", "data-diag-unknown", "data-diag-timeline", "data-icmp-inspector"):
+            self.assertContains(response, fragment)
         source = (settings.BASE_DIR / "static" / "js" / "diagnostic-path-stage.js").read_text(encoding="utf-8")
-        for fragment in ("runPing", "runTrace", "showMissingHop", "Time Exceeded", "this.phase = Math.min(5", "ttl - hop"):
+        for fragment in ("runPing", "startTrace", "runTrace", "this.probes.set(ttl", "this.scenario === \"silent\"", "Time Exceeded", "ttl < 4", "essa sonda não segue adiante"):
             self.assertIn(fragment, source)
+        self.assertNotIn("setMode", source)
+        self.assertNotIn("setTimeout", source)
 
-    def test_shared_modes_are_manual_and_remove_declarative_quizzes(self):
+    def test_compact_interpretation_and_terminal_consistency(self):
         response = self.client.get(reverse("learning:icmp_concept"))
-        for fragment in ('data-diag-mode-link="ping"', 'data-diag-mode-link="messages"', 'data-diag-mode-link="evidence"', 'data-diag-mode-link="trace"', "data-ping-next", "data-ttl-control", "data-diag-run", "data-icmp-inspector", "data-evidence-board"):
+        for fragment in ("Request timed out.", "Destination host unreachable", "Perda: 1 de 4 (25%)", "Hop 2: *", "exemplo de interpretação separado", "data-prediction=\"reply\"", "data-prediction=\"service\"", "ping 192.168.50.30", "tracert 192.168.50.30"):
             self.assertContains(response, fragment, html=False)
-        for removed in ("data-reply-choice", "data-safe-choice", "data-ttl-choice", "data-icmp-rapid", "data-rapid-question", "RAPID FIRE"):
-            self.assertNotContains(response, removed)
-        stage = (settings.BASE_DIR / "static" / "js" / "diagnostic-path-stage.js").read_text(encoding="utf-8")
+        self.assertContains(response, "data-prediction-question", count=2, html=False)
         concept = (settings.BASE_DIR / "static" / "js" / "icmp-concept.js").read_text(encoding="utf-8")
-        self.assertNotIn("setTimeout", stage + concept)
-        self.assertIn('this.mode !== "trace"', stage)
-        self.assertIn('this.mode !== "ping"', stage)
-        self.assertIn("prefers-reduced-motion", concept)
+        self.assertIn("Received = 4, Lost = 0", concept)
+        self.assertIn("hop 2 silencioso", concept)
+        self.assertIn("commands[normalized]", concept)
+        self.assertIn("Comando não disponível neste cenário", concept)
+        self.assertNotContains(response, "<textarea", html=False)
 
-    def test_terminal_rejects_unsupported_commands_and_layout_is_accessible(self):
-        source = (settings.BASE_DIR / "static" / "js" / "icmp-concept.js").read_text(encoding="utf-8")
-        self.assertIn("Comando não disponível neste cenário", source)
-        self.assertIn("commands[normalized]", source)
-        self.assertNotIn('c.startsWith("tracert")', source)
+    def test_layout_accessibility_and_dynamic_checkpoint_stage(self):
         css = (settings.BASE_DIR / "static" / "css" / "icmp-concept.css").read_text(encoding="utf-8") + (settings.BASE_DIR / "static" / "css" / "diagnostic-path-stage.css").read_text(encoding="utf-8")
-        for fragment in ("position:sticky", "position:static", "max-width:360px", ":focus-visible", "prefers-reduced-motion", "[hidden]"):
+        for fragment in ("max-width:360px", ":focus-visible", "prefers-reduced-motion", "[hidden]"):
             self.assertIn(fragment, css)
-
-    def test_missing_hop_later_hops_and_packet_inspector(self):
+        self.assertNotIn("position:sticky", css)
+        source = (settings.BASE_DIR / "static" / "js" / "icmp-concept.js").read_text(encoding="utf-8")
+        self.assertIn("window.NetStudyDiagnosticPath?.init(cp)", source)
+        session = self.client.session
+        session["icmp_checkpoint"] = {"current": 6, "answers": {}, "complete": False}
+        session.save()
         response = self.client.get(reverse("learning:icmp_concept"))
-        self.assertContains(response, "2 *")
-        self.assertContains(response, "R3 e o destino responderam")
-        self.assertContains(response, "PACKET INSPECTOR")
+        self.assertContains(response, 'data-diag-initial="trace"', count=1, html=False)
+        self.assertContains(response, "Abrir Diagnostic Path Stage")
+
+    def test_main_stage_is_manual_and_has_one_live_feedback(self):
+        response = self.client.get(reverse("learning:icmp_concept"))
+        self.assertContains(response, 'data-diag-result aria-live="polite"', count=1, html=False)
         self.assertContains(response, "caminho de volta não precisa ser idêntico")
+        self.assertContains(response, "Hop 2 silencioso")
 
     def test_terminal_and_navigation(self):
         response = self.client.get(reverse("learning:icmp_concept"))

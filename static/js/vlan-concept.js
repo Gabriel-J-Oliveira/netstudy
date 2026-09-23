@@ -6,116 +6,108 @@
   const visual = one("[data-vlan-visualization]");
   if (!visual) return;
 
-  const state = { mode: "single", pcEVlan: 20, accessApplied: false, broadcastRun: false };
-  const modeCopy = {
-    single: "Todos os hosts A–D pertencem ao mesmo contexto lógico.",
-    split: "A e B pertencem à VLAN 10; C e D pertencem à VLAN 20. A infraestrutura física continua compartilhada.",
-  };
-
-  function resetBroadcast() {
-    state.broadcastRun = false;
-    all("[data-host]").forEach((host) => {
-      host.classList.remove("is-broadcast-recipient", "is-outside-context");
-      const result = one("[data-host-result]", host);
-      if (result) result.textContent = host.dataset.host === "A" ? "Origem" : "—";
-    });
-    one("[data-broadcast-title]").textContent = "Pronto para comparar";
-    one("[data-broadcast-copy]").textContent = "Escolha um estado e execute o broadcast para ver quem recebe.";
-    one("[data-broadcast-recipients]").replaceChildren();
-  }
-
-  function selectMode(mode) {
-    state.mode = mode;
-    visual.querySelector(".physical-infrastructure").dataset.vlanState = mode;
-    all("[data-vlan-mode]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.vlanMode === mode)));
-    all("[data-context]").forEach((context) => { context.hidden = mode === "single" ? context.dataset.context !== "single" : context.dataset.context === "single"; });
-    one("[data-vlan-mode-explanation]").textContent = modeCopy[mode];
-    resetBroadcast();
-    renderPcE();
-  }
-
-  function renderPcE() {
-    const accessVisual = one(".access-visual");
-    accessVisual.dataset.pcEVlan = String(state.pcEVlan);
-    one("[data-host-vlan]").textContent = `VLAN ${state.pcEVlan}`;
-    const test = one("[data-test-pc-e]");
-    test.disabled = !state.accessApplied;
-    if (state.broadcastRun && state.accessApplied) renderPcEResult();
-  }
-
-  function renderPcEResult() {
-    const receives = state.mode === "single" || state.pcEVlan === 10;
-    const host = one('.access-host[data-host="E"]');
-    const result = one("[data-host-result]", host);
-    host.classList.toggle("is-broadcast-recipient", receives);
-    host.classList.toggle("is-outside-context", !receives);
-    result.textContent = receives ? "Recebe" : "Não recebe";
-    return receives;
-  }
-
-  function broadcast(includePcE = false) {
-    resetBroadcast();
-    state.broadcastRun = true;
-    const mainRecipients = state.mode === "single" ? ["B", "C", "D"] : ["B"];
-    const labelByHost = {B:"PC-B", C:"PC-C", D:"PC-D"};
-    const list = one("[data-broadcast-recipients]");
-    mainRecipients.forEach((hostId) => {
-      const host = one(`[data-context]:not([hidden]) [data-host="${hostId}"]`, visual) || one(`[data-host="${hostId}"]`, visual);
-      host?.classList.add("is-broadcast-recipient");
-      const result = one("[data-host-result]", host);
-      if (result) result.textContent = "Recebe";
-      const item = document.createElement("span");
-      item.className = "recipient-yes";
-      item.textContent = `${labelByHost[hostId]} recebe`;
-      list.appendChild(item);
-    });
-    const excluded = state.mode === "single" ? [] : ["C", "D"];
-    excluded.forEach((hostId) => {
-      const host = one(`[data-context="vlan20"] [data-host="${hostId}"]`, visual);
-      host?.classList.add("is-outside-context");
-      const result = one("[data-host-result]", host);
-      if (result) result.textContent = "Fora da VLAN 10";
-      const item = document.createElement("span");
-      item.className = "recipient-no";
-      item.textContent = `PC-${hostId} não recebe: VLAN 20`;
-      list.appendChild(item);
-    });
-
-    let pcEReceives = null;
-    if (state.accessApplied) {
-      pcEReceives = renderPcEResult();
-      if (includePcE || state.accessApplied) {
-        const item = document.createElement("span");
-        item.className = pcEReceives ? "recipient-yes" : "recipient-no";
-        item.textContent = pcEReceives ? "PC-E recebe: participa do mesmo contexto do broadcast" : `PC-E não recebe: está na VLAN ${state.pcEVlan}, fora do contexto da origem`;
-        list.appendChild(item);
-      }
-    }
-
-    one("[data-broadcast-title]").textContent = state.mode === "single" ? "Broadcast no mesmo contexto" : "Broadcast limitado à VLAN 10";
-    let copy = state.mode === "single"
-      ? "Sem separação lógica, B, C e D recebem o broadcast de A no mesmo domínio."
-      : "A entrou pela VLAN 10. B recebe; C e D ficam na VLAN 20 e não recebem. O flooding também permanece na VLAN de entrada.";
-    if (pcEReceives !== null) copy += pcEReceives
-      ? ` PC-E também recebe porque está associado à VLAN ${state.mode === "single" ? "única" : "10"}.`
-      : ` PC-E não recebe porque sua porta Access pertence à VLAN ${state.pcEVlan}.`;
-    one("[data-broadcast-copy]").textContent = copy;
-    visual.classList.remove("is-broadcasting");
-    void visual.offsetWidth;
-    visual.classList.add("is-broadcasting");
-    visual.dataset.lastBroadcast = includePcE ? "access" : "comparison";
-  }
+  const state = { pcEVlan: 20, accessApplied: false };
 
   function applyAccess() {
     state.pcEVlan = Number(one("[data-pc-e-select]").value);
     state.accessApplied = true;
+    one(".access-visual").dataset.pcEVlan = String(state.pcEVlan);
+    one("[data-host-vlan]").textContent = `VLAN ${state.pcEVlan}`;
     one("[data-cli-pc-e-vlan10]").hidden = state.pcEVlan !== 10;
     one("[data-cli-pc-e-vlan20]").hidden = state.pcEVlan !== 20;
-    resetBroadcast();
-    renderPcE();
-    one("[data-access-feedback]").textContent = `PC-E agora está associado à VLAN ${state.pcEVlan}. O cabo e a infraestrutura física não mudaram. Execute o broadcast de A para verificar se ele recebe.`;
+    const host = one('.access-host[data-host="E"]');
+    host.classList.remove("is-broadcast-recipient", "is-outside-context");
+    one("[data-host-result]", host).textContent = "—";
+    one("[data-test-pc-e]").disabled = false;
+    one("[data-access-feedback]").textContent = `PC-E agora está associado à VLAN ${state.pcEVlan}. O cabo e a infraestrutura física não mudaram. Teste o broadcast de PC-A.`;
   }
 
+  function testPcE() {
+    if (!state.accessApplied) return;
+    const receives = state.pcEVlan === 10;
+    const host = one('.access-host[data-host="E"]');
+    host.classList.toggle("is-broadcast-recipient", receives);
+    host.classList.toggle("is-outside-context", !receives);
+    one("[data-host-result]", host).textContent = receives ? "Recebe" : "Não recebe";
+    one("[data-access-feedback]").textContent = receives
+      ? "PC-E recebe o broadcast de PC-A porque sua porta Access está na VLAN 10."
+      : "PC-E não recebe o broadcast de PC-A porque sua porta Access está na VLAN 20.";
+  }
+
+  const glossaryTriggers = all("[data-vlan-glossary]");
+  let openGlossaryTrigger = null;
+
+  function closeGlossary(trigger) {
+    if (!trigger) return;
+    const popover = document.getElementById(trigger.getAttribute("aria-controls"));
+    trigger.setAttribute("aria-expanded", "false");
+    if (popover) popover.hidden = true;
+    if (openGlossaryTrigger === trigger) openGlossaryTrigger = null;
+  }
+
+  function positionGlossary(trigger, popover) {
+    const rect = trigger.getBoundingClientRect();
+    const padding = 8;
+    const width = Math.min(352, window.innerWidth - 2 * padding);
+    popover.style.width = `${width}px`;
+    popover.style.left = `${padding}px`;
+    popover.style.top = `${padding}px`;
+    const bounds = popover.getBoundingClientRect();
+    const left = Math.max(padding, Math.min(rect.left, window.innerWidth - bounds.width - padding));
+    const above = rect.top - bounds.height - padding;
+    const top = above >= padding ? above : Math.min(rect.bottom + padding, window.innerHeight - bounds.height - padding);
+    popover.style.left = `${left}px`;
+    popover.style.top = `${Math.max(padding, top)}px`;
+  }
+
+  function openGlossary(trigger) {
+    if (openGlossaryTrigger && openGlossaryTrigger !== trigger) closeGlossary(openGlossaryTrigger);
+    const popover = document.getElementById(trigger.getAttribute("aria-controls"));
+    if (!popover) return;
+    trigger.setAttribute("aria-expanded", "true");
+    popover.hidden = false;
+    openGlossaryTrigger = trigger;
+    positionGlossary(trigger, popover);
+  }
+
+  glossaryTriggers.forEach((trigger) => {
+    trigger.addEventListener("pointerenter", (event) => {
+      if (event.pointerType === "mouse") openGlossary(trigger);
+    });
+    trigger.addEventListener("pointerleave", (event) => {
+      if (event.pointerType === "mouse" && !trigger.matches(":focus")) closeGlossary(trigger);
+    });
+    trigger.addEventListener("focus", () => {
+      if (!trigger.dataset.vlanTouch) openGlossary(trigger);
+    });
+    trigger.addEventListener("blur", () => closeGlossary(trigger));
+    trigger.addEventListener("pointerdown", (event) => {
+      if (event.pointerType !== "touch") return;
+      trigger.dataset.vlanTouch = "true";
+      if (openGlossaryTrigger === trigger) closeGlossary(trigger);
+      else openGlossary(trigger);
+    });
+    trigger.addEventListener("click", () => {
+      if (trigger.dataset.vlanTouch) {
+        delete trigger.dataset.vlanTouch;
+        return;
+      }
+      openGlossary(trigger);
+    });
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (openGlossaryTrigger && !event.target.closest("[data-vlan-glossary], .vlan-glossary-popover")) closeGlossary(openGlossaryTrigger);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && openGlossaryTrigger) {
+      closeGlossary(openGlossaryTrigger);
+      openGlossaryTrigger = null;
+      event.stopPropagation();
+    }
+  });
+  window.addEventListener("resize", () => {
+    if (openGlossaryTrigger) positionGlossary(openGlossaryTrigger, document.getElementById(openGlossaryTrigger.getAttribute("aria-controls")));
+  });
   function setupSelfExplanation() {
     const section = one("[data-vlan-self-explanation]");
     section?.querySelector("[data-vlan-reference-button]")?.addEventListener("click", (event) => {
@@ -160,10 +152,8 @@
     });
   }
 
-  all("[data-vlan-mode]").forEach((button) => button.addEventListener("click", () => selectMode(button.dataset.vlanMode)));
-  one("[data-broadcast-run]").addEventListener("click", () => broadcast(false));
   one("[data-apply-access]").addEventListener("click", applyAccess);
-  one("[data-test-pc-e]").addEventListener("click", () => broadcast(true));
+  one("[data-test-pc-e]").addEventListener("click", testPcE);
   one("[data-pc-e-select]").addEventListener("change", () => {
     if (state.accessApplied) one("[data-access-feedback]").textContent = "A seleção mudou; aplique a associação para atualizar PC-E.";
   });

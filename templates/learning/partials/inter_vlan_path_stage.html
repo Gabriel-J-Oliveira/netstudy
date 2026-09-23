@@ -1,20 +1,25 @@
-<section class="iv-stage" data-iv-stage data-stage-id="{{ stage_id|default:'iv-main' }}" aria-label="Percurso de PC-A na VLAN 10 até PC-B na VLAN 20">
-  <header><div><span>INTER-VLAN PATH STAGE</span><strong>PC-A → função L3 → PC-B</strong></div><button type="button" data-iv-reset>↻ Reiniciar área</button></header>
-  <div class="iv-topology">
-    <button type="button" data-iv-node="a"><b>PC-A</b><small>VLAN 10</small><code>192.168.10.20/24 · AA</code></button>
-    <span class="iv-link">VLAN 10</span>
-    <button type="button" data-iv-node="l3"><b>FUNÇÃO L3</b><small>R10 · 192.168.10.1</small><small>R20 · 192.168.20.1</small></button>
-    <span class="iv-link v20">VLAN 20</span>
-    <button type="button" data-iv-node="b"><b>PC-B</b><small>VLAN 20</small><code>192.168.20.30/24 · BB</code></button>
+<section class="iv-stage" data-iv-stage data-stage-id="{{ stage_id|default:'iv-main' }}" aria-label="Laboratório de PC-A na VLAN 10 até PC-B na VLAN 20">
+  <header><div><span>PERCURSO INTER-VLAN</span><strong>PC-A → função L3 → PC-B</strong></div><button type="button" data-iv-reset>↻ Reiniciar</button></header>
+  <div class="iv-topology" aria-label="Topologia do laboratório">
+    <div data-iv-node="a"><b>PC-A</b><small>VLAN 10 · MAC AA</small><code>192.168.10.20/24</code></div>
+    <div class="iv-link iv-v10">VLAN 10 <span>→</span></div>
+    <div data-iv-node="l3"><b>R1 · função L3</b><small>192.168.10.1 / R10</small><small>192.168.20.1 / R20</small><strong data-l3-status>Desabilitada</strong></div>
+    <div class="iv-link iv-v20">VLAN 20 <span>→</span></div>
+    <div data-iv-node="b"><b>PC-B</b><small>VLAN 20 · MAC BB</small><code>192.168.20.30/24</code></div>
   </div>
-  <div class="iv-layers">
-    <article data-iv-frame hidden><span>FRAME ETHERNET ATUAL</span><dl><dt>Source MAC</dt><dd data-frame-source>AA</dd><dt>Destination MAC</dt><dd data-frame-destination>?</dd></dl></article>
-    <article class="iv-packet"><span>PACOTE IPv4 · PERMANECE</span><dl><dt>Source</dt><dd>192.168.10.20</dd><dt>Destination</dt><dd>192.168.20.30</dd></dl></article>
+  <div class="iv-evidence"><div><b>Cache ARP · PC-A</b><span>192.168.10.1 → <strong data-cache-r10>desconhecido</strong></span></div><div><b>Cache ARP · R1 / VLAN 20</b><span>192.168.20.30 → <strong data-cache-bb>desconhecido</strong></span></div></div>
+  <div class="iv-layers"><article data-iv-frame><b>Frame Ethernet atual</b><span data-frame-location>Nenhum frame em trânsito</span><dl><dt>Source MAC</dt><dd data-frame-source>—</dd><dt>Destination MAC</dt><dd data-frame-destination>—</dd></dl></article><article class="iv-packet"><b>Pacote IPv4</b><dl><dt>Source IP</dt><dd>192.168.10.20</dd><dt>Destination IP</dt><dd>192.168.20.30</dd></dl></article></div>
+  <div class="iv-action"><span data-iv-phase>Etapa 1</span><h3 data-iv-task>Habilite a função L3</h3>
+    <div data-iv-control="enable"><p>Sem função L3, o frame da VLAN 10 não atravessa para a VLAN 20.</p><button type="button" data-select-l3>Habilitar função L3</button></div>
+    <form data-iv-control="arp10" hidden><label for="iv-arp10">PC-B é remoto. Qual IPv4 PC-A deve resolver por ARP na VLAN 10?</label><div class="iv-input-row"><input id="iv-arp10" data-arp-target inputmode="decimal" autocomplete="off" placeholder="192.168..."><button type="submit">Resolver ARP</button></div></form>
+    <form data-iv-control="frame1" hidden><label for="iv-frame1">Monte o primeiro frame. O Destination IP continua sendo 192.168.20.30.</label><div class="iv-input-row"><select id="iv-frame1" data-build="f1"><option value="">Selecione os MACs</option><option value="AA → R10">AA → R10</option><option value="AA → BB">AA → BB</option><option value="R10 → BB">R10 → BB</option></select><button type="submit">Criar Frame 1</button></div></form>
+    <div data-iv-control="receive" hidden><p>O Frame 1 chegou a R1. Avance para encerrar essa entrega e consultar o pacote.</p><button type="button" data-iv-next>R1 recebe o Frame 1</button></div>
+    <div data-iv-control="route" hidden><p>R1 consulta o Destination IP <code>192.168.20.30</code>. Selecione a rota diretamente conectada adequada.</p><div class="iv-route-table" role="group" aria-label="Rotas de R1"><button type="button" data-route-prefix="192.168.10.0/24">192.168.10.0/24 <span>VLAN 10 · origem</span></button><button type="button" data-route-prefix="192.168.20.0/24">192.168.20.0/24 <span>VLAN 20 · destino</span></button></div></div>
+    <form data-iv-control="arp20" hidden><label for="iv-arp20">Na VLAN 20, qual IPv4 R1 resolve por ARP para entregar localmente?</label><div class="iv-input-row"><input id="iv-arp20" data-arp20-target inputmode="decimal" autocomplete="off" placeholder="192.168..."><button type="submit">Resolver ARP</button></div></form>
+    <form data-iv-control="frame2" hidden><label for="iv-frame2">Monte o novo frame na VLAN 20.</label><div class="iv-input-row"><select id="iv-frame2" data-build="f2"><option value="">Selecione os MACs</option><option value="R20 → BB">R20 → BB</option><option value="R10 → BB">R10 → BB</option><option value="AA → BB">AA → BB</option></select><button type="submit">Criar Frame 2</button></div></form>
+    <div data-iv-control="deliver" hidden><p>O Frame 2 está pronto na VLAN 20.</p><button type="button" data-iv-deliver>Entregar a PC-B</button></div>
+    <div data-iv-control="done" hidden><p>Entrega concluída. Reinicie para refazer as decisões.</p></div>
+    <p class="iv-message" data-iv-message aria-live="polite">Sem encaminhamento L3, PC-A não alcança PC-B em outra VLAN.</p>
   </div>
-  <div class="iv-state"><span data-iv-phase>ÁREA 01</span><p data-iv-message aria-live="polite">VLAN 10 e VLAN 20 são domínios Ethernet separados.</p><div data-iv-extra></div></div>
-  <div class="iv-stage-controls" data-iv-control="isolation"><p>Acione a função que permite a travessia entre VLANs.</p><button type="button" data-select-l3>USAR FUNÇÃO DE CAMADA 3</button></div>
-  <div class="iv-stage-controls" data-iv-control="host" hidden><label>IPv4 que PC-A deve resolver com ARP <input type="text" inputmode="decimal" autocomplete="off" data-arp-target aria-describedby="iv-arp-feedback"></label><button type="button" data-check-arp>VERIFICAR ALVO ARP</button><p id="iv-arp-feedback" data-arp-feedback aria-live="polite"></p></div>
-  <div class="iv-stage-controls" data-iv-control="router" hidden><button type="button" data-router-next>INICIAR PRIMEIRO FRAME</button><div class="iv-route-table" role="group" aria-label="Tabela de rotas"><button type="button" data-route-prefix="192.168.10.0/24"><code>192.168.10.0/24</code><span>Direct VLAN 10</span></button><button type="button" data-route-prefix="192.168.20.0/24"><code>192.168.20.0/24</code><span>Direct VLAN 20</span></button></div><p data-route-feedback aria-live="polite"></p></div>
-  <div class="iv-stage-controls" data-iv-control="frames" hidden><section class="iv-inspector" data-iv-inspector><b>PACKET INSPECTOR</b><div><button type="button" data-inspect="f1">FRAME 1</button><button type="button" data-inspect="ip">PACOTE IP</button><button type="button" data-inspect="f2">FRAME 2</button></div><p aria-live="polite">Selecione um momento para inspecionar.</p></section><div class="frame-builder" data-frame-builder><label>Frame 1 <select data-build="f1"><option value="">Selecione</option><option>AA → R10</option><option>AA → BB</option></select></label><label>Frame 2 <select data-build="f2"><option value="">Selecione</option><option>R20 → BB</option><option>R10 → BB</option></select></label><button type="button" data-build-check>VERIFICAR FRAMES</button><p aria-live="polite"></p></div></div>
-  <div class="iv-stage-controls" data-iv-control="journey" hidden><button type="button" class="iv-next" data-iv-next>INICIAR PERCURSO</button></div>
+  <section class="iv-inspector" aria-label="Packet Inspector"><b>Packet Inspector</b><div class="iv-inspector-actions"><button type="button" data-inspect="f1" disabled>Frame 1</button><button type="button" data-inspect="ip">Pacote IP</button><button type="button" data-inspect="f2" disabled>Frame 2</button></div><p data-inspector-detail>Selecione o pacote IP; os frames ficam disponíveis quando forem criados.</p></section>
 </section>

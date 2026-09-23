@@ -1,6 +1,6 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}VLAN · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}?v=vlan-visual-1"><link rel="stylesheet" href="{% static 'css/switch-concept.css' %}?v=vlan-visual-1"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}"><link rel="stylesheet" href="{% static 'css/vlan-concept.css' %}?v=vlan-visual-1"><link rel="stylesheet" href="{% static 'css/vlan-board.css' %}?v=vlan-visual-1">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}?v=vlan-visual-1"><link rel="stylesheet" href="{% static 'css/switch-concept.css' %}?v=vlan-visual-1"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}"><link rel="stylesheet" href="{% static 'css/vlan-concept.css' %}?v=vlan-concept-2"><link rel="stylesheet" href="{% static 'css/vlan-board.css' %}?v=vlan-visual-1">{% endblock %}
 {% block content %}
 <div class="vlan-concept vlan-visual-page">
   <header class="vlan-page-heading">
@@ -10,47 +10,29 @@
   </header>
 
   <main>
-    <section class="vlan-visual-section" aria-labelledby="vlan-visual-title" data-vlan-visualization>
-      <div class="visual-heading"><div><span>VISUALIZAÇÃO</span><h2 id="vlan-visual-title">Uma infraestrutura física, contextos diferentes</h2></div><p data-vlan-mode-explanation aria-live="polite">Todos os hosts A–D pertencem ao mesmo contexto lógico.</p></div>
-      <div class="vlan-mode-controls" role="group" aria-label="Comparar organização lógica">
-        <button type="button" data-vlan-mode="single" aria-pressed="true">Uma LAN</button>
-        <button type="button" data-vlan-mode="split" aria-pressed="false">Duas VLANs</button>
-        <button type="button" class="btn btn-primary" data-broadcast-run>Executar broadcast de A</button>
-      </div>
-
-      <div class="physical-infrastructure" data-vlan-state="single" aria-label="Topologia visual da infraestrutura Ethernet">
-        <div class="physical-label"><span aria-hidden="true">━━━</span> MESMA INFRAESTRUTURA FÍSICA</div>
-        <div class="shared-backbone" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-        <div class="logical-contexts">
-          <section class="logical-context context-single" data-context="single" aria-label="LAN única">
-            <div class="context-label"><strong>Uma LAN</strong><span>um contexto de Camada 2</span></div>
-            <div class="host-row">
-              <div class="vlan-host is-source" data-host="A"><strong>PC-A</strong><span>origem</span><b data-host-result>Origem</b></div>
-              <div class="vlan-host" data-host="B"><strong>PC-B</strong><span>host</span><b data-host-result>—</b></div>
-              <div class="vlan-host" data-host="C"><strong>PC-C</strong><span>host</span><b data-host-result>—</b></div>
-              <div class="vlan-host" data-host="D"><strong>PC-D</strong><span>host</span><b data-host-result>—</b></div>
-            </div>
-          </section>
-          <section class="logical-context context-vlan10" data-context="vlan10" aria-label="VLAN 10" hidden>
-            <div class="context-label"><strong>VLAN 10</strong><span>contexto lógico azul</span></div>
-            <div class="host-row"><div class="vlan-host is-source" data-host="A"><strong>PC-A</strong><span>origem</span><b data-host-result>Origem</b></div><div class="vlan-host" data-host="B"><strong>PC-B</strong><span>host</span><b data-host-result>—</b></div></div>
-          </section>
-          <section class="logical-context context-vlan20" data-context="vlan20" aria-label="VLAN 20" hidden>
-            <div class="context-label"><strong>VLAN 20</strong><span>contexto lógico roxo</span></div>
-            <div class="host-row"><div class="vlan-host" data-host="C"><strong>PC-C</strong><span>host</span><b data-host-result>—</b></div><div class="vlan-host" data-host="D"><strong>PC-D</strong><span>host</span><b data-host-result>—</b></div></div>
-          </section>
-        </div>
-        <div class="physical-caption"><strong>Os cabos e a infraestrutura continuam os mesmos.</strong><span>A VLAN altera a participação lógica dos hosts.</span></div>
-      </div>
-      <div class="vlan-legend" aria-label="Legenda de VLANs"><span><i class="legend-vlan10"></i>VLAN 10</span><span><i class="legend-vlan20"></i>VLAN 20</span><span><i class="legend-physical"></i>Infraestrutura física compartilhada</span></div>
-      <div class="broadcast-result" aria-live="polite" data-broadcast-result><strong data-broadcast-title>Pronto para comparar</strong><p data-broadcast-copy>Escolha um estado e execute o broadcast para ver quem recebe.</p><div class="broadcast-recipients" data-broadcast-recipients></div></div>
-      <p class="vlan-core-explanation">Uma VLAN cria um contexto separado de Camada 2 dentro da mesma infraestrutura física. Broadcast e unknown-unicast flooding permanecem no contexto VLAN da porta de entrada.</p>
+    <section class="vlan-concept-copy" aria-labelledby="vlan-concept-title">
+      <span>CONCEITO</span>
+      <h2 id="vlan-concept-title">O que é uma VLAN?</h2>
+      <p>Uma <strong>VLAN</strong> (rede local virtual) é uma <span class="vlan-glossary-anchor"><button type="button" class="vlan-glossary-term" data-vlan-glossary aria-expanded="false" aria-controls="vlan-tip-segmentation" aria-describedby="vlan-tip-segmentation">segmentação lógica</button><span class="vlan-glossary-popover" id="vlan-tip-segmentation" role="tooltip" hidden>Divisão de uma mesma infraestrutura física em contextos separados por configuração. Aqui, o switch mantém as VLANs 10 e 20 distintas.</span></span> da rede Ethernet. Ela permite formar grupos separados no mesmo equipamento físico.</p>
+      <p>Cada VLAN delimita um <span class="vlan-glossary-anchor"><button type="button" class="vlan-glossary-term" data-vlan-glossary aria-expanded="false" aria-controls="vlan-tip-domain" aria-describedby="vlan-tip-domain">domínio de broadcast</button><span class="vlan-glossary-popover" id="vlan-tip-domain" role="tooltip" hidden>Conjunto de dispositivos que recebe um broadcast enviado dentro do mesmo contexto de Camada 2. O broadcast da VLAN 10 não chega à VLAN 20.</span></span>. Neste cenário, uma <span class="vlan-glossary-anchor"><button type="button" class="vlan-glossary-term" data-vlan-glossary aria-expanded="false" aria-controls="vlan-tip-access" aria-describedby="vlan-tip-access">porta Access</button><span class="vlan-glossary-popover" id="vlan-tip-access" role="tooltip" hidden>Porta do switch associada a uma VLAN para o tráfego do host neste cenário. PC-A e PC-B usam portas da VLAN 10; PC-C e PC-D, da VLAN 20.</span></span> associa cada host à VLAN 10 ou 20.</p>
     </section>
-
+    <section class="vlan-visual-section" aria-labelledby="vlan-visual-title" data-vlan-visualization>
+      <div class="visual-heading"><div><span>VISUALIZAÇÃO</span><h2 id="vlan-visual-title">Um switch, dois domínios separados</h2></div></div>
+      <figure class="vlan-static-figure" aria-labelledby="vlan-diagram-title" aria-describedby="vlan-diagram-caption">
+        <figcaption id="vlan-diagram-title" class="vlan-diagram-title">Broadcast de PC-A na VLAN 10</figcaption>
+        <div class="vlan-static-diagram" role="img" aria-label="Um único switch físico conecta quatro hosts por portas Access. PC-A envia broadcast na VLAN 10, que chega a PC-B. PC-C e PC-D pertencem à VLAN 20 e não recebem. As VLANs mantêm domínios de broadcast separados.">
+          <div class="vlan-static-group vlan-static-ten"><strong>VLAN 10</strong><div class="vlan-static-host"><b>PC-A</b><small>origem · Access</small></div><span class="vlan-static-signal">Broadcast: PC-A → SW1 → PC-B</span><div class="vlan-static-host"><b>PC-B</b><small>recebe · Access</small></div></div>
+          <div class="vlan-static-switch"><strong>SW1</strong><span>um único switch físico</span><b>VLAN 10 → PC-B</b><small>broadcast restrito à VLAN de entrada</small></div>
+          <div class="vlan-static-group vlan-static-twenty"><strong>VLAN 20</strong><div class="vlan-static-host"><b>PC-C</b><small>não recebe · Access</small></div><span class="vlan-static-block">× Broadcast da VLAN 10 não atravessa</span><div class="vlan-static-host"><b>PC-D</b><small>não recebe · Access</small></div></div>
+        </div>
+        <p id="vlan-diagram-caption">As duas VLANs compartilham o switch físico, mas mantêm domínios de broadcast separados. Para comunicar entre VLANs, é necessário roteamento de Camada 3.</p>
+      </figure>
+      <p class="vlan-core-explanation">Broadcast e unknown-unicast flooding permanecem no contexto VLAN da porta de entrada. VLAN e sub-rede IP são conceitos distintos.</p>
+    </section>
     <section class="access-demo" aria-labelledby="access-title" data-access-demo>
       <div><span>INTERAÇÃO · PORTA ACCESS</span><h2 id="access-title">Mude a associação lógica de PC-E</h2><p>PC-E permanece no mesmo cabo. A associação Access determina em qual VLAN ele participa.</p></div>
       <div class="access-visual" data-pc-e-vlan="20"><div class="access-cable" aria-hidden="true"></div><div class="vlan-host access-host" data-host="E"><strong>PC-E</strong><span>mesmo cabo · Access</span><b data-host-vlan>VLAN 20</b><em data-host-result>—</em></div><div class="access-infra-label">INFRAESTRUTURA FÍSICA INALTERADA</div></div>
-      <div class="access-controls"><label for="pc-e-vlan">Associação Access de PC-E</label><div><select id="pc-e-vlan" data-pc-e-select><option value="20" selected>VLAN 20</option><option value="10">VLAN 10</option></select><button type="button" class="btn btn-outline-primary" data-apply-access>Aplicar associação</button></div><button type="button" class="btn btn-primary" data-test-pc-e disabled>Executar novamente o broadcast de A</button><p data-access-feedback aria-live="polite">Aplique uma VLAN para atualizar a associação de PC-E.</p></div>
+      <div class="access-controls"><label for="pc-e-vlan">Associação Access de PC-E</label><div><select id="pc-e-vlan" data-pc-e-select><option value="20" selected>VLAN 20</option><option value="10">VLAN 10</option></select><button type="button" class="btn btn-outline-primary" data-apply-access>Aplicar associação</button></div><button type="button" class="btn btn-primary" data-test-pc-e disabled>Testar broadcast de PC-A</button><p data-access-feedback aria-live="polite">Aplique uma VLAN para atualizar a associação de PC-E.</p></div>
     </section>
 
     <section class="vlan-clarifications" aria-label="O que a visualização demonstra">
@@ -81,4 +63,4 @@
   {% include "learning/partials/vlan_checkpoint.html" %}
 </div>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}?v=vlan-visual-1"></script><script src="{% static 'js/switch-workbench.js' %}"></script><script src="{% static 'js/vlan-concept.js' %}?v=vlan-visual-1"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}?v=vlan-visual-1"></script><script src="{% static 'js/switch-workbench.js' %}"></script><script src="{% static 'js/vlan-concept.js' %}?v=vlan-static-1"></script>{% endblock %}

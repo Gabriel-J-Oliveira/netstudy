@@ -1,6 +1,6 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Frame Ethernet · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-concept.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-concept.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/context-glossary.css' %}">{% endblock %}
 {% block content %}
 <div class="frame-concept">
   <section class="frame-section frame-hero" id="frame-overview" data-frame-area="01" aria-labelledby="frame-title">
@@ -14,7 +14,7 @@
   </section>
 
   <section class="frame-section" id="frame-fields" data-frame-area="02" data-frame-inspector aria-labelledby="inside-title">
-    <span class="frame-index">02 · O QUE EXISTE DENTRO DO FRAME?</span><h2 id="inside-title">O que existe dentro do frame?</h2><p>Selecione um campo para observar sua função conceitual.</p>
+    <span class="frame-index">02 · O QUE EXISTE DENTRO DO FRAME?</span><h2 id="inside-title">O que existe dentro do frame?</h2><p>Selecione um campo para observar sua função conceitual. O <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="frame-tip-fcs" aria-describedby="frame-tip-fcs">FCS</button><span id="frame-tip-fcs" role="tooltip" hidden>Frame Check Sequence: valor calculado para detectar erros no frame recebido. Neste exercício, o aluno não precisa calculá-lo.</span></span> é incluído para verificação de erros.</p>
     <div class="inspectable-frame" role="group" aria-label="Campos conceituais de um frame Ethernet"><button type="button" data-frame-field="destination" aria-pressed="true">Destination MAC</button><button type="button" data-frame-field="source" aria-pressed="false">Source MAC</button><button type="button" data-frame-field="type" aria-pressed="false">Tipo</button><button type="button" data-frame-field="data" aria-pressed="false">Dados</button><button type="button" data-frame-field="fcs" aria-pressed="false">FCS</button></div>
     <article class="field-explanation" aria-live="polite"><span data-field-question>PARA QUEM?</span><h3 data-field-title>Destination MAC</h3><code data-field-example>BB:BB:BB:BB:BB:BB</code><p data-field-copy>Para qual endereço Ethernet o frame está sendo entregue.</p><div data-field-extra></div></article>
     <aside class="frame-priority"><strong>Neste bloco, os campos mais importantes são:</strong><div><b>SOURCE MAC</b><span>+</span><b>DESTINATION MAC</b></div></aside>
@@ -70,4 +70,4 @@
   {% include "learning/partials/frame_checkpoint.html" %}
 </div>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/frame-concept.js' %}"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/frame-concept.js' %}"></script><script src="{% static 'js/context-glossary.js' %}"></script>{% endblock %}

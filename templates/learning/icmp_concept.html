@@ -1,71 +1,48 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}ICMP + Ping + Traceroute · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}"><link rel="stylesheet" href="{% static 'css/diagnostic-path-stage.css' %}?v=shared-1"><link rel="stylesheet" href="{% static 'css/icmp-concept.css' %}?v=shared-1">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}"><link rel="stylesheet" href="{% static 'css/context-glossary.css' %}"><link rel="stylesheet" href="{% static 'css/diagnostic-path-stage.css' %}?v=flow-2"><link rel="stylesheet" href="{% static 'css/icmp-concept.css' %}?v=flow-2">{% endblock %}
 {% block content %}
 <div class="icmp-concept">
-  <div class="icmp-learning-layout">
-    <main class="icmp-learning-content">
-      <section class="icmp-area icmp-hero" data-icmp-area="01" id="icmp-ping">
-        <span class="icmp-index">ICMP + PING + TRACEROUTE · ÁREA 01</span>
-        <p class="icmp-kicker">O que realmente descobrimos quando testamos a comunicação?</p>
-        <h1>Ping observa uma troca ICMP</h1>
-        <p>ICMP transporta mensagens de controle, erro e diagnóstico associadas à camada IP. O Ping envia um <strong>ICMP Echo Request</strong> e observa se recebe um <strong>Echo Reply</strong>.</p>
-        <span class="layer-badge">OSI · CAMADA 3 — REDE</span>
-        <div class="icmp-task"><a href="#icmp-shared-lab" data-diag-mode-link="ping">OBSERVAR PING</a><p>Avance manualmente: Request até PC-B, Reply de volta e <strong>RTT · 23 ms</strong> ao final.</p><p data-ping-feedback aria-live="polite">Inicie o percurso no laboratório.</p></div>
-        <aside class="icmp-anchor">PING TESTA UMA TROCA ICMP. ELE NÃO TESTA “TUDO”.</aside>
-        <p class="icmp-transition">A troca completa tem duas mensagens, com origem e destino invertidos.</p>
-      </section>
+  <main class="icmp-learning-content">
+    <header class="icmp-intro" id="icmp-concept">
+      <span class="icmp-index">ICMP + PING + TRACEROUTE</span>
+      <h1>O que a resposta permite concluir?</h1>
+      <p><strong>ICMP</strong> carrega mensagens de controle e diagnóstico relacionadas a IP. <strong>Ping</strong> envia um <strong>ICMP Echo Request</strong> e observa se recebe um <strong>Echo Reply</strong>. O <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="icmp-tip-rtt" aria-describedby="icmp-tip-rtt">RTT</button><span id="icmp-tip-rtt" role="tooltip" hidden>Round Trip Time: tempo de ida e volta entre o envio do Request e a chegada do Reply. Neste exemplo, 23 ms.</span></span> mede a ida e a volta. Uma resposta confirma aquela troca ICMP, mas não prova que DNS ou uma aplicação funcionem.</p>
+      <p><strong>Traceroute</strong> envia <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="icmp-tip-probe" aria-describedby="icmp-tip-probe">sondas</button><span id="icmp-tip-probe" role="tooltip" hidden>Pacotes de teste enviados separadamente. Cada sonda deste tracert sai de PC-A com um TTL escolhido.</span></span> distintas com <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="icmp-tip-ttl" aria-describedby="icmp-tip-ttl">TTL</button><span id="icmp-tip-ttl" role="tooltip" hidden>Time To Live: contador do cabeçalho IP reduzido por cada roteador. Ao chegar a zero, a sonda é descartada naquele roteador.</span></span> crescente. Cada roteador reduz o TTL; quando ele se esgota, descarta aquela sonda e pode enviar <strong>ICMP Time Exceeded</strong>. Cada <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="icmp-tip-hop" aria-describedby="icmp-tip-hop">salto (hop)</button><span id="icmp-tip-hop" role="tooltip" hidden>Etapa do caminho em um roteador. R2 é o segundo salto depois de PC-A neste percurso.</span></span> é observado com outra sonda. O destino responde conforme o tipo de sonda. Aqui, o <code>tracert</code> do Windows usa ICMP Echo Request e PC-B responde com Echo Reply.</p>
+    </header>
 
-      <section class="icmp-area" data-icmp-area="02" id="icmp-messages">
-        <span class="icmp-index">ÁREA 02 · MENSAGENS E PERDA</span>
-        <h2>Uma pergunta, uma resposta</h2>
-        <p>O Request segue de <code>192.168.10.20</code> para <code>192.168.50.30</code>. O Reply volta com Source e Destination IP invertidos. Em uma rede real, o caminho de volta não precisa ser idêntico ao de ida.</p>
-        <div class="icmp-task"><a href="#icmp-shared-lab" data-diag-mode-link="messages">ABRIR PACKET INSPECTOR</a><p>Inspecione Request e Reply diretamente no pacote do laboratório.</p><p data-messages-feedback aria-live="polite">Selecione uma mensagem.</p></div>
-        <h3>Quatro tentativas observadas</h3>
-        <div class="loss-strip"><span>✓ Reply</span><span>✓ Reply</span><span>⏱ Timeout</span><span>✓ Reply</span></div>
-        <div class="loss-result"><span>Sent = 4</span><span>Received = 3</span><span>Lost = 1</span><strong>Loss = 25%</strong></div>
-        <p>Uma troca esperada não foi concluída durante esse teste; os números não identificam a causa.</p>
-        <aside class="icmp-anchor">PERDA É UMA MEDIÇÃO. NÃO É UMA CAUSA.</aside>
-        <p class="icmp-transition">Também precisamos separar o que uma resposta — ou sua ausência — realmente permite concluir.</p>
-      </section>
+    <section class="icmp-section" aria-labelledby="icmp-overview-title">
+      <h2 id="icmp-overview-title">Visão geral · um caminho, duas leituras</h2>
+      <figure class="icmp-overview" role="img" aria-label="Caminho PC-A, R1, R2, R3, PC-B. Ping envia Echo Request e observa Echo Reply. Traceroute usa sondas diferentes com TTL 1, 2, 3 e 4 para observar R1, R2, R3 e PC-B progressivamente. Uma sonda cujo TTL se esgota é descartada naquele roteador.">
+        <div class="icmp-overview-path"><span>PC-A</span><i>→</i><span>R1</span><i>→</i><span>R2</span><i>→</i><span>R3</span><i>→</i><span>PC-B</span></div>
+        <figcaption><p><strong>Ping:</strong> Echo Request vai ao destino; Echo Reply volta à origem.</p><p><strong>Traceroute:</strong> TTL 1 → R1; TTL 2 → R2; TTL 3 → R3; TTL 4 → PC-B. Cada linha usa uma sonda nova: a descartada por TTL não segue ao próximo salto.</p></figcaption>
+      </figure>
+    </section>
 
-      <section class="icmp-area icmp-strong" data-icmp-area="03" id="icmp-evidence">
-        <span class="icmp-index">ÁREA 03 · EVIDÊNCIA NÃO É CAUSA</span>
-        <h2>O resultado observado não revela sozinho a causa</h2>
-        <p>Echo Reply demonstra conectividade IP suficiente para aquela troca ICMP naquele momento. Não comprova que DNS, uma porta TCP, uma aplicação ou um serviço web funcionem.</p>
-        <div class="result-states"><article><b>✓ REPLY</b><p>Uma resposta voltou do destino.</p></article><article><b>⏱ TIMEOUT</b><p>A resposta esperada não chegou no período previsto.</p></article><article><b>⚠ UNREACHABLE</b><p>Algum equipamento enviou uma mensagem ICMP explícita.</p></article></div>
-        <code>Request timed out.</code><br><code>Reply from 192.168.10.1: Destination host unreachable.</code>
-        <p>Timeout não é o mesmo que <em>Destination host unreachable</em>: no segundo caso houve uma mensagem explícita de algum ponto.</p>
-        <div class="icmp-task"><a href="#icmp-shared-lab" data-diag-mode-link="evidence">INTERPRETAR A EVIDÊNCIA</a><p>Observe o timeout no laboratório e revele a conclusão segura e os limites dessa conclusão.</p><p data-evidence-feedback aria-live="polite">Comece pela observação.</p></div>
-        <aside class="icmp-anchor">AUSÊNCIA DE RESPOSTA NÃO É UMA CAUSA. É APENAS UMA EVIDÊNCIA.</aside>
-        <p class="icmp-transition">Ping observa uma troca. Traceroute controla a distância alcançada por cada sonda.</p>
-      </section>
+    <section class="icmp-section" id="icmp-lab" aria-labelledby="icmp-lab-title">
+      <h2 id="icmp-lab-title">Laboratório · siga o diagnóstico</h2>
+      <p>Avance o Ping manualmente. Depois execute sondas com TTL 1–4 no mesmo painel e compare o cenário normal com um hop silencioso.</p>
+      {% include "learning/partials/diagnostic_path_stage.html" %}
+    </section>
 
-      <section class="icmp-area" data-icmp-area="04" id="icmp-trace">
-        <span class="icmp-index">ÁREA 04 · TTL E TRACEROUTE</span>
-        <h2>TTL controla até onde cada sonda pode ir</h2>
-        <p>O TTL do IPv4 é reduzido a cada roteador. Ao chegar a zero, o roteador descarta a sonda e pode responder com <strong>ICMP Time Exceeded</strong>. Traceroute repete o teste com TTL crescente.</p>
-        <aside class="icmp-anchor">TTL LIMITA ATÉ ONDE O PACOTE PODE IR.</aside>
-        <div class="icmp-task"><a href="#icmp-shared-lab" data-diag-mode-link="trace">EXPLORAR TRACEROUTE</a><p>Escolha TTL de 1 a 4 e execute cada sonda para observar R1, R2, R3 e PC-B.</p><p data-trace-feedback aria-live="polite">Escolha um TTL no laboratório.</p></div>
-        <pre class="trace-output">C:\&gt; tracert 192.168.50.30&#10;  1    1 ms    1 ms    1 ms    192.168.10.1&#10;  2    8 ms    7 ms    8 ms    10.0.0.2&#10;  3   15 ms   14 ms   16 ms    10.0.1.2&#10;  4   23 ms   22 ms   24 ms    192.168.50.30</pre>
-        <p>Cada linha normalmente reúne várias sondas. Os tempos são respostas observadas, não uma medida de “velocidade”.</p>
-        <div class="missing-hop"><pre>1 R1&#10;2 *&#10;3 R3&#10;4 destino</pre><p>Um hop silencioso não prova que parou de encaminhar: R3 e o destino responderam. Respostas ICMP podem ser filtradas ou limitadas.</p><button type="button" data-missing-demo>DEMONSTRAR HOP SEM RESPOSTA</button></div>
-        <p class="icmp-transition">As duas ferramentas fornecem evidências diferentes. Use o terminal para comparar os resultados.</p>
-      </section>
-
-      <section class="icmp-area icmp-summary" data-icmp-area="05" id="icmp-summary">
-        <span class="icmp-index">ÁREA 05 · TERMINAL E SÍNTESE</span>
-        <h2>Teste, observe, depois conclua</h2>
-        <div class="final-model"><article><b>PING</b><p>Echo Request → Echo Reply voltou? Evidência de troca ICMP fim a fim.</p></article><article><b>TRACEROUTE</b><p>TTL 1, 2, 3… → pontos alcançados e respostas como ICMP Time Exceeded.</p></article></div>
-        <div class="observation"><span>OBSERVAÇÃO</span><strong>Ping timeout</strong><span>CONCLUSÃO SEGURA</span><strong>Echo Reply não foi recebido no tempo esperado.</strong><span>AINDA NÃO SABEMOS</span><p>Se o host caiu, se ICMP foi filtrado, se houve perda ou onde está a causa.</p></div>
-        <section class="icmp-terminal" data-icmp-terminal><h3>Host Terminal</h3>{% include "learning/partials/netstudy_terminal.html" with terminal_title="NetStudy Host Terminal · ICMP" %}<div class="terminal-shortcuts"><button type="button" data-command="ping">ping 192.168.50.30</button><button type="button" data-command="tracert">tracert 192.168.50.30</button></div><p data-terminal-note aria-live="polite"></p></section>
-        <div class="self-explanations"><article data-self><h3>Explique antes de revelar</h3><p>Por que Ping bem-sucedido não prova que uma aplicação funciona?</p><textarea rows="3" aria-label="Sua explicação sobre Ping"></textarea><button type="button" data-reference-reveal>Conferir referência</button><p data-reference hidden>Ping testa uma troca ICMP. Echo Reply mostra que ela chegou e retornou; o serviço precisa ser testado separadamente.</p></article><article data-self><h3>Explique antes de revelar</h3><p>Como Traceroute descobre os roteadores sem conhecer o caminho?</p><textarea rows="3" aria-label="Sua explicação sobre Traceroute"></textarea><button type="button" data-reference-reveal>Conferir referência</button><p data-reference hidden>Envia sondas com TTL crescente. Ao chegar a zero, o roteador pode responder com ICMP Time Exceeded, revelando progressivamente os saltos.</p></article></div>
-        <nav class="concept-sequence"><a href="{% url 'learning:inter_vlan_concept' %}">← Inter-VLAN Routing</a><a href="{% url 'learning:transport_concept' %}">Próximo: TCP × UDP →</a></nav>
-      </section>
-    </main>
-    <aside class="icmp-shared-lab" id="icmp-shared-lab" aria-labelledby="icmp-shared-title"><header class="icmp-shared-heading"><span>LABORATÓRIO COMPARTILHADO</span><strong id="icmp-shared-title" data-diag-mode-title>Área 01 · Ping</strong><p data-diag-mode-copy>Avance do Request até o Reply.</p></header>{% include "learning/partials/diagnostic_path_stage.html" %}</aside>
-  </div>
+    <section class="icmp-section" id="icmp-interpretation" aria-labelledby="icmp-interpretation-title">
+      <h2 id="icmp-interpretation-title">Interprete a observação</h2>
+      <p>O caminho de volta não precisa ser idêntico ao de ida. O resultado mostra respostas observadas, não revela sozinho a causa de uma falha.</p>
+      <div class="icmp-evidence-table" role="table" aria-label="Observação, conclusão permitida e hipótese em aberto">
+        <div role="row" class="icmp-evidence-head"><b role="columnheader">Observação</b><b role="columnheader">Conclusão permitida</b><b role="columnheader">Ainda em aberto</b></div>
+        <div role="row"><b role="cell">Echo Reply</b><span role="cell">A troca ICMP completou neste momento.</span><span role="cell">DNS e aplicação precisam de testes próprios.</span></div>
+        <div role="row"><b role="cell"><span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="icmp-tip-timeout" aria-describedby="icmp-tip-timeout">Timeout</button><span id="icmp-tip-timeout" role="tooltip" hidden>O tempo de espera terminou sem a resposta esperada. Não identifica sozinho se houve perda, filtro ou falha do destino.</span></span><br><code>Request timed out.</code></b><span role="cell">Echo Reply não chegou no tempo esperado.</span><span role="cell">Onde e por que a resposta faltou.</span></div>
+        <div role="row"><b role="cell">Destination host unreachable</b><span role="cell">Um equipamento enviou uma mensagem explícita de destino inalcançável.</span><span role="cell">A origem exata do problema ainda exige contexto.</span></div>
+        <div role="row"><b role="cell">Perda: 1 de 4 (25%)</b><span role="cell">Uma das quatro trocas esperadas não terminou neste exemplo.</span><span role="cell">A causa da perda não foi medida.</span></div>
+        <div role="row"><b role="cell">Hop 2: *</b><span role="cell">A sonda desse TTL não trouxe resposta visível; hops 3 e 4 podem responder.</span><span role="cell">Filtragem, limite de respostas e outras causas continuam possíveis.</span></div>
+      </div>
+      <p class="icmp-note">A linha de 25% é um exemplo de interpretação separado do Ping do laboratório, que recebe quatro respostas.</p>
+      <section class="icmp-terminal" data-icmp-terminal aria-labelledby="icmp-terminal-title"><h3 id="icmp-terminal-title">Terminal · cenário do laboratório</h3><p>A saída didática de <code>tracert</code> acompanha o cenário selecionado acima e mostra três sondas por hop. O Ping demonstrativo recebe quatro respostas.</p>{% include "learning/partials/netstudy_terminal.html" with terminal_title="NetStudy Host Terminal · ICMP" %}<div class="terminal-shortcuts"><button type="button" data-command="ping">ping 192.168.50.30</button><button type="button" data-command="tracert">tracert 192.168.50.30</button></div><p data-terminal-note aria-live="polite"></p></section>
+      <div class="icmp-predictions"><div class="icmp-prediction" data-prediction-question><h3>Preveja a resposta do destino</h3><p>Uma sonda ICMP com TTL 4 chegou a PC-B. Qual resposta este <code>tracert</code> espera do destino?</p><div role="group" aria-label="Resposta esperada do destino"><button type="button" data-prediction="reply" aria-pressed="false">Echo Reply</button><button type="button" data-prediction="time" aria-pressed="false">Time Exceeded</button></div><p data-prediction-feedback aria-live="polite">Escolha uma resposta.</p></div><div class="icmp-prediction" data-prediction-question><h3>Escolha a próxima evidência</h3><p>O Ping recebeu Reply, mas o sistema web não abre. Qual teste investiga diretamente o serviço?</p><div role="group" aria-label="Próximo teste para o serviço web"><button type="button" data-prediction="service" aria-pressed="false">Testar a aplicação web</button><button type="button" data-prediction="ping" aria-pressed="false">Repetir o Ping</button></div><p data-prediction-feedback aria-live="polite">Escolha um teste.</p></div></div>
+    </section>
+  </main>
   <section id="icmp-checkpoint" class="icmp-checkpoint-shell" aria-live="polite">{% include "learning/partials/icmp_checkpoint.html" %}</section>
+  <nav class="concept-sequence icmp-navigation"><a href="{% url 'learning:inter_vlan_concept' %}">← Inter-VLAN Routing</a><a href="{% url 'learning:transport_concept' %}">Próximo: TCP × UDP →</a></nav>
 </div>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/diagnostic-path-stage.js' %}?v=shared-1"></script><script src="{% static 'js/icmp-concept.js' %}?v=shared-1"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/context-glossary.js' %}"></script><script src="{% static 'js/diagnostic-path-stage.js' %}?v=flow-2"></script><script src="{% static 'js/icmp-concept.js' %}?v=flow-2"></script>{% endblock %}

@@ -1,205 +1,161 @@
 (() => {
   "use strict";
-
   const one = (selector, scope = document) => scope?.querySelector(selector);
   const all = (selector, scope = document) => [...(scope?.querySelectorAll(selector) || [])];
-  const getStage = () => window.NetStudyL3Path?.stages["gateway-shared"];
-  let activeArea = "remote";
-
-  const areaText = {
-    remote: ["Área 01 · Destino remoto e próximo salto", "PC-B é remoto. Selecione o próximo dispositivo de Camada 3 local."],
-    gateway: ["Área 02 · Gateway localmente alcançável", "Compare o gateway configurado com a LAN 192.168.10.0/24."],
-    arp: ["Área 03 · ARP resolve o gateway", "Informe o alvo do ARP e observe o cache ganhar o MAC RR."],
-    frame: ["Área 04 · Pacote × frame", "Monte os dois destinos e acompanhe o primeiro frame até R1."],
-    summary: ["Área 05 · Síntese do primeiro salto", "Avance manualmente pelas seis consequências do mesmo caminho."],
+  const lab = one("#gateway-shared-lab");
+  const stage = one('[data-stage-id="gateway-shared"]', lab);
+  const state = {mode: "remote", gateway: null, arp: false, delivered: false};
+  const values = {
+    remote: {ip: "192.168.20.50", arpIp: "192.168.10.1", mac: "RR", receiver: "R1"},
+    local: {ip: "192.168.10.80", arpIp: "192.168.10.80", mac: "LL", receiver: "PC-L"},
   };
-  const initialPhase = {remote: 0, gateway: 0, arp: 1, frame: 2, summary: 0};
+  const current = () => values[state.mode];
 
-  function say(node, message, ok = null) {
-    if (!node) return;
+  function feedback(message, ok = null) {
+    const node = one("[data-gateway-feedback]", lab);
     node.textContent = message;
-    node.classList.toggle("feedback-ok", ok === true);
-    node.classList.toggle("feedback-error", ok === false);
+    node.classList.toggle("is-success", ok === true);
+    node.classList.toggle("is-error", ok === false);
   }
 
-  function announce(selector, message, ok = null) {
-    say(one(selector), message, ok);
-    say(one("[data-gateway-lab-feedback]"), message, ok);
+  function render() {
+    const local = state.mode === "local";
+    const target = current();
+    one("[data-remote-gateway]", lab).hidden = local;
+    all("[data-destination-mode]", lab).forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.destinationMode === state.mode)));
+    all("[data-gateway]", lab).forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.gateway === state.gateway)));
+    all("[data-remote-tail]", stage).forEach((item) => { item.hidden = local; });
+    one("[data-receiver-name]", stage).textContent = target.receiver;
+    one("[data-receiver-role]", stage).textContent = local ? "host na mesma LAN" : "Default Gateway";
+    one("[data-receiver-address]", stage).textContent = `${target.arpIp} · MAC ${target.mac}`;
+    one("[data-network-result]", stage).textContent = local
+      ? "192.168.10.80 pertence a 192.168.10.0/24: destino local; gateway dispensado na primeira entrega."
+      : "192.168.20.50 está fora de 192.168.10.0/24: destino remoto; o próximo salto é R1.";
+    one("[data-l3-cache]", stage).textContent = state.arp ? `${target.arpIp} → ${target.mac}` : "vazio · próximo MAC desconhecido";
+    one("[data-frame-ip]", stage).textContent = target.ip;
+    one("[data-frame-mac]", stage).textContent = state.arp ? target.mac : "aguardando ARP";
+    one("[data-frame-position]", stage).textContent = state.delivered
+      ? local ? "Primeiro frame entregue a PC-L nesta LAN." : "Primeiro frame entregue a R1. O percurso desta aula termina aqui."
+      : "Frame ainda não enviado.";
+    one("[data-l3-transit]", stage).dataset.delivery = state.delivered ? "delivered" : "pending";
+    all("[data-path-node]", stage).forEach((node) => node.classList.toggle("is-path-current", state.delivered && node.dataset.pathNode === "receiver"));
+    one("[data-inspector-ethernet]").textContent = `Source MAC AA · Destination MAC ${state.arp ? target.mac : "aguardando ARP"}`;
+    one("[data-inspector-ipv4]").textContent = `Source IP 192.168.10.25 · Destination IP ${target.ip}`;
+    one("[data-inspector-status]").textContent = state.delivered
+      ? local ? "SW1 encaminhou pelo MAC LL ao host local." : "SW1 encaminhou pelo MAC RR a R1. R1 decidirá o próximo encaminhamento."
+      : "O switch usará o MAC para encaminhar a primeira entrega. O IP final permanece no pacote.";
+    one("[data-decision-summary]", lab).hidden = !state.delivered;
+    if (state.delivered) one("[data-decision-text]", lab).textContent = local
+      ? "Destino local em 192.168.10.0/24 → ARP 192.168.10.80 → LL → frame entregue a PC-L, sem gateway."
+      : "Destino remoto fora de 192.168.10.0/24 → gateway 192.168.10.1 → ARP 192.168.10.1 → RR → primeiro frame entregue a R1; Destination IP 192.168.20.50.";
   }
 
-  function setSummary(phase) {
-    all("[data-summary-step]").forEach((item) => {
-      const number = Number(item.dataset.summaryStep);
-      item.classList.toggle("is-done", number <= phase);
-      item.classList.toggle("is-current", number === phase);
-      item.setAttribute("aria-label", `${item.textContent.trim()}: ${number <= phase ? "concluído" : "pendente"}`);
-    });
-    const stage = getStage();
-    if (stage) announce("[data-summary-feedback]", stage.root.querySelector("[data-l3-message]").textContent);
+  function reset(mode = state.mode) {
+    state.mode = mode;
+    state.gateway = null;
+    state.arp = false;
+    state.delivered = false;
+    one("[data-arp-target] input", lab).value = "";
+    all("[data-destination-builder] select", lab).forEach((field) => { field.value = ""; field.classList.remove("is-correct", "is-wrong"); });
+    render();
+    feedback(mode === "local"
+      ? "Destino local: o gateway não é necessário. Resolva por ARP o IPv4 do próprio host local."
+      : "Destino remoto: escolha o gateway na LAN 192.168.10.0/24.");
   }
 
-  function resetAreaUi(area) {
-    if (area === "remote") announce("[data-remote-feedback]", "PC-B é o destino final. Qual dispositivo de Camada 3 recebe o primeiro frame?");
-    if (area === "gateway") {
-      all("[data-gateway-choice] button").forEach((button) => { button.classList.remove("is-selected", "is-wrong"); button.setAttribute("aria-pressed", "false"); });
-      say(one("[data-gateway-choice] p:last-child"), "Compare cada endereço com a LAN 192.168.10.0/24.");
+  all("[data-destination-mode]", lab).forEach((button) => button.addEventListener("click", () => reset(button.dataset.destinationMode)));
+  one("[data-lab-reset]", lab)?.addEventListener("click", () => reset());
+  all("[data-gateway]", lab).forEach((button) => button.addEventListener("click", () => {
+    state.gateway = button.dataset.gateway;
+    state.arp = false;
+    state.delivered = false;
+    render();
+    if (state.gateway === "192.168.10.1") feedback("192.168.10.1 está na LAN de PC-A e pode receber o primeiro frame. Agora resolva seu MAC por ARP.", true);
+    else if (state.gateway === "SW1") feedback("SW1 encaminha pelo MAC, mas não é o gateway de Camada 3. Escolha R1.", false);
+    else feedback("192.168.30.1 está fora de 192.168.10.0/24. PC-A não consegue entregar o primeiro frame a esse gateway nesta LAN.", false);
+  }));
+  one("[data-arp-target]", lab)?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const input = one("input", event.currentTarget);
+    const entered = input.value.trim();
+    if (state.mode === "remote" && state.gateway !== "192.168.10.1") {
+      feedback("Escolha primeiro um gateway de Camada 3 alcançável na LAN. O frame não avança.", false);
+    } else if (entered === current().arpIp) {
+      state.arp = true;
+      state.delivered = false;
+      render();
+      feedback(`ARP Cache atualizado: ${current().arpIp} → ${current().mac}. Monte o primeiro frame.`, true);
+    } else if (state.mode === "remote" && entered === "192.168.20.50") {
+      feedback("PC-B é remoto: ARP resolve o próximo salto local 192.168.10.1, não o host remoto.", false);
+    } else {
+      feedback(`Nesta entrega, ARP deve resolver ${current().arpIp}.`, false);
     }
-    if (area === "arp") {
-      const root = one("[data-arp-target]");
-      one("input", root).value = "";
-      say(one("p:last-child", root), "Informe o endereço que receberá a primeira entrega Ethernet.");
+  });
+  one("[data-destination-builder]", lab)?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const ip = one('[data-build="ip"]', event.currentTarget);
+    const mac = one('[data-build="mac"]', event.currentTarget);
+    if (state.mode === "remote" && state.gateway !== "192.168.10.1") return feedback("O gateway ainda não é alcançável. Corrija essa escolha antes de enviar o frame.", false);
+    if (!state.arp) return feedback("Resolva primeiro o MAC da primeira entrega com ARP.", false);
+    const ipOk = ip.value === current().ip;
+    const macOk = mac.value === current().mac;
+    [ip, mac].forEach((field, index) => {
+      const ok = index === 0 ? ipOk : macOk;
+      field.classList.toggle("is-correct", ok);
+      field.classList.toggle("is-wrong", !ok);
+    });
+    if (!ipOk || !macOk) {
+      if (state.mode === "remote" && ip.value === "192.168.10.1") return feedback("O IP do gateway não substitui PC-B como Destination IP final. Use 192.168.20.50.", false);
+      if (!ipOk) return feedback(`Destination IP deve permanecer ${current().ip}, o host escolhido.`, false);
+      return feedback(`Destination MAC da primeira entrega deve ser ${current().mac}, obtido por ARP.`, false);
     }
-    if (area === "frame") {
-      const root = one("[data-destination-builder]");
-      all("select", root).forEach((field) => { field.value = ""; field.classList.remove("is-correct", "is-wrong"); });
-      say(one("p:last-child", root), "Separe o destino final do destinatário deste enlace.");
-    }
-    if (area === "summary") setSummary(0);
-  }
-
-  function activate(area, shouldScroll = false) {
-    const stage = getStage();
-    if (!stage || !areaText[area]) return;
-    activeArea = area;
-    stage.reset();
-    stage.setPhase(initialPhase[area]);
-    stage.root.classList.toggle("is-summary-mode", area === "summary");
-    one("[data-gateway-stage-title]").textContent = areaText[area][0];
-    one("[data-gateway-stage-copy]").textContent = areaText[area][1];
-    resetAreaUi(area);
-    say(one("[data-gateway-lab-feedback]"), areaText[area][1]);
-    if (shouldScroll) {
-      const lab = one("#gateway-shared-lab");
-      const bounds = lab?.getBoundingClientRect();
-      if (lab && bounds && (bounds.top < 0 || bounds.bottom > window.innerHeight)) {
-        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        lab.scrollIntoView({behavior: reduced ? "auto" : "smooth", block: "start"});
-      }
-    }
-  }
-
-  function setupSharedStage() {
-    const stage = getStage();
-    if (!stage) return;
-    stage.root.addEventListener("l3stage:inspect", (event) => {
-      if (activeArea !== "remote") return;
-      const ok = event.detail.kind === "gateway";
-      if (ok) stage.setPhase(1);
-      announce("[data-remote-feedback]", ok
-        ? "Correto. PC-B continua sendo o destino final, mas R1 é o primeiro dispositivo de Camada 3 que PC-A consegue alcançar localmente."
-        : "Esse elemento não é o próximo dispositivo de Camada 3 capaz de encaminhar a comunicação.", ok);
-    });
-    stage.root.addEventListener("l3stage:phase", (event) => {
-      if (activeArea === "summary") setSummary(event.detail.phase);
-    });
-    stage.root.addEventListener("l3stage:reset", () => {
-      if (activeArea === "summary") setSummary(0);
-    });
-    all("[data-gateway-stage-link]").forEach((link) => link.addEventListener("click", (event) => {
-      event.preventDefault();
-      activate(link.dataset.gatewayStageLink, true);
-    }));
-    activate("remote");
-  }
-
-  function setupGatewayChoice() {
-    all("[data-gateway-choice] button").forEach((button) => button.addEventListener("click", () => {
-      if (activeArea !== "gateway") activate("gateway");
-      const ok = button.dataset.gateway === "192.168.10.1";
-      all("[data-gateway-choice] button").forEach((item) => { item.classList.remove("is-selected", "is-wrong"); item.setAttribute("aria-pressed", "false"); });
-      button.classList.add(ok ? "is-selected" : "is-wrong");
-      button.setAttribute("aria-pressed", "true");
-      if (ok) getStage().setPhase(1);
-      announce("[data-gateway-choice] p:last-child", ok
-        ? "Correto. 192.168.10.1 está na LAN de PC-A e pode receber o primeiro frame. R1 foi destacado na topologia."
-        : "192.168.30.1 pertence a outra sub-rede /24 e não está diretamente alcançável nesta LAN.", ok);
-    }));
-  }
-
-  function setupArpTarget() {
-    const root = one("[data-arp-target]");
-    one("button", root)?.addEventListener("click", () => {
-      const value = one("input", root).value.trim();
-      if (activeArea !== "arp") activate("arp");
-      one("input", root).value = value;
-      const ok = value === "192.168.10.1";
-      if (ok) getStage().setPhase(2);
-      announce("[data-arp-target] p:last-child", ok
-        ? "Correto. ARP Cache: 192.168.10.1 → RR. R1 foi identificado e o primeiro frame agora pode ser montado."
-        : "O destino é remoto. Procure o IPv4 do dispositivo local que receberá a primeira entrega Ethernet.", ok);
-    });
-  }
-
-  function setupBuilder() {
-    const root = one("[data-destination-builder]");
-    one("button", root)?.addEventListener("click", () => {
-      const selectedIp = one("[data-build='ip']", root).value;
-      const selectedMac = one("[data-build='mac']", root).value;
-      if (activeArea !== "frame") activate("frame");
-      const ipField = one("[data-build='ip']", root);
-      const macField = one("[data-build='mac']", root);
-      ipField.value = selectedIp;
-      macField.value = selectedMac;
-      const ipOk = ipField.value === "192.168.20.50";
-      const macOk = macField.value === "RR";
-      ipField.classList.toggle("is-correct", ipOk);
-      ipField.classList.toggle("is-wrong", !ipOk);
-      macField.classList.toggle("is-correct", macOk);
-      macField.classList.toggle("is-wrong", !macOk);
-      if (ipOk && macOk) getStage().setPhase(3);
-      announce("[data-destination-builder] p:last-child", ipOk && macOk
-        ? "Correto. O primeiro frame segue até R1. MAC responde “para quem entrego agora?”; IP responde “onde a comunicação precisa chegar?”."
-        : !ipOk && macOk
-          ? "O MAC do gateway está correto, mas o gateway não substitui o host remoto como Destination IP."
-          : ipOk && !macOk
-            ? "O Destination IP está correto, mas o primeiro frame Ethernet precisa ser entregue ao MAC RR do gateway."
-            : "Separe o host remoto, que continua como Destination IP, do gateway local, que fornece o Destination MAC.", ipOk && macOk);
-    });
-  }
-
-  function setupInspector() {
-    all("[data-gateway-inspector] [data-inspector]").forEach((button) => button.addEventListener("click", () => {
-      const kind = button.dataset.inspector;
-      all("[data-gateway-inspector] [data-inspector]").forEach((item) => {
-        item.classList.toggle("is-active", item === button);
-        item.setAttribute("aria-expanded", item === button ? "true" : "false");
-      });
-      say(one("[data-inspector-feedback]"), kind === "ethernet"
-        ? "Ethernet Destination RR destaca R1: para quem entrego agora?"
-        : "Destination IP 192.168.20.50 destaca PC-B: onde a comunicação precisa chegar?");
-      getStage()?.highlight(kind === "ethernet" ? "gateway" : "destination");
-    }));
-  }
+    state.delivered = true;
+    render();
+    feedback(state.mode === "remote"
+      ? "Frame AA → RR entregue a R1. O pacote continua destinado a 192.168.20.50; R1 decidirá o próximo encaminhamento."
+      : "Frame AA → LL entregue ao host local 192.168.10.80. O gateway não foi usado.", true);
+  });
 
   function setupTerminal() {
     const terminal = one("[data-gateway-terminal]");
     function output(command) {
-      const stage = one("[data-terminal-stage]", terminal);
       const block = document.createElement("pre");
-      if (command === "ipconfig /all") block.textContent = "Ethernet adapter Ethernet:\nIPv4 Address: 192.168.10.25\nSubnet Mask: 255.255.255.0\nDefault Gateway: 192.168.10.1";
-      else if (command === "arp -a") block.textContent = "Internet Address      Physical Address\n192.168.10.1          RR";
-      else block.textContent = "Tabela de rotas será estudada no próximo módulo.";
-      stage.appendChild(block);
-      say(one("[data-terminal-explain]"), command === "arp -a"
-        ? "O host remoto não aparece: a entrega Ethernet local foi resolvida para o gateway."
-        : command === "ipconfig /all"
-          ? "IPv4 e máscara definem a LAN; Default Gateway identifica o próximo salto padrão no cenário."
-          : "Teaser: as informações de roteamento serão abertas no próximo módulo.");
+      if (command === "ipconfig /all") {
+        block.textContent = "Ethernet adapter Ethernet:\nIPv4 Address: 192.168.10.25\nSubnet Mask: 255.255.255.0\nDefault Gateway: 192.168.10.1";
+        one("[data-terminal-explain]", terminal).textContent = "O gateway configurado é 192.168.10.1; para o destino local ele não participa da primeira entrega.";
+      } else if (command === "arp -a") {
+        block.textContent = state.arp ? `Internet Address      Physical Address\n${current().arpIp}          ${current().mac}` : "Internet Address      Physical Address\n(nenhuma entrada para esta entrega)";
+        one("[data-terminal-explain]", terminal).textContent = state.arp ? "O cache já contém o MAC resolvido para a entrega selecionada." : "O cache ainda não contém a entrada; resolva o alvo por ARP no laboratório.";
+      } else if (command === "route print") {
+        block.textContent = "Network Destination  Netmask        Gateway       Interface\n0.0.0.0              0.0.0.0        192.168.10.1  192.168.10.25";
+        one("[data-terminal-explain]", terminal).textContent = "A rota padrão aponta para R1. A seleção detalhada de rotas vem na próxima página.";
+      } else {
+        block.textContent = `Comando não suportado: ${command || "(vazio)"}. Use ipconfig /all, arp -a ou route print.`;
+        one("[data-terminal-explain]", terminal).textContent = "Esse comando não faz parte deste terminal de prática.";
+      }
+      one("[data-terminal-stage]", terminal).appendChild(block);
     }
     all("[data-command]", terminal).forEach((button) => button.addEventListener("click", () => output(button.dataset.command)));
     one("[data-terminal-form]", terminal)?.addEventListener("submit", (event) => {
       event.preventDefault();
       const input = one("[data-terminal-input]", terminal);
-      const command = input.value.trim().toLowerCase();
+      output(input.value.trim().toLowerCase());
       input.value = "";
-      output(["ipconfig /all", "arp -a"].includes(command) ? command : "route print");
     });
   }
 
-  function setupReference() {
-    all("[data-reference-reveal]").forEach((button) => button.addEventListener("click", () => {
-      one("[data-reference]", button.closest(".gateway-explanation")).hidden = false;
-    }));
+  function setupPopovers() {
+    all(".gateway-term button").forEach((button) => {
+      const term = button.parentElement;
+      button.addEventListener("click", () => {
+        const open = term.classList.contains("is-open");
+        all(".gateway-term").forEach((item) => item.classList.remove("is-open"));
+        term.classList.toggle("is-open", !open);
+      });
+      button.addEventListener("keydown", (event) => { if (event.key === "Escape") { term.classList.remove("is-open"); button.focus(); } });
+    });
+    document.addEventListener("click", (event) => { if (!event.target.closest(".gateway-term")) all(".gateway-term").forEach((item) => item.classList.remove("is-open")); });
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") all(".gateway-term").forEach((item) => item.classList.remove("is-open")); });
   }
 
   function setupCheckpoint() {
@@ -234,13 +190,11 @@
       }
     });
   }
-
-  setupSharedStage();
-  setupGatewayChoice();
-  setupArpTarget();
-  setupBuilder();
-  setupInspector();
+  render();
   setupTerminal();
-  setupReference();
+  setupPopovers();
+  one("[data-reference-reveal]", one("[data-gateway-explanation]"))?.addEventListener("click", (event) => {
+    one("[data-reference]", event.currentTarget.closest(".gateway-explanation")).hidden = false;
+  });
   setupCheckpoint();
 })();

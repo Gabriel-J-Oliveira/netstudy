@@ -7,3 +7,31 @@
 @media(max-width:480px){.vlan-mode-controls{display:grid;grid-template-columns:1fr 1fr}.vlan-mode-controls [data-broadcast-run]{grid-column:1/-1}.logical-contexts{grid-template-columns:1fr}.context-single,.context-vlan10,.context-vlan20{grid-column:1}.host-row{grid-template-columns:1fr 1fr}.context-label{align-items:flex-start;flex-direction:column;gap:.1rem}.physical-infrastructure{padding:.6rem}.vlan-visual-section,.access-demo,.vlan-reflection{border-radius:11px}.access-controls>div{display:grid;grid-template-columns:1fr}.access-controls select,.access-controls button,.vlan-reflection .btn{width:100%}.vlan-visual-page .concept-sequence{flex-direction:column}.vlan-page-heading h1{font-size:clamp(1.85rem,8vw,2.3rem)}}
 @media(max-width:360px){.vlan-page-heading h1{font-size:1.85rem}.physical-caption{font-size:.76rem}.host-row,.context-vlan10 .host-row,.context-vlan20 .host-row{grid-template-columns:1fr 1fr}.vlan-mode-controls button{padding:.55rem}.access-visual{min-height:140px}}
 @media(prefers-reduced-motion:reduce){.vlan-visual-page *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
+.vlan-concept-copy{max-width:960px;margin:1.25rem auto 1.5rem;padding:0 clamp(.25rem,2vw,1rem)}
+.vlan-concept-copy>span{color:#176b9b;font-size:.7rem;font-weight:850;letter-spacing:.12em}
+.vlan-concept-copy h2{margin:.2rem 0 .55rem;color:var(--vlan-ink);font-size:clamp(1.35rem,2.4vw,1.75rem);line-height:1.15}
+.vlan-concept-copy p{max-width:78ch;margin:.35rem 0;color:#425e75;line-height:1.5}
+.vlan-glossary-anchor{display:inline;position:relative}
+.vlan-glossary-term{appearance:none;padding:0;border:0;border-bottom:1px dotted currentColor;border-radius:0;background:transparent;color:#125c83;font:inherit;font-weight:700;line-height:inherit;text-align:inherit;cursor:pointer}
+.vlan-glossary-term:hover{border-bottom-style:solid}
+.vlan-glossary-term:focus-visible{outline:3px solid #ffbf47;outline-offset:2px}
+.vlan-glossary-popover[hidden]{display:none}
+.vlan-glossary-popover:not([hidden]){box-sizing:border-box;position:fixed;z-index:1200;width:min(22rem,calc(100vw - 1rem));max-height:calc(100vh - 1rem);overflow:auto;padding:.65rem .75rem;border:1px solid #9db6c9;border-radius:9px;background:#102f49;color:#fff;box-shadow:0 8px 24px #102b4850;font-size:.88rem;font-weight:450;line-height:1.45;text-align:left}
+.vlan-static-figure{min-width:0;margin:0;padding:.9rem;border:1px solid #cbd9e5;border-radius:12px;background:#f7fbff}
+.vlan-diagram-title{margin:0 0 .7rem;color:#173d59;font-size:.95rem;font-weight:800}
+.vlan-static-diagram{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.85fr) minmax(0,1fr);gap:1.4rem;align-items:stretch;min-width:0}
+.vlan-static-group,.vlan-static-switch{min-width:0;border-radius:11px;text-align:center;overflow-wrap:anywhere}
+.vlan-static-group{display:grid;grid-template-rows:auto 1fr auto 1fr;gap:.45rem;padding:.7rem;border:2px solid}
+.vlan-static-group>strong{font-size:.95rem}
+.vlan-static-ten{border-color:#0b7285;background:#e8f7fa;color:#075d6d}
+.vlan-static-twenty{border-color:#7352a9;background:#f3effb;color:#563991}
+.vlan-static-host{display:flex;min-height:3.4rem;flex-direction:column;justify-content:center;gap:.15rem;padding:.35rem;border:1px solid currentColor;border-radius:8px;background:#fff}
+.vlan-static-host b{font-size:.98rem}
+.vlan-static-host small{font-size:.76rem}
+.vlan-static-signal,.vlan-static-block{align-self:center;font-size:.76rem;font-weight:800}
+.vlan-static-switch{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.45rem;padding:.7rem;border:2px solid #658098;background:#dfeaf2;color:#193b55}
+.vlan-static-switch strong{font-size:1.35rem}
+.vlan-static-switch span,.vlan-static-switch small{font-size:.76rem}
+.vlan-static-switch b{padding:.35rem .45rem;border-radius:6px;background:#d5f2f4;color:#075d6d;font-size:.8rem}
+.vlan-static-figure>p{margin:.7rem 0 0;color:#36546f;font-size:.86rem}
+@media(max-width:700px){.vlan-static-diagram{grid-template-columns:minmax(0,1fr);gap:.6rem}.vlan-static-group{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;gap:.4rem}.vlan-static-group>strong,.vlan-static-signal,.vlan-static-block{grid-column:1/-1}.vlan-static-switch{min-height:5.5rem}}

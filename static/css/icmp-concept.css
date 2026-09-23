@@ -1,6 +1,39 @@
-.content-column:has(.icmp-concept){max-width:1480px}.icmp-concept{color:#172033}.icmp-learning-layout{display:grid;grid-template-columns:minmax(0,1fr) 610px;gap:1.5rem;align-items:start}.icmp-learning-content{min-width:0}.icmp-area{padding:3rem;margin-bottom:1.5rem;background:#fff;border:1px solid #dbe3ef;border-radius:20px;box-shadow:0 12px 30px rgba(15,23,42,.04)}.icmp-hero{background:linear-gradient(145deg,#f8fbff,#eef6ff)}.icmp-strong{border-color:#2563eb}.icmp-index,.icmp-kicker{font-size:.75rem;font-weight:900;letter-spacing:.11em;color:#1d4ed8}.icmp-area h1{font-size:clamp(2rem,3vw,2.65rem)}.icmp-area h2{margin-top:.4rem}.layer-badge{display:inline-block;padding:.4rem .7rem;background:#dbeafe;color:#1e3a8a;border-radius:999px;font-weight:800}.icmp-anchor{display:block;margin:1.3rem 0;padding:1rem;text-align:center;background:#dbeafe;color:#1e3a8a;font-weight:900;border-radius:10px}.icmp-task{margin:1.3rem 0;padding:1rem;background:#f8fafc;border:1px solid #cbd5e1;border-radius:12px}.icmp-task>a{display:inline-block;padding:.75rem 1rem;background:#1d4ed8;color:#fff;border-radius:9px;text-decoration:none;font-weight:900}.icmp-task p:last-child{margin:.75rem 0 0}.icmp-transition{border-top:1px solid #cbd5e1;padding-top:1.2rem;margin-top:1.8rem}.loss-strip,.loss-result{display:flex;gap:.6rem;flex-wrap:wrap;margin:1rem 0}.loss-strip span,.loss-result span,.loss-result strong{padding:.6rem;background:#f1f5f9;border-radius:8px}.result-states,.final-model,.self-explanations{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin:1.2rem 0}.result-states{grid-template-columns:repeat(3,1fr)}.result-states article,.final-model article,.self-explanations article{display:grid;gap:.4rem;padding:1rem;border:1px solid #94a3b8;border-radius:12px}.missing-hop,.icmp-terminal{padding:1.2rem;margin:1.3rem 0;background:#f8fafc;border-radius:12px}.missing-hop button,.icmp-terminal button,.self-explanations button{padding:.65rem .9rem;border:1px solid #94a3b8;border-radius:8px;background:#fff}.trace-output,.icmp-terminal pre{background:#111827;color:#e5e7eb;padding:1rem;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere}.observation{display:grid;gap:.5rem;padding:1rem;border-left:4px solid #16a34a;background:#f0fdf4}.observation span{font-size:.7rem;font-weight:900;color:#1d4ed8}.self-explanations textarea{width:100%}.terminal-shortcuts{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.7rem}.icmp-shared-lab{position:sticky;top:1rem}.icmp-shared-heading{padding:1rem 1.1rem;background:#0f2747;color:#fff;border-radius:16px 16px 0 0}.icmp-shared-heading span,.icmp-shared-heading strong,.icmp-shared-heading p{display:block}.icmp-shared-heading span{font-size:.72rem;letter-spacing:.1em;color:#93c5fd}.icmp-shared-heading p{margin:.25rem 0 0;color:#dbeafe}.icmp-shared-lab .diag-stage{margin:0;border-radius:0 0 16px 16px}.icmp-checkpoint-shell{max-width:1000px;margin:2rem auto}.icmp-concept :is(button,a,select,input,textarea):focus-visible{outline:3px solid #f59e0b;outline-offset:3px}
-.icmp-terminal .netstudy-terminal{overflow:hidden;border:1px solid #334155;border-radius:10px;background:#111827;color:#e5e7eb}.icmp-terminal .netstudy-terminal>header{display:flex;justify-content:space-between;gap:1rem;padding:.65rem .9rem;background:#1e293b;font-size:.85rem}.icmp-terminal .terminal-screen{padding:.85rem}.icmp-terminal .terminal-screen form label{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}.icmp-terminal .terminal-screen input{flex:1;min-width:150px;background:transparent;color:#f8fafc;border:0;border-bottom:1px solid #64748b;padding:.3rem}.icmp-terminal .terminal-screen pre{margin:.5rem 0;overflow-wrap:anywhere}
-@media(max-width:1400px){.icmp-learning-layout{grid-template-columns:1fr}.icmp-shared-lab{position:static;margin-bottom:1.5rem}}
-@media(max-width:760px){.icmp-area{padding:2rem 1rem}.result-states,.final-model,.self-explanations{grid-template-columns:1fr}.icmp-task>a{display:block;text-align:center}}
-@media(max-width:360px){.icmp-area{padding:1.4rem .75rem;border-radius:12px}.icmp-area h1{font-size:1.85rem}.icmp-anchor{padding:.75rem;font-size:.86rem}.icmp-task{padding:.75rem}.icmp-shared-heading{padding:.75rem}.concept-sequence{flex-direction:column}}
+.content-column:has(.icmp-concept){max-width:1480px}
+.icmp-concept{color:#172033}
+.icmp-learning-content,.icmp-navigation{max-width:1180px;margin:0 auto}
+.icmp-intro,.icmp-section{padding:1.75rem 0;border-bottom:1px solid #cbd5e1}
+.icmp-intro{padding-top:.5rem}
+.icmp-index{font-size:.75rem;font-weight:900;letter-spacing:.12em;color:#1d4ed8}
+.icmp-intro h1{font-size:clamp(2rem,4vw,3.3rem);margin:.5rem 0 1rem}
+.icmp-intro p,.icmp-section>p{max-width:85ch}
+.icmp-section h2{margin:.15rem 0 1rem}
+.icmp-overview{margin:0;padding:1rem;border:1px solid #bfd0e5;border-radius:14px;background:#f7fbff}
+.icmp-overview-path{display:grid;grid-template-columns:repeat(9,auto);align-items:center;justify-content:center;gap:.55rem}
+.icmp-overview-path span{padding:.7rem 1rem;border:1px solid #5b85b6;border-radius:10px;background:#fff;font-weight:900;text-align:center}
+.icmp-overview-path i{font-style:normal;color:#1d4ed8;font-weight:900}
+.icmp-overview figcaption{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:.8rem}
+.icmp-overview figcaption p{margin:.2rem 0;font-size:.9rem}
+.icmp-evidence-table{border:1px solid #cbd5e1;border-radius:10px;overflow:hidden}
+.icmp-evidence-table [role=row]{display:grid;grid-template-columns:minmax(150px,.9fr) minmax(200px,1.2fr) minmax(200px,1.2fr)}
+.icmp-evidence-table [role=row]+[role=row]{border-top:1px solid #cbd5e1}
+.icmp-evidence-table [role=row]>*{padding:.65rem .75rem;min-width:0;overflow-wrap:anywhere}
+.icmp-evidence-table [role=row]>*+*{border-left:1px solid #cbd5e1}
+.icmp-evidence-head{background:#e8f1fc;color:#173860}
+.icmp-evidence-table code{font-size:.76rem}
+.icmp-note{font-size:.86rem;color:#475569}
+.icmp-terminal{margin-top:1.3rem;padding:1rem;background:#f8fafc;border:1px solid #cbd5e1;border-radius:12px}
+.icmp-terminal h3{margin:.2rem 0}.icmp-terminal>p{font-size:.9rem}
+.icmp-terminal .netstudy-terminal{overflow:hidden;border:1px solid #334155;border-radius:10px;background:#111827;color:#e5e7eb}
+.icmp-terminal .netstudy-terminal>header{display:flex;justify-content:space-between;gap:1rem;padding:.65rem .9rem;background:#1e293b;font-size:.85rem}
+.icmp-terminal .terminal-screen{padding:.85rem}.icmp-terminal .terminal-screen form label{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+.icmp-terminal .terminal-screen input{flex:1;min-width:150px;background:transparent;color:#f8fafc;border:0;border-bottom:1px solid #64748b;padding:.3rem}
+.icmp-terminal .terminal-screen pre{margin:.5rem 0;padding:.7rem;background:#0b1220;color:#e5e7eb;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere}
+.terminal-shortcuts,.icmp-prediction>div{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.7rem}
+.terminal-shortcuts button,.icmp-prediction button{min-height:44px;padding:.6rem .8rem;border:1px solid #94a3b8;border-radius:8px;background:#fff;color:#172033}
+.icmp-predictions{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1rem}.icmp-prediction{padding:1rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc}
+.icmp-prediction h3{margin:.1rem 0}.icmp-prediction button[aria-pressed=true]{border:2px solid #1d4ed8;background:#dbeafe}
+.icmp-checkpoint-shell{max-width:1180px;margin:2rem auto}.icmp-navigation{margin:1.5rem auto}
+.icmp-concept :is(button,a,select,input,summary):focus-visible{outline:3px solid #f59e0b;outline-offset:3px}
+@media(max-width:760px){.icmp-overview-path{grid-template-columns:repeat(5,minmax(0,1fr));gap:.25rem}.icmp-overview-path i{display:none}.icmp-overview-path span{padding:.55rem .2rem;font-size:.8rem;overflow-wrap:anywhere}.icmp-overview figcaption,.icmp-predictions{grid-template-columns:1fr}.icmp-evidence-head{display:none!important}.icmp-evidence-table [role=row]:not(.icmp-evidence-head){grid-template-columns:1fr}.icmp-evidence-table [role=row]>*+*{border-left:0;border-top:1px dashed #cbd5e1}.icmp-evidence-table [role=row]>:nth-child(2):before{content:"Conclusão permitida · ";font-weight:800}.icmp-evidence-table [role=row]>:nth-child(3):before{content:"Ainda em aberto · ";font-weight:800}}
+@media(max-width:360px){.icmp-intro,.icmp-section{padding:1.25rem 0}.icmp-overview{padding:.65rem}.icmp-terminal,.icmp-prediction{padding:.7rem}.concept-sequence{flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.icmp-concept *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}

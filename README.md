@@ -30,6 +30,24 @@ python manage.py runserver
 
 Abra `http://127.0.0.1:8000/` no navegador.
 
+## Acessar de outras máquinas na rede local
+
+Descubra o IPv4 da interface conectada com `ipconfig`. Nesta máquina, a interface Ethernet usa `192.168.101.78` no momento. Inicie o NetStudy por esse endereço:
+
+```powershell
+.\run-lan.ps1 -IpAddress 192.168.101.78
+```
+
+O script aplica as migrations, configura esse IP em `DJANGO_ALLOWED_HOSTS` somente durante a execução e inicia o Django na porta 8000. Mantenha o terminal aberto. Em outra máquina que consiga alcançar essa rede, abra `http://192.168.101.78:8000/`. Se o endereço da máquina mudar, substitua o valor de `-IpAddress` e use a nova URL.
+
+Se o Firewall do Windows bloquear conexões de entrada, abra um PowerShell **como administrador** e crie uma regra restrita à sub-rede local (ajuste o IP se ele tiver mudado):
+
+```powershell
+New-NetFirewallRule -DisplayName "NetStudy LAN 8000" -Direction Inbound -Action Allow -Protocol TCP -LocalAddress 192.168.101.78 -LocalPort 8000 -RemoteAddress LocalSubnet -Profile Domain,Private
+```
+
+Este modo usa o servidor de desenvolvimento do Django e deve ficar restrito à rede local confiável. Para publicar na internet, siga [deploy.md](deploy.md).
+
 ## Verificações
 
 ```powershell

@@ -1,82 +1,58 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Unicast × Broadcast · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}?v=delivery-shared-1"><link rel="stylesheet" href="{% static 'css/switch-concept.css' %}?v=delivery-shared-1"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}"><link rel="stylesheet" href="{% static 'css/delivery-concept.css' %}?v=delivery-shared-1"><link rel="stylesheet" href="{% static 'css/delivery-board.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}?v=delivery-bench-5"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}"><link rel="stylesheet" href="{% static 'css/delivery-concept.css' %}?v=delivery-bench-5"><link rel="stylesheet" href="{% static 'css/delivery-board.css' %}">{% endblock %}
 {% block content %}
 <div class="delivery-concept">
-  <div class="delivery-learning-layout">
-    <main class="delivery-learning-content">
-      <section class="delivery-area delivery-hero" data-delivery-area="01" data-delivery-stage="destination" id="delivery-destination">
-        <span class="switch-index">01 · PRIMEIRO, LEIA O DESTINATION MAC</span><span class="switch-eyebrow">UNICAST × BROADCAST · CAMADA 2</span>
-        <h1>O destino escrito no frame revela a intenção da entrega</h1>
-        <p class="lead">Antes de pensar em portas ou tabelas, observe para quem o frame Ethernet foi destinado.</p>
-        <div class="delivery-task"><a class="delivery-lab-jump" href="#delivery-shared-lab" data-delivery-stage-link="destination">ABRIR ESTA ETAPA NO LABORATÓRIO</a><p>Clique no campo <strong>Destination MAC</strong>.</p><p data-destination-feedback aria-live="polite">Primeiro classifique a intenção; a saída ainda não foi decidida.</p></div>
-        <div class="destination-anchor">DESTINATION ESPECÍFICO → UNICAST</div>
-        <p class="transition-copy">Com a intenção identificada, podemos consultar o conhecimento do switch.</p>
-      </section>
+  <header class="delivery-heading"><span>UNICAST × BROADCAST · CAMADA 2</span><h1>Unicast ou broadcast? Leia primeiro o Destination MAC.</h1><p>Compare três resultados no mesmo switch, sem confundir a intenção do frame com a ação de encaminhamento.</p></header>
 
-      <section class="delivery-area" data-delivery-area="02" data-delivery-stage="known" id="delivery-unicast">
-        <span class="switch-index">02 · UNICAST: UM DESTINO ESPECÍFICO</span>
-        <h2>Quando conhece a porta, o switch encaminha diretamente</h2>
-        <p>Destination BB classifica o frame como Unicast. A tabela contém <code>BB → Gi0/4</code>; selecione as três evidências no laboratório.</p>
-        <div class="delivery-task"><a class="delivery-lab-jump" href="#delivery-shared-lab" data-delivery-stage-link="known">ABRIR ESTA ETAPA NO LABORATÓRIO</a><ol class="delivery-action-list"><li data-known-destination>Destination BB</li><li data-known-entry>BB → Gi0/4</li><li data-known-port>Gi0/4</li></ol><p data-known-feedback aria-live="polite">A ordem é livre: relacione frame, tabela e porta.</p></div>
-        <div class="two-decisions"><article><span>INTENÇÃO DO FRAME</span><strong>Destination BB → Unicast</strong></article><article><span>AÇÃO DO SWITCH</span><strong>BB conhecido → somente Gi0/4</strong></article></div>
-        <p class="transition-copy">A tabela orientou a saída, mas não transformou a classificação do frame.</p>
-      </section>
+  <nav class="experiment-selector" aria-label="Experimentos de entrega Ethernet">
+    <button type="button" data-experiment="known" aria-pressed="true"><span>1</span>Unicast conhecido</button>
+    <button type="button" data-experiment="unknown" aria-pressed="false"><span>2</span>Unknown unicast</button>
+    <button type="button" data-experiment="broadcast" aria-pressed="false"><span>3</span>Broadcast</button>
+  </nav>
 
-      <section class="delivery-area" data-delivery-area="03" data-delivery-stage="broadcast" id="delivery-broadcast">
-        <span class="switch-index">03 · BROADCAST: TODOS DAQUELE DOMÍNIO</span>
-        <h2>FF:FF:FF:FF:FF:FF define uma entrega Broadcast</h2>
-        <p>O próprio Destination MAC determina a intenção. Marque no laboratório as portas aplicáveis, sem devolver o frame pela entrada Gi0/1.</p>
-        <div class="delivery-task"><a class="delivery-lab-jump" href="#delivery-shared-lab" data-delivery-stage-link="broadcast">ABRIR ESTA ETAPA NO LABORATÓRIO</a><p data-broadcast-feedback aria-live="polite">Selecione as saídas no desenho e confirme no laboratório.</p></div>
-        <aside class="delivery-note"><strong>Limite local:</strong> o switch replica o frame dentro do domínio de Camada 2/VLAN. Um roteador não encaminha esse mesmo frame Ethernet broadcast para outra rede.</aside>
-        <p class="transition-copy">Várias saídas podem ter outra causa; por isso o Destination MAC continua sendo a evidência principal.</p>
-      </section>
+  <main class="delivery-bench" id="delivery-shared-lab" aria-labelledby="delivery-shared-title">
+    <header class="delivery-shared-heading"><span>BANCADA DE COMPARAÇÃO</span><strong id="delivery-shared-title" data-experiment-title>Unicast conhecido</strong><p data-experiment-question>Destination BB está na tabela. Qual saída corresponde a esse conhecimento?</p></header>
+    {% include "learning/partials/interactive_switch_board.html" with board_id="delivery-concept-shared" board_mode="didactic" board_variant="delivery-page-shared" board_scenario="delivery-concept-shared" board_hide_context=True %}
 
-      <section class="delivery-area" data-delivery-area="04" data-delivery-stage="unknown" id="delivery-unknown">
-        <span class="switch-index">04 · VÁRIAS PORTAS NÃO SIGNIFICAM BROADCAST</span>
-        <h2>Unknown Unicast mantém um destino específico</h2>
-        <p>O frame possui Destination DD, mas DD não aparece na tabela. Identifique o destino, consulte a tabela e marque as portas do flooding.</p>
-        <div class="delivery-task"><a class="delivery-lab-jump" href="#delivery-shared-lab" data-delivery-stage-link="unknown">ABRIR ESTA ETAPA NO LABORATÓRIO</a><ol class="delivery-action-list"><li data-unknown-destination>Destination DD → Unicast</li><li data-unknown-table>DD ausente da tabela</li><li data-unknown-ports>Portas de flooding</li></ol><p data-unknown-feedback aria-live="polite">Há várias saídas possíveis, mas a classificação vem do endereço DD.</p></div>
-        <div class="cause-comparison"><article><span>BROADCAST</span><strong>Destination FF:FF:FF:FF:FF:FF</strong><p>Várias saídas porque o frame foi criado para todos.</p></article><div><strong>MESMO RESULTADO VISUAL</strong><b>≠</b><strong>MESMA CAUSA</strong></div><article><span>UNKNOWN UNICAST</span><strong>Destination DD</strong><p>Várias saídas porque a porta do destino específico é desconhecida.</p></article></div>
-        <blockquote class="anchor-phrase">Para classificar o frame, observe o Destination MAC. Para prever as saídas de um Unicast, observe também o que o switch conhece.</blockquote>
-        <p class="transition-copy">Agora podemos comparar intenção e ação sem confundir Broadcast com flooding.</p>
-      </section>
+    <section class="scenario-builder" data-scenario-builder aria-labelledby="builder-title">
+      <div><span>CONSTRUTOR DO CENÁRIO</span><h2 id="builder-title">Leia, consulte e execute</h2><p data-builder-instruction>Consulte o Destination MAC BB na tabela e depois selecione a porta de saída.</p></div>
+      <div class="scenario-actions"><button type="button" class="btn btn-outline-primary" data-consult-destination>CONSULTAR DESTINATION MAC</button><button type="button" class="btn btn-primary" data-execute-scenario disabled>EXECUTAR PORTAS SELECIONADAS</button><button type="button" class="btn btn-link" data-reset-experiment>REINICIAR CENÁRIO</button></div>
+      <p class="builder-feedback" data-delivery-lab-feedback aria-live="polite">Comece consultando o destino.</p>
+    </section>
 
-      <section class="delivery-area delivery-summary" data-delivery-area="05" data-delivery-stage="summary" id="delivery-summary">
-        <span class="switch-index">05 · VEJA TUDO JUNTO</span>
-        <h2>Destination primeiro. Conhecimento do switch depois.</h2>
-        <p>Abra a síntese e alterne os três casos no mesmo laboratório. Cada resultado separa a intenção do frame da ação do switch.</p>
-        <div class="delivery-task"><a class="delivery-lab-jump" href="#delivery-shared-lab" data-delivery-stage-link="summary">ABRIR SÍNTESE NO LABORATÓRIO</a><p data-summary-feedback aria-live="polite">Escolha um dos três cenários junto ao switch.</p></div>
-        <div class="final-delivery-model"><span>FRAME CHEGA AO SWITCH</span><b>↓</b><span>OLHE DESTINATION MAC</span><b>↓</b><strong>É FF:FF:FF:FF:FF:FF?</strong><div><article><b>SIM</b><span>BROADCAST</span></article><article><b>NÃO</b><span>DESTINO ESPECÍFICO → UNICAST</span><em>Switch conhece a porta?</em><span>SIM → PORTA ESPECÍFICA</span><span>NÃO → FLOODING / UNKNOWN UNICAST</span></article></div></div>
-        <div class="arp-integration">
-          <h3>ARP como aplicação concreta</h3>
-          <div class="request-reply"><article><span>ARP REQUEST</span><code>Destination FF:FF:FF:FF:FF:FF</code><p>Broadcast no domínio local.</p></article><article><span>ARP REPLY NO FLUXO ESTUDADO</span><code>Destination MAC do solicitante</code><p>Unicast.</p></article></div>
-          <button type="button" class="btn btn-outline-primary" data-arp-demo>VER REQUEST × REPLY</button><p data-arp-feedback aria-live="polite"></p>
-        </div>
-        <section class="self-explanation" data-delivery-self-explanation>
-          <span class="action-label label-reflect">EXPLIQUE ANTES DE COMPARAR</span>
-          <h3>Um frame saiu por três portas do switch. Isso é suficiente para afirmar que ele era Broadcast? Explique.</h3>
-          <label for="delivery-explanation">Escreva com suas próprias palavras</label><textarea id="delivery-explanation" rows="5" data-delivery-explanation-text></textarea>
-          <button type="button" class="btn btn-outline-primary" data-delivery-reference-button>CONFERIR RESPOSTA DE REFERÊNCIA</button>
-          <div class="reference-answer" data-delivery-reference hidden><h4>Resposta de referência</h4><p>Não. É necessário observar o Destination MAC. Um broadcast utiliza FF:FF:FF:FF:FF:FF. Um frame unicast com um Destination MAC específico também pode ser enviado por várias portas quando o switch ainda não sabe onde esse MAC está, situação chamada de unknown unicast flooding.</p><small>Compare as ideias, não as palavras. Esta explicação não recebe pontuação.</small></div>
-        </section>
-        <nav class="concept-sequence" aria-label="Sequência do bloco"><a href="{% url 'learning:switch_concept' %}">← Switch Ethernet</a><a href="{% url 'learning:vlan_concept' %}"><span class="visually-hidden">Próximo: VLAN</span><span aria-hidden="true">VLAN →</span></a></nav>
-        <form method="post" action="{% url 'learning:delivery_checkpoint_start' %}" data-delivery-checkpoint-start>{% csrf_token %}<button class="btn btn-primary btn-lg">COMEÇAR CHECKPOINT</button></form>
-      </section>
-    </main>
-
-    <aside class="delivery-shared-lab" id="delivery-shared-lab" aria-labelledby="delivery-shared-title">
-      <header class="delivery-shared-heading"><span>LABORATÓRIO COMPARTILHADO</span><strong id="delivery-shared-title" data-delivery-stage-title>Área 01 · Ler o destino</strong><p data-delivery-stage-copy>O mesmo SW1 acompanhará todas as decisões.</p></header>
-      {% include "learning/partials/interactive_switch_board.html" with board_id="delivery-concept-shared" board_mode="didactic" board_variant="delivery-page-shared" board_scenario="delivery-concept-shared" board_hide_context=True %}
-      <div class="delivery-lab-controls">
-        <button type="button" class="btn btn-primary" data-broadcast-confirm hidden>CONFIRMAR SAÍDAS DO BROADCAST</button>
-        <div data-unknown-controls hidden><button type="button" class="btn btn-outline-primary" data-unknown-table-check>CONSULTAR DD NA TABELA</button><button type="button" class="btn btn-primary" data-unknown-confirm>CONFIRMAR FLOODING</button></div>
-        <div class="scenario-tabs" data-summary-controls hidden><button type="button" data-summary="known">UNICAST CONHECIDO</button><button type="button" data-summary="unknown">UNKNOWN UNICAST</button><button type="button" data-summary="broadcast">BROADCAST</button></div>
+    <section class="delivery-result" aria-labelledby="result-title">
+      <h2 id="result-title">Resultado observado</h2>
+      <div class="result-grid">
+        <article><span>CLASSIFICAÇÃO</span><strong data-result-classification>—</strong></article>
+        <article><span>TABELA</span><strong data-result-table>—</strong></article>
+        <article><span>AÇÃO</span><strong data-result-action>—</strong></article>
+        <article><span>HOSTS</span><strong data-result-hosts>—</strong></article>
       </div>
-      <p class="delivery-shared-feedback" data-delivery-lab-feedback aria-live="polite">Clique em Destination MAC para iniciar.</p>
-    </aside>
-  </div>
+      <div class="host-outcomes" data-host-outcomes aria-live="polite"></div>
+    </section>
+
+    <section class="experiment-explanation" aria-live="polite"><span>O QUE OBSERVAR</span><h2 data-explanation-title>Destino específico e conhecido</h2><p data-explanation-text>O Destination MAC identifica um receptor específico; a tabela permite ao switch escolher uma porta.</p><button type="button" class="btn btn-outline-primary mt-3" data-arp-launch aria-expanded="false" hidden>Ver aplicação prática: ARP</button></section>
+
+    <section class="arp-integration" data-arp-demo aria-labelledby="arp-title" hidden>
+      <div><span>APLICAÇÃO PRÁTICA · ARP</span><h2 id="arp-title">Request broadcast, Reply unicast</h2><p><strong>PC-A · 192.168.10.10</strong> procura o MAC de <strong>PC-B · 192.168.10.20</strong>.</p></div>
+      <p data-arp-step-copy>PC-A ainda não conhece o MAC de PC-B. Prepare o ARP Request para alcançar o domínio local.</p>
+      <div class="arp-actions"><button type="button" class="btn btn-primary" data-arp-action>Enviar ARP Request</button><button type="button" class="btn btn-link" data-arp-reset>Reiniciar demonstração ARP</button></div>
+      <p class="builder-feedback" data-arp-feedback aria-live="polite">O Request está pronto. Envie-o quando quiser observar a entrega.</p>
+    </section>
+  </main>
+
+  <section class="delivery-followup">
+    <section class="self-explanation" data-delivery-self-explanation>
+      <span>EXPLIQUE ANTES DE COMPARAR</span><h2>Um frame saiu por três portas. Isso basta para afirmar que era Broadcast?</h2>
+      <label for="delivery-explanation">Escreva com suas próprias palavras</label><textarea id="delivery-explanation" rows="5" data-delivery-explanation-text></textarea>
+      <button type="button" class="btn btn-outline-primary" data-delivery-reference-button>CONFERIR RESPOSTA DE REFERÊNCIA</button>
+      <div class="reference-answer" data-delivery-reference hidden><h3>Resposta de referência</h3><p>Não. É necessário observar o Destination MAC. Um broadcast utiliza FF:FF:FF:FF:FF:FF. Um frame unicast com um Destination MAC específico também pode ser enviado por várias portas quando o switch ainda não sabe onde esse MAC está, situação chamada de unknown unicast flooding.</p><small>Compare as ideias, não as palavras. Esta explicação não recebe pontuação.</small></div>
+    </section>
+    <nav class="concept-sequence" aria-label="Sequência do bloco"><a href="{% url 'learning:switch_concept' %}">← Switch Ethernet</a><a href="{% url 'learning:vlan_concept' %}"><span class="visually-hidden">Próximo: VLAN</span><span aria-hidden="true">VLAN →</span></a></nav>
+    <form method="post" action="{% url 'learning:delivery_checkpoint_start' %}" data-delivery-checkpoint-start>{% csrf_token %}<button class="btn btn-primary btn-lg">COMEÇAR CHECKPOINT</button></form>
+  </section>
   {% include "learning/partials/delivery_checkpoint.html" %}
 </div>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}?v=delivery-shared-1"></script><script src="{% static 'js/switch-workbench.js' %}"></script><script src="{% static 'js/delivery-concept.js' %}?v=delivery-shared-1"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}?v=delivery-bench-5"></script><script src="{% static 'js/switch-workbench.js' %}"></script><script src="{% static 'js/delivery-concept.js' %}?v=delivery-bench-5"></script>{% endblock %}

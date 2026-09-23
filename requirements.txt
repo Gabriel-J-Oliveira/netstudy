@@ -1,2 +1,2 @@
-Django>=5.2,<5.3
-
+# Dependência Python direta do NetStudy (SQLite faz parte da biblioteca padrão).
+Django==5.2.17

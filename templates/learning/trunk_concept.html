@@ -1,80 +1,43 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Trunk + 802.1Q · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}"><link rel="stylesheet" href="{% static 'css/vlan-board.css' %}"><link rel="stylesheet" href="{% static 'css/trunk-stage.css' %}?v=trunk-shared-1"><link rel="stylesheet" href="{% static 'css/trunk-concept.css' %}?v=trunk-shared-1">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exercise-session.css' %}"><link rel="stylesheet" href="{% static 'css/frame-active.css' %}"><link rel="stylesheet" href="{% static 'css/switch-board.css' %}"><link rel="stylesheet" href="{% static 'css/switch-workbench.css' %}"><link rel="stylesheet" href="{% static 'css/vlan-board.css' %}"><link rel="stylesheet" href="{% static 'css/trunk-stage.css' %}?v=trunk-journey-1"><link rel="stylesheet" href="{% static 'css/trunk-concept.css' %}?v=trunk-journey-1">{% endblock %}
 {% block content %}
-<div class="trunk-concept trunk-clarity">
-  <div class="trunk-learning-layout">
-    <main class="trunk-learning-content">
-      <section class="trunk-area trunk-hero" data-trunk-area="01" data-trunk-page-stage="problem" id="trunk-problem">
-        <span class="trunk-index">TRUNK + 802.1Q · ÁREA 01 · O PROBLEMA</span>
-        <h1>Como continuar a mesma VLAN em outro switch?</h1>
-        <p class="lead">A e C pertencem à VLAN 10; B e D pertencem à VLAN 20. Agora os pares estão distribuídos entre SW1 e SW2.</p>
-        <div class="naive-links" aria-label="Solução inicial com duas conexões"><article><strong>Cabo 1</strong><span>somente VLAN 10</span></article><article><strong>Cabo 2</strong><span>somente VLAN 20</span></article><p>Uma conexão por contexto funciona como ideia inicial, mas cresce mal.</p></div>
-        <div class="trunk-task"><a class="trunk-lab-jump" href="#trunk-shared-lab" data-trunk-stage-link="problem">ABRIR ESTA ETAPA NO LABORATÓRIO</a><ol class="trunk-action-list"><li data-problem-revealed>Revelar um único Trunk</li><li data-problem-vlan="10">Enviar frame VLAN 10</li><li data-problem-vlan="20">Enviar frame VLAN 20</li></ol><p data-opening-feedback aria-live="polite">Clique no enlace entre os switches para revelar o Trunk.</p></div>
-        <p class="area-bridge">O mesmo enlace transporta contextos diferentes; agora precisamos distinguir Access de Trunk.</p>
-      </section>
+<div class="trunk-concept trunk-journey">
+  <header class="trunk-page-heading">
+    <span>FUNDAMENTOS · CAMADA 2</span>
+    <h1>Trunk + 802.1Q</h1>
+    <p>Acompanhe como o mesmo enlace transporta frames de VLANs diferentes sem misturar seus contextos.</p>
+  </header>
 
-      <section class="trunk-area" data-trunk-area="02" data-trunk-page-stage="roles" id="trunk-access-versus-trunk">
-        <span class="trunk-index">ÁREA 02 · ACCESS × TRUNK</span>
-        <h2>Access e Trunk produzem consequências diferentes</h2>
-        <p>Inspecione uma porta conectada a host e depois o enlace SW1 ↔ SW2.</p>
-        <div class="trunk-task"><a class="trunk-lab-jump" href="#trunk-shared-lab" data-trunk-stage-link="roles">ABRIR ESTA ETAPA NO LABORATÓRIO</a><ol class="trunk-action-list"><li data-role-access>Porta Access de host</li><li data-role-trunk>Enlace Trunk</li></ol><p data-role-feedback aria-live="polite">Compare o que cada conexão precisa transportar.</p></div>
-        <div class="role-contrast"><article><strong>ACCESS</strong><span>host conectado</span><b>uma VLAN no cenário estudado</b></article><article><strong>TRUNK</strong><span>SW1 ↔ SW2</span><b>VLAN 10 + VLAN 20 no mesmo enlace</b></article></div>
-        <p class="area-bridge">Para conservar os contextos no enlace compartilhado, cada frame precisa levar uma identificação.</p>
-      </section>
-
-      <section class="trunk-area" data-trunk-area="03" data-trunk-page-stage="dot1q" id="trunk-dot1q">
-        <span class="trunk-index">ÁREA 03 · 802.1Q</span>
-        <h2>O VLAN ID preserva o contexto durante o Trunk</h2>
-        <p>Escolha VLAN 10 ou VLAN 20 e conduza manualmente o frame por Access → Trunk identificado → Access.</p>
-        <div class="trunk-task"><a class="trunk-lab-jump" href="#trunk-shared-lab" data-trunk-stage-link="dot1q">ABRIR WALKTHROUGH NO LABORATÓRIO</a><p data-dot1q-feedback aria-live="polite">Escolha um frame e avance quando estiver pronto.</p></div>
-        <div class="dot1q-walkthrough" data-dot1q-walkthrough data-vlan="10" data-step="0">
-          <div class="walkthrough-toolbar"><button type="button" data-dot1q-vlan="10" class="is-active">FRAME DE A · VLAN 10</button><button type="button" data-dot1q-vlan="20">FRAME DE B · VLAN 20</button></div>
-          <div class="simple-packet" data-simple-packet><span>Ethernet II</span><span>├ Destination MAC: <code data-simple-destination>CC</code></span><span>└ Source MAC: <code data-simple-source>AA</code></span><button type="button" data-dot1q-field hidden>└ 802.1Q → <strong>VLAN ID: <b data-simple-vlan>10</b></strong></button></div>
-          <p data-dot1q-step-text>Pronto para acompanhar o frame de PC-A.</p><button class="btn btn-primary" type="button" data-dot1q-next>PRÓXIMO PASSO</button>
-        </div>
-        <div class="anchor-pair"><strong>TRUNK TRANSPORTA.</strong><strong>802.1Q IDENTIFICA.</strong></div>
-        <p class="area-bridge">Com o contexto preservado, a mesma VLAN pode continuar no outro switch sem se misturar às demais.</p>
-      </section>
-
-      <section class="trunk-area" data-trunk-area="04" data-trunk-page-stage="across" id="trunk-across-switches">
-        <span class="trunk-index">ÁREA 04 · DOIS SWITCHES E ALLOWED VLANs</span>
-        <h2>A mesma VLAN atravessa switches somente quando o Trunk a permite</h2>
-        <p>Execute os casos diretamente na topologia e observe que o link pode continuar UP mesmo quando uma VLAN está bloqueada.</p>
-        <div class="trunk-task"><a class="trunk-lab-jump" href="#trunk-shared-lab" data-trunk-stage-link="across">ABRIR ESTA ETAPA NO LABORATÓRIO</a><ol class="trunk-action-list"><li data-across-step="unicast">A → C · VLAN 10</li><li data-across-step="broadcast">Broadcast de A · VLAN 10</li><li data-across-step="restrict">Allowed apenas VLAN 10</li><li data-across-step="blocked">Tentar B → D · VLAN 20</li><li data-across-step="restore">Restaurar VLAN 20 e repetir</li></ol><p data-across-feedback aria-live="polite">Comece executando A → C.</p></div>
-        <div class="dual-mac-proof" data-mac-proof hidden><article><h3>VISÃO DO SW1</h3><code>VLAN 10 · CC → Gi0/8</code><small>C está através do trunk.</small></article><article><h3>VISÃO DO SW2</h3><code>VLAN 10 · CC → Gi0/1</code><small>C está na porta local.</small></article></div>
-        <div class="allowed-anchor">LINK UP NÃO SIGNIFICA QUE TODA VLAN PODE ATRAVESSAR.</div>
-        <p class="area-bridge">A síntese repetirá os mesmos efeitos em uma única sequência.</p>
-      </section>
-
-      <section class="trunk-area trunk-summary" data-trunk-area="05" data-trunk-page-stage="summary" id="trunk-summary">
-        <span class="trunk-index">ÁREA 05 · VEJA TUDO JUNTO</span>
-        <h2>Access, Trunk, 802.1Q e Allowed VLANs no mesmo caminho</h2>
-        <p>Avance por cinco passos. O quarto bloqueia a VLAN 20 sem derrubar o link; o quinto restaura a comunicação.</p>
-        <div class="trunk-task"><a class="trunk-lab-jump" href="#trunk-shared-lab" data-trunk-stage-link="summary">ABRIR SÍNTESE NO LABORATÓRIO</a><ol class="summary-sequence"><li data-summary-step="1">A → C · VLAN 10</li><li data-summary-step="2">B → D · VLAN 20</li><li data-summary-step="3">Broadcast · VLAN 10</li><li data-summary-step="4">Allowed sem VLAN 20 · falha</li><li data-summary-step="5">VLAN 20 restaurada · comunicação volta</li></ol><p data-summary-feedback aria-live="polite">O Trunk está UP e permite VLAN 10 e VLAN 20.</p></div>
-        <div class="mental-trunk"><span>HOST</span><b>↓</b><span>ACCESS</span><b>↓</b><span>VLAN</span><b>↓</b><span>TRUNK</span><b>↓</b><span>802.1Q IDENTIFICA</span><b>↓</b><span>OUTRO SWITCH</span><b>↓</b><span>ACCESS DA MESMA VLAN</span></div>
-        <section class="trunk-cli-proof" data-trunk-cli-proof><h3><code>show interfaces trunk</code></h3><pre><code>Port       Status       VLANs
-Gi0/8      trunking     10,20</code></pre><button type="button" data-cli-trunk-row><code>Gi0/8 · trunking · 10,20</code></button><p data-cli-feedback aria-live="polite">A CLI representa o enlace central da mesma topologia.</p></section>
-        <details class="native-optional"><summary>Conceito adicional: Native VLAN</summary><p>O 802.1Q também possui o conceito de Native VLAN. Em configurações tradicionais, tráfego dessa VLAN pode atravessar o trunk sem a tag explícita. Esse detalhe ganha importância em troubleshooting posterior.</p></details>
-        <section class="self-explanation" data-self-explanation><h3>Explique com suas palavras</h3><label for="trunk-explanation">Por que precisamos de 802.1Q quando várias VLANs utilizam a mesma conexão Trunk?</label><textarea id="trunk-explanation" rows="5"></textarea><button type="button" data-reveal-reference>CONFERIR RESPOSTA DE REFERÊNCIA</button><div data-reference-answer hidden><strong>Resposta de referência</strong><p>Porque o mesmo link físico transporta frames de diferentes VLANs. O switch do outro lado precisa identificar a qual contexto lógico cada frame pertence para manter a separação entre as VLANs. O 802.1Q transporta essa identificação no trunk.</p><small>Esta explicação não recebe pontuação.</small></div></section>
-        <aside class="routing-teaser"><p>VLAN 10 e VLAN 20 continuam separadas. O próximo conteúdo mostra como IPv4 e sub-redes definem o que é local e remoto.</p><strong>Próximo conteúdo: IPv4 + Sub-rede</strong></aside>
-        <nav class="concept-sequence"><a href="{% url 'learning:vlan_concept' %}">← VLAN</a><a href="{% url 'learning:ipv4_concept' %}">IPv4 + Sub-rede →</a></nav>
-        <form method="post" action="{% url 'learning:trunk_checkpoint_start' %}" data-trunk-checkpoint-start>{% csrf_token %}<button class="btn btn-primary btn-lg">COMEÇAR CHECKPOINT</button></form>
-      </section>
-    </main>
-
-    <aside class="trunk-shared-lab" id="trunk-shared-lab" aria-labelledby="trunk-shared-title">
-      <header class="trunk-shared-heading"><span>TOPOLOGIA COMPARTILHADA</span><strong id="trunk-shared-title" data-trunk-stage-title>Área 01 · A mesma VLAN em dois switches</strong><p data-trunk-stage-copy>SW1 e SW2 acompanharão todas as etapas.</p></header>
-      {% include "learning/partials/dual_switch_stage.html" with stage_id="trunk-concept-shared" sw1_id="trunk-concept-shared-sw1" sw2_id="trunk-concept-shared-sw2" stage_title="SW1 ↔ SW2 · VLAN 10 e VLAN 20" stage_mode="didactic" %}
-      <div class="trunk-lab-controls">
-        <div data-opening-controls><button type="button" data-opening-frame="10" disabled>ENVIAR FRAME VLAN 10</button><button type="button" data-opening-frame="20" disabled>ENVIAR FRAME VLAN 20</button></div>
-        <div data-across-controls hidden><button type="button" data-across-action="unicast">EXECUTAR A → C</button><button type="button" data-across-action="broadcast">BROADCAST DE A</button><button type="button" data-across-action="restrict">ALLOWED: SOMENTE VLAN 10</button><button type="button" data-across-action="blocked">TENTAR B → D</button><button type="button" data-across-action="restore">RESTAURAR VLAN 20 E REPETIR</button></div>
-        <button type="button" class="btn btn-primary" data-summary-next hidden>INICIAR PASSO 1</button>
+  <main>
+    <section class="trunk-journey-panel" data-trunk-journey aria-labelledby="journey-title">
+      <div class="journey-heading"><div><span>PERCURSO DO FRAME</span><h2 id="journey-title">Access → Trunk identificado → Access</h2></div><p data-journey-live aria-live="polite">Escolha uma VLAN e avance manualmente pelo percurso.</p></div>
+      <div class="journey-controls" role="group" aria-label="Escolher frame para acompanhar">
+        <button type="button" data-journey-vlan="10" aria-pressed="true">Frame de A → C · VLAN 10</button>
+        <button type="button" data-journey-vlan="20" aria-pressed="false">Frame de B → D · VLAN 20</button>
+        <button type="button" class="allowed-toggle" data-allowed-toggle aria-pressed="true">Bloquear VLAN 20</button>
       </div>
-      <p class="trunk-shared-feedback" data-trunk-lab-feedback aria-live="polite">Revele o enlace Trunk para começar.</p>
-    </aside>
-  </div>
+      <div class="allowed-status" aria-live="polite"><strong>Enlace compartilhado: <span data-link-status>UP</span></strong><span>VLANs permitidas: <b data-allowed-list>10, 20</b></span></div>
+      <div class="journey-route" data-route-state="ready" data-vlan="10">
+        <article class="route-host route-source" data-route-host="source"><span>HOST DE ORIGEM</span><strong data-source-host>Host A</strong><small>Source MAC · <code data-source-mac>AA:AA:AA:AA:AA:AA</code></small><b data-source-result>Frame pronto · sem tag</b></article>
+        <div class="route-segment" data-route-step="access-in"><span class="route-arrow" aria-hidden="true">→</span><strong>Access</strong><small>associa à VLAN <b data-access-vlan-in>10</b></small></div>
+        <div class="route-segment route-trunk" data-route-step="trunk"><span class="route-arrow" aria-hidden="true">→</span><strong>Enlace compartilhado</strong><small>Trunk · 802.1Q</small><b class="route-tag" data-route-tag hidden>VLAN ID <span data-route-vlan-id>10</span></b><em data-trunk-status>aguardando o frame</em></div>
+        <div class="route-segment" data-route-step="access-out"><span class="route-arrow" aria-hidden="true">→</span><strong>Access</strong><small>mantém VLAN <b data-access-vlan-out>10</b></small></div>
+        <article class="route-host route-destination" data-route-host="destination"><span>HOST DE DESTINO</span><strong data-destination-host>Host C</strong><small>Destination MAC · <code data-destination-mac>CC:CC:CC:CC:CC:CC</code></small><b data-destination-result>aguardando entrega</b></article>
+      </div>
+      <div class="frame-summary" aria-label="Campos do frame Ethernet"><strong>FRAME ETHERNET</strong><span>Source MAC <code data-frame-source>AA:AA:AA:AA:AA:AA</code></span><span>Destination MAC <code data-frame-destination>CC:CC:CC:CC:CC:CC</code></span><span data-frame-tag-row hidden>802.1Q · <code>VLAN ID <b data-frame-vlan>10</b></code></span></div>
+      <div class="journey-action-row"><button type="button" class="btn btn-primary btn-lg" data-journey-next>Avançar para Access</button><button type="button" class="btn btn-outline-secondary" data-journey-reset>Reiniciar percurso</button></div>
+      <p class="journey-feedback" data-journey-feedback aria-live="polite">Na entrada, a porta Access associa o frame sem tag ao contexto VLAN correspondente.</p>
+      <div class="journey-explanations"><p><strong>Access:</strong> associa o tráfego do host a uma VLAN.</p><p><strong>Trunk + 802.1Q:</strong> transporta frames de várias VLANs no mesmo enlace e identifica a VLAN do frame.</p><p><strong>Saída Access:</strong> o lado receptor usa a identificação e entrega o frame na VLAN correspondente; o host não precisa processar a tag.</p><p><strong>Allowed VLANs:</strong> uma VLAN pode ser bloqueada sem derrubar o enlace. Hosts de VLANs diferentes precisam de roteamento de Camada 3 para comunicar.</p></div>
+    </section>
+    <details class="trunk-optional-detail"><summary>Native VLAN</summary><p>O 802.1Q também define uma Native VLAN. Em configurações tradicionais, os frames dessa VLAN podem atravessar o trunk sem uma tag explícita.</p></details>
+    <details class="trunk-optional-detail trunk-cli-detail"><summary>Referência textual: <code>show interfaces trunk</code></summary><p>Exemplo simplificado de um enlace ativo que permite as duas VLANs:</p><pre aria-label="Exemplo textual de show interfaces trunk"><code>Port       Status       VLANs allowed
+Gi0/8      trunking     10,20</code></pre></details>
+    <section class="trunk-self-explanation" data-self-explanation><span>AUTOEXPLICAÇÃO</span><h2>Por que o frame precisa ser identificado ao atravessar um Trunk?</h2><label for="trunk-explanation">Explique com suas palavras</label><textarea id="trunk-explanation" rows="3"></textarea><button type="button" class="btn btn-outline-primary" data-reveal-reference>Conferir resposta de referência</button><div data-reference-answer hidden><strong>Resposta de referência</strong><p>O enlace compartilhado pode transportar frames de várias VLANs. A identificação 802.1Q permite que o lado receptor mantenha cada frame no contexto VLAN correspondente. Na saída Access, o host recebe o frame sem precisar processar a tag.</p></div></section>
+    <nav class="concept-sequence" aria-label="Sequência do bloco"><a href="{% url 'learning:vlan_concept' %}">← VLAN</a><a href="{% url 'learning:ipv4_concept' %}">IPv4 + Sub-rede →</a></nav>
+    <form method="post" action="{% url 'learning:trunk_checkpoint_start' %}" data-trunk-checkpoint-start>{% csrf_token %}<button class="btn btn-primary btn-lg">Começar checkpoint</button></form>
+  </main>
   {% include "learning/partials/trunk_checkpoint.html" %}
 </div>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}"></script><script src="{% static 'js/trunk-stage.js' %}?v=trunk-shared-1"></script><script src="{% static 'js/trunk-workbench.js' %}"></script><script src="{% static 'js/trunk-concept.js' %}?v=trunk-shared-1"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/exercise-session.js' %}"></script><script src="{% static 'js/switch-board.js' %}"></script><script src="{% static 'js/trunk-stage.js' %}?v=trunk-journey-1"></script><script src="{% static 'js/trunk-workbench.js' %}"></script><script src="{% static 'js/trunk-concept.js' %}?v=trunk-journey-1"></script>{% endblock %}

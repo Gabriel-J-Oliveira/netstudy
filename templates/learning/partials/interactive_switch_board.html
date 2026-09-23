@@ -50,9 +50,9 @@
     <button type="button" data-frame-field="type"><small>Type</small><code data-frame-type>Ethernet II</code><span>conteúdo transportado</span></button>
     <button type="button" data-frame-field="payload"><small>Payload conceitual</small><code data-frame-payload>Dados</code><span>inspeção contextual</span></button>
   </div>
-  <div class="board-data-grid">
+  <div class="board-data-grid{% if board_variant == 'switch-page-shared' %} board-data-guided{% endif %}">
     <section class="live-mac-table" data-mac-table-panel><header><span>MAC ADDRESS TABLE</span><small>{% if board_mode == 'didactic' %}visual{% else %}ao vivo{% endif %}</small></header><table><thead><tr><th>VLAN</th><th>MAC</th><th>Porta</th><th>Tipo</th><th>Mudança</th></tr></thead><tbody data-mac-table></tbody></table><p data-empty-table>A tabela ainda está vazia.</p></section>
-    <section class="decision-timeline"><header>LINHA DO TEMPO</header><ol data-board-timeline aria-live="polite"><li class="is-current">Aguardando o frame.</li></ol></section>
+    <section class="decision-timeline"><header>{% if board_variant == 'switch-page-shared' %}ÚLTIMO EVENTO{% else %}LINHA DO TEMPO{% endif %}</header>{% if board_variant == 'switch-page-shared' %}<p class="board-last-event" data-board-last-event aria-live="polite">Aguardando o frame.</p><details class="board-timeline-details"><summary>Ver linha do tempo completa</summary>{% endif %}<ol data-board-timeline aria-live="polite"><li class="is-current">Aguardando o frame.</li></ol>{% if board_variant == 'switch-page-shared' %}</details>{% endif %}</section>
   </div>
   <div class="board-actions"><button type="button" class="btn btn-primary" data-board-run>VER A DECISÃO</button><button type="button" class="btn btn-outline-primary" data-board-step>Próximo passo</button></div>
   <p class="board-announcement visually-hidden" data-board-announcement aria-live="polite"></p>

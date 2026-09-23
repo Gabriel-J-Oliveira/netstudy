@@ -1141,26 +1141,32 @@ class SwitchConceptAndCheckpointTests(TestCase):
     def answer_map(self, payload):
         return self.client.post(reverse("learning:switch_checkpoint_answer"), {"answer_payload": json.dumps(payload)}, follow=True)
 
-    def test_switch_page_has_exactly_five_areas_and_simplified_reusable_boards(self):
+    def test_switch_page_has_one_guided_lab_and_five_step_panels(self):
         response = self.client.get(reverse("learning:switch_concept"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-switch-area=", count=5, html=False)
+        self.assertContains(response, "data-step-panel=", count=5, html=False)
+        self.assertContains(response, "data-step-target=", count=5, html=False)
         self.assertContains(response, "data-switch-board", count=1, html=False)
         self.assertContains(response, "switch-board-didactic", count=1, html=False)
         self.assertContains(response, "data-switch-port=", count=8, html=False)
         self.assertContains(response, 'data-board-id="switch-concept-shared"', html=False)
         self.assertContains(response, 'data-scenario="switch-concept-shared"', html=False)
-        self.assertContains(response, "Decidir por onde encaminhar o frame")
-        self.assertContains(response, "SOURCE MAC + INGRESS PORT → APRENDER")
-        self.assertContains(response, "DESTINATION MAC + MAC TABLE → DECIDIR")
+        self.assertContains(response, "Como o switch aprende e encaminha")
+        self.assertContains(response, "O primeiro frame chega ao switch")
+        self.assertContains(response, "Ver a mesma tabela na CLI")
+        self.assertContains(response, "Ver linha do tempo completa")
+        self.assertContains(response, "data-board-last-event", html=False)
+        self.assertContains(response, 'aria-current="step"', html=False)
+        css = (settings.BASE_DIR / "static" / "css" / "switch-concept.css").read_text(encoding="utf-8")
+        self.assertNotIn("position: sticky", css)
+        self.assertNotIn("grid-template-columns: minmax(300px, .72fr)", css)
         self.assertContains(response, "show mac address-table")
-        self.assertContains(response, "PRIMEIRA VEZ")
+        self.assertContains(response, "PRIMEIRA TENTATIVA")
         self.assertContains(response, "Esta resposta não recebe pontuação")
-        self.assertNotContains(response, "RAPID FIRE")
-        self.assertNotContains(response, "data-rapid-question")
-        self.assertNotContains(response, "data-switch-terminal")
-        self.assertContains(response, "switch-board.js?v=switch-shared-1")
-        self.assertContains(response, "switch-concept.js?v=switch-shared-1")
+        self.assertNotContains(response, "ABRIR ESTA ETAPA NO LABORATÓRIO")
+        self.assertNotContains(response, "data-switch-area=")
+        self.assertContains(response, "switch-board.js?v=switch-guided-1")
+        self.assertContains(response, "switch-concept.js?v=switch-guided-1")
 
     def test_simplified_buttons_keep_the_javascript_contract(self):
         response = self.client.get(reverse("learning:switch_concept"))
@@ -1168,20 +1174,20 @@ class SwitchConceptAndCheckpointTests(TestCase):
         script_path = settings.BASE_DIR / "static" / "js" / "switch-concept.js"
         script = script_path.read_text(encoding="utf-8")
         selectors = (
-            "data-problem-enter",
-            "data-stage-link",
+            "data-step-enter",
+            "data-step-query",
+            "data-step-flood-confirm",
+            "data-step-five-action",
+            "data-step-previous",
+            "data-step-next",
+            "data-step-target",
             "data-learning-source",
             "data-learning-port",
-            "data-forward-destination",
-            "data-forward-entry",
-            "data-forward-port",
-            "data-flood-confirm",
-            "data-later-learning",
-            "data-cycle-demo",
-            "data-cycle-next",
             "data-cli-mac-b",
             "data-switch-reference-button",
             "data-checkpoint-start",
+            "data-switch-host-outcomes",
+            "data-process",
         )
         for selector in selectors:
             with self.subTest(selector=selector):
@@ -1195,14 +1201,58 @@ class SwitchConceptAndCheckpointTests(TestCase):
         self.assertIn('"switch-concept-shared"', board_script)
         self.assertNotIn('"switch-clarity-problem"', board_script)
         self.assertIn("FLOOD_PORTS = [3, 4, 6]", concept_script)
-        self.assertIn("O flooding nunca devolve uma cópia por ela", concept_script)
-        self.assertIn('activeStage === "learning"', concept_script)
-        self.assertIn('activeStage === "forwarding"', concept_script)
-        self.assertNotIn("setupRapidFire", concept_script)
-        self.assertIn("position: sticky", concept_css)
-        self.assertIn("position: static", concept_css)
-        self.assertIn("@media (max-width: 360px)", concept_css)
+        self.assertIn("Gi0/1 é a porta de entrada; o switch não devolve o frame por ela.", concept_script)
+        self.assertIn('state.phase === "frame-arrived"', concept_script)
+        self.assertIn('state.phase = "flood-selection"', concept_script)
+        self.assertIn('state.phase = "second-request"', concept_script)
+        self.assertIn("step > state.unlocked", concept_script)
+        self.assertIn("state.completed.has(state.activeStep)", concept_script)
+        self.assertIn("state.activeStep = step", concept_script)
+        self.assertNotIn("position: sticky", concept_css)
+        self.assertIn(".switch-stepper", concept_css)
+        self.assertIn(".shared-switch-lab", concept_css)
+        self.assertIn("@media(max-width:360px)", concept_css)
         self.assertIn("prefers-reduced-motion", concept_css)
+
+    def test_stepper_unlocks_without_automatic_advance_and_reset_clears_progress(self):
+        script = (settings.BASE_DIR / "static" / "js" / "switch-concept.js").read_text(encoding="utf-8")
+        self.assertIn("state.unlocked = Math.max", script)
+        self.assertIn("state.completed.add(step)", script)
+        self.assertIn("button.disabled = step > state.unlocked", script)
+        self.assertIn('state = {phase: "initial", activeStep: 1, unlocked: 1', script)
+        self.assertIn("current.state.events = []", script)
+        self.assertNotIn("setTimeout(", script)
+        self.assertNotIn("showStep(step + 1", script)
+
+    def test_continuous_switch_flow_has_unique_events_live_table_and_reset(self):
+        script = (settings.BASE_DIR / "static" / "js" / "switch-concept.js").read_text(encoding="utf-8")
+        events = (
+            "Frame AA → BB entrou pela Gi0/1",
+            "Switch aprendeu AA → Gi0/1",
+            "Consulta por BB: não encontrado",
+            "Flooding: Gi0/3, Gi0/4 e Gi0/6",
+            "Resposta BB → AA entrou pela Gi0/4",
+            "Switch aprendeu BB → Gi0/4",
+            "AA encontrado: saída somente pela Gi0/1",
+            "Novo frame AA → BB",
+            "BB encontrado: saída somente pela Gi0/4",
+        )
+        for event in events:
+            with self.subTest(event=event):
+                self.assertIn(event, script)
+        self.assertIn("if (state.history.includes(index)) return", script)
+        self.assertIn("state.history.map(event => EVENTS[event])", script)
+        self.assertIn("current.reset()", script)
+        self.assertIn("current.state.events = []", script)
+        self.assertIn("current.clearFrameState()", script)
+        self.assertIn("setMacEntry(api().MAC.A, 1, null)", script)
+        self.assertIn("current.setMacEntry(api().MAC.B, 4, null)", script)
+        self.assertIn("receive(api().MAC.B, api().MAC.A, 4, 4)", script)
+        self.assertIn("receive(api().MAC.A, api().MAC.B, 1, 7)", script)
+        self.assertIn('root().addEventListener("keydown"', script)
+        self.assertIn('root().addEventListener("click", handleBoardInput, true)', script)
+        self.assertNotIn("setTimeout(", script)
+        self.assertNotIn("activeStage", script)
 
     def test_sidebar_home_and_frame_integrate_switch(self):
         route = reverse("learning:switch_concept")
@@ -1331,39 +1381,36 @@ class DeliveryConceptAndCheckpointTests(TestCase):
         extra = {"HTTP_X_REQUESTED_WITH": "XMLHttpRequest"} if ajax else {}
         return self.client.post(reverse("learning:delivery_checkpoint_answer"), {"answer_payload": json.dumps(payload)}, follow=not ajax, **extra)
 
-    def test_page_has_exactly_five_areas_and_reuses_simplified_switch_board(self):
+    def test_page_has_single_comparison_bench_and_three_experiments(self):
         response = self.client.get(reverse("learning:delivery_concept"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-delivery-area=", count=5, html=False)
+        self.assertContains(response, "data-experiment=", count=3, html=False)
         self.assertContains(response, "data-switch-board", count=1, html=False)
         self.assertContains(response, "switch-board-didactic", count=1, html=False)
         self.assertContains(response, "data-switch-port=", count=8, html=False)
         self.assertContains(response, 'data-board-id="delivery-concept-shared"', html=False)
         self.assertContains(response, 'data-scenario="delivery-concept-shared"', html=False)
         self.assertContains(response, "FF:FF:FF:FF:FF:FF")
-        self.assertContains(response, "UNKNOWN UNICAST")
-        self.assertContains(response, "O destino escrito no frame revela a intenção da entrega")
-        self.assertContains(response, "Um frame saiu por três portas do switch")
-        self.assertContains(response, "Esta explicação não recebe pontuação")
-        self.assertContains(response, "Destination DD → Unicast")
-        self.assertContains(response, "Um roteador não encaminha esse mesmo frame Ethernet broadcast")
-        self.assertNotContains(response, "data-concept-question")
-        self.assertNotContains(response, "data-unicast-question")
-        self.assertNotContains(response, "data-broadcast-question")
-        self.assertNotContains(response, "data-unknown-question")
-        self.assertNotContains(response, "EVIDENCE BOARD")
-        self.assertContains(response, "delivery-concept.js?v=delivery-shared-1")
+        self.assertContains(response, "Unknown unicast")
+        self.assertContains(response, "Unicast ou broadcast? Leia primeiro o Destination MAC.")
+        self.assertContains(response, "Um frame saiu por três portas. Isso basta")
+        self.assertContains(response, "EXPLIQUE ANTES DE COMPARAR")
+        for label in ("CLASSIFICAÇÃO", "TABELA", "AÇÃO", "HOSTS"):
+            self.assertContains(response, label)
+        self.assertNotContains(response, "data-delivery-area=")
+        self.assertNotContains(response, "ABRIR ESTA ETAPA NO LABORATÓRIO")
+        self.assertContains(response, "delivery-concept.js?v=delivery-bench-5")
 
     def test_simplified_delivery_buttons_keep_the_javascript_contract(self):
         response = self.client.get(reverse("learning:delivery_concept"))
         html = response.content.decode()
         script = (settings.BASE_DIR / "static" / "js" / "delivery-concept.js").read_text(encoding="utf-8")
         selectors = (
-            "data-delivery-stage-link", "data-destination-feedback",
-            "data-known-destination", "data-known-entry", "data-known-port",
-            "data-broadcast-confirm", "data-unknown-table-check", "data-unknown-confirm",
-            "data-summary",
-            "data-arp-demo", "data-delivery-reference-button", "data-delivery-checkpoint-start",
+            "data-experiment", "data-consult-destination", "data-execute-scenario",
+            "data-reset-experiment", "data-result-classification", "data-result-table",
+            "data-result-action", "data-result-hosts", "data-host-outcomes",
+            "data-arp-launch", "data-arp-action", "data-arp-reset",
+            "data-delivery-reference-button", "data-delivery-checkpoint-start",
         )
         for selector in selectors:
             with self.subTest(selector=selector):
@@ -1376,17 +1423,55 @@ class DeliveryConceptAndCheckpointTests(TestCase):
         concept_css = (settings.BASE_DIR / "static" / "css" / "delivery-concept.css").read_text(encoding="utf-8")
         self.assertIn('"delivery-concept-shared"', board_script)
         self.assertNotIn('"delivery-didactic-opening"', board_script)
-        self.assertIn("OUTPUT_PORTS = [3, 4, 6]", concept_script)
-        self.assertIn('activeStage === "known"', concept_script)
-        self.assertIn('activeStage === "broadcast"', concept_script)
-        self.assertIn('activeStage === "unknown"', concept_script)
-        self.assertIn('["Enter", " "]', concept_script)
-        self.assertIn("DD continua sendo o Destination MAC em todas as cópias", concept_script)
-        self.assertNotIn("lockAnswer", concept_script)
-        self.assertIn("position: sticky", concept_css)
-        self.assertIn("position: static", concept_css)
-        self.assertIn("@media (max-width: 360px)", concept_css)
+        self.assertIn("FLOOD_PORTS = [3, 4, 6]", concept_script)
+        for scenario in ('known:', 'unknown:', 'broadcast:', '"arp-request":', '"arp-reply":'):
+            self.assertIn(scenario, concept_script)
+        self.assertIn('["Enter"," "]', concept_script)
+        self.assertIn("Flooding descreve a ação do switch, não a intenção do frame", concept_script)
+        self.assertIn("state.events.has(key)", concept_script)
+        self.assertNotIn("position: sticky", concept_css)
+        self.assertIn(".experiment-selector", concept_css)
+        self.assertIn("@media(max-width:360px)", concept_css)
         self.assertIn("prefers-reduced-motion", concept_css)
+
+    def test_delivery_scenarios_separate_classification_table_action_and_hosts(self):
+        script = (settings.BASE_DIR / "static" / "js" / "delivery-concept.js").read_text(encoding="utf-8")
+        expected = (
+            'classification: "Unicast / encaminhamento direto"',
+            'tableResult: "BB conhecido → Gi0/4"',
+            'classification: "Unicast", tableResult: "DD desconhecido"',
+            'classification: "Broadcast", tableResult: "Associação individual não é necessária"',
+            'hosts: "PC-D aceita; PC-B e PC-C descartam"',
+            'hosts: "PC-B, PC-C e PC-D aceitam"',
+        )
+        for content in expected:
+            with self.subTest(content=content):
+                self.assertIn(content, script)
+        self.assertIn("button.dataset.experiment === activeExperiment", script)
+        self.assertIn("configure(state.kind)", script)
+        self.assertNotIn("setTimeout(", script)
+
+    def test_arp_request_and_reply_use_same_delivery_bench(self):
+        response = self.client.get(reverse("learning:delivery_concept"))
+        self.assertContains(response, "Ver aplicação prática: ARP")
+        self.assertContains(response, "Enviar ARP Request")
+        self.assertContains(response, "Reiniciar demonstração ARP")
+        self.assertContains(response, "PC-A · 192.168.10.10")
+        self.assertContains(response, "PC-B · 192.168.10.20")
+        self.assertNotContains(response, 'data-arp-mode=', html=False)
+        self.assertNotContains(response, "EXECUTAR ARP REQUEST")
+        self.assertNotContains(response, "EXECUTAR ARP REPLY")
+        script = (settings.BASE_DIR / "static" / "js" / "delivery-concept.js").read_text(encoding="utf-8")
+        self.assertIn('destination: "BROADCAST"', script)
+        self.assertIn('source: "A", destination: "BROADCAST", ingress: 1, table: [["A", 1]]', script)
+        self.assertIn('source: "B", destination: "A", ingress: 4, table: [["A", 1], ["B", 4]]', script)
+        self.assertIn("Todos recebem; somente PC-B responde ao IPv4 procurado", script)
+        self.assertIn("o Request trouxe o Source MAC de PC-A", script)
+        self.assertIn('arpPhase = "request-ready"', script)
+        self.assertIn('arpPhase = "reply-ready"', script)
+        self.assertIn('setText("[data-arp-action]", "Enviar ARP Reply")', script)
+        self.assertIn("executeArpFrame();", script)
+        self.assertIn("resetArpDemo", script)
 
     def test_navigation_connects_switch_delivery_and_future_vlan(self):
         route = reverse("learning:delivery_concept")
@@ -1490,30 +1575,25 @@ class VlanConceptAndCheckpointTests(TestCase):
         session["vlan_checkpoint"] = {"current": number, "answers": answers or {}, "complete": False}
         session.save()
 
-    def test_page_has_exactly_five_areas_and_reuses_didactic_board(self):
+    def test_page_uses_visual_comparison_without_an_interactive_switch(self):
         response = self.client.get(reverse("learning:vlan_concept"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-vlan-area=", count=5, html=False)
-        self.assertContains(response, "data-switch-board", count=1, html=False)
-        self.assertContains(response, "switch-board-didactic", count=1, html=False)
-        self.assertContains(response, "switch-board-vlan-page-shared", count=1, html=False)
-        self.assertContains(response, "data-switch-port=", count=8, html=False)
-        self.assertContains(response, 'data-board-id="vlan-concept-shared"', html=False)
-        self.assertContains(response, 'data-scenario="vlan-concept-shared"', html=False)
-        self.assertContains(response, "E se eu não quiser que todos façam parte da mesma rede Ethernet?")
-        self.assertContains(response, "Um switch. Duas VLANs. Dois contextos de Camada 2.")
-        self.assertContains(response, "ALTERAR Gi0/5 PARA VLAN 10")
+        self.assertContains(response, "VLAN: separar redes lógicas no mesmo switch")
+        self.assertContains(response, "data-vlan-visualization", html=False)
+        self.assertContains(response, 'data-vlan-mode="single"', html=False)
+        self.assertContains(response, 'data-vlan-mode="split"', html=False)
+        self.assertContains(response, "PC-A")
+        self.assertContains(response, "PC-D")
+        self.assertNotContains(response, 'id="vlan-shared-lab"', html=False)
+        self.assertNotContains(response, 'data-vlan-stage-link=', html=False)
+        page_markup = response.content.decode().split('<section id="vlan-checkpoint"', 1)[0]
+        self.assertNotIn('data-switch-board', page_markup)
+        self.assertNotIn('data-switch-port=', page_markup)
+        self.assertContains(response, 'id="vlan-checkpoint"', html=False)
         self.assertContains(response, "show vlan brief")
-        self.assertContains(response, "OUTRA REPRESENTAÇÃO DA MESMA ESTRUTURA")
-        self.assertContains(response, "E se a VLAN 10 e a VLAN 20 precisarem existir nos dois switches?")
-        self.assertContains(response, "Esta explicação não recebe pontuação")
-        self.assertNotContains(response, "data-concept-question")
-        self.assertNotContains(response, "data-same-context")
-        self.assertNotContains(response, "data-access-question")
-        self.assertNotContains(response, "data-broadcast-question")
-        self.assertNotContains(response, "data-vlan-cli-form")
-        self.assertNotContains(response, "EVIDENCE BOARD")
-        self.assertContains(response, "vlan-concept.js?v=vlan-shared-1")
+        self.assertContains(response, 'data-vlan-cli-proof', html=False)
+        self.assertContains(response, "EXPLIQUE COM SUAS PALAVRAS")
+        self.assertContains(response, "vlan-concept.js?v=vlan-visual-1")
         self.assertContains(response, reverse("learning:trunk_concept"))
 
     def test_simplified_vlan_buttons_keep_the_javascript_contract(self):
@@ -1521,9 +1601,10 @@ class VlanConceptAndCheckpointTests(TestCase):
         html = response.content.decode()
         script = (settings.BASE_DIR / "static" / "js" / "vlan-concept.js").read_text(encoding="utf-8")
         selectors = (
-            "data-vlan-stage-link", "data-opening-mode", "data-group-port",
-            "data-access-inspected", "data-access-change", "data-frame-scenario",
-            "data-frame-confirm", "data-summary-next", "data-cli-vlan", "data-vlan-reference-button",
+            "data-vlan-mode", "data-broadcast-run", "data-pc-e-select",
+            "data-apply-access", "data-test-pc-e", "data-broadcast-title",
+            "data-broadcast-copy", "data-broadcast-recipients",
+            "data-vlan-reference-button",
             "data-vlan-checkpoint-start",
         )
         for selector in selectors:
@@ -1551,20 +1632,43 @@ class VlanConceptAndCheckpointTests(TestCase):
         self.assertIn('"vlan-concept-shared"', source)
         self.assertNotIn('"vlan-didactic-opening"', source)
 
-    def test_shared_vlan_lab_has_direct_actions_keyboard_and_responsive_contract(self):
+    def test_visualization_models_vlan_broadcast_access_and_a11y(self):
+        response = self.client.get(reverse("learning:vlan_concept"))
+        template = (settings.BASE_DIR / "templates" / "learning" / "vlan_concept.html").read_text(encoding="utf-8")
         script = (settings.BASE_DIR / "static" / "js" / "vlan-concept.js").read_text(encoding="utf-8")
         css = (settings.BASE_DIR / "static" / "css" / "vlan-concept.css").read_text(encoding="utf-8")
-        self.assertIn("configureSplit", script)
-        self.assertIn("inspectGroupPort", script)
-        self.assertIn("changeAccessVlan", script)
-        self.assertIn("confirmFramePorts", script)
-        self.assertIn("advanceSummary", script)
-        self.assertIn('["Enter", " "]', script)
-        self.assertNotIn("lockCorrect", script)
-        self.assertIn("position: sticky", css)
-        self.assertIn("position: static", css)
-        self.assertIn("@media (max-width: 360px)", css)
+        self.assertIn('single: "', script)
+        self.assertIn('split: "', script)
+        self.assertIn('state.mode === "single" ? ["B", "C", "D"] : ["B"]', script)
+        self.assertIn('state.pcEVlan === 10', script)
+        self.assertIn("function applyAccess()", script)
+        self.assertIn("function renderPcEResult()", script)
+        self.assertIn("unknown-unicast flooding", template)
+        self.assertIn("roteamento de Camada 3", template)
+        self.assertIn("VLAN não determina automaticamente uma sub-rede IP", template)
+        self.assertNotIn("data-cli-vlan=", template)
+        self.assertIn("data-cli-pc-e-vlan10", template)
+        self.assertIn("data-cli-pc-e-vlan20", template)
+        self.assertNotIn("Unknown Unicast A", template)
+        self.assertIn("focus-visible", css)
+        self.assertIn(".vlan-mode-controls button", css)
+        self.assertIn("@media(max-width:360px)", css)
         self.assertIn("prefers-reduced-motion", css)
+
+    def test_checkpoint_retains_switch_board_scripts_and_ajax(self):
+        response = self.client.get(reverse("learning:vlan_concept"))
+        html = response.content.decode()
+        script = (settings.BASE_DIR / "static" / "js" / "vlan-concept.js").read_text(encoding="utf-8")
+        self.assertContains(response, 'id="vlan-checkpoint"', html=False)
+        self.assertContains(response, 'data-vlan-checkpoint-start', html=False)
+        self.assertContains(response, "switch-board.js?v=vlan-visual-1")
+        self.assertContains(response, "switch-workbench.js")
+        self.assertIn('"X-Requested-With": "XMLHttpRequest"', script)
+        self.assertIn('querySelector("#vlan-checkpoint")', script)
+        self.assertIn("window.NetStudySwitchWorkbench?.capture()", script)
+        active_checkpoint = self.start(ajax=True)
+        self.assertEqual(active_checkpoint.status_code, 200)
+        self.assertIn('data-switch-board', active_checkpoint.json()["html"])
 
     def test_cli_commands_and_access_only_scope_exist(self):
         source = (settings.BASE_DIR / "static" / "js" / "switch-workbench.js").read_text(encoding="utf-8")
@@ -1647,25 +1751,25 @@ class TrunkConceptAndCheckpointTests(TestCase):
         }
         session.save()
 
-    def test_page_loads_with_exactly_five_areas_and_one_shared_dual_switch_stage(self):
+    def test_page_uses_a_single_frame_journey_without_rendering_switches(self):
         response = self.client.get(reverse("learning:trunk_concept"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-trunk-area=", count=5, html=False)
-        self.assertContains(response, "data-trunk-stage data-stage-id", count=1, html=False)
-        self.assertContains(response, "data-switch-board", count=2, html=False)
-        self.assertContains(response, 'id="trunk-shared-lab"', html=False)
-        self.assertContains(response, "Como continuar a mesma VLAN em outro switch?")
-        self.assertContains(response, "TRUNK TRANSPORTA.")
-        self.assertContains(response, "802.1Q IDENTIFICA.")
-
-    def test_shared_stage_retains_inspection_and_optional_native_vlan(self):
-        response = self.client.get(reverse("learning:trunk_concept"))
-        self.assertContains(response, "data-trunk-link", count=1, html=False)
-        self.assertContains(response, "TRUNK INSPECTOR")
-        self.assertContains(response, "Access VLAN")
-        self.assertContains(response, "Allowed VLANs")
-        self.assertContains(response, "Conceito adicional: Native VLAN")
-        self.assertNotContains(response, "trunk-content-stage")
+        self.assertContains(response, "data-trunk-journey", html=False)
+        self.assertContains(response, "Access → Trunk identificado → Access")
+        self.assertContains(response, "data-route-step=", count=3, html=False)
+        self.assertContains(response, "Host A")
+        self.assertContains(response, "Host C")
+        script = (settings.BASE_DIR / "static" / "js" / "trunk-concept.js").read_text(encoding="utf-8")
+        self.assertIn('sourceHost: "Host B", destinationHost: "Host D"', script)
+        self.assertContains(response, "VLAN ID")
+        self.assertContains(response, "Native VLAN")
+        self.assertContains(response, "show interfaces trunk")
+        page = response.content.decode().split('<section id="trunk-checkpoint"', 1)[0]
+        for legacy in ('data-switch-board', 'data-trunk-stage', 'data-switch-port', 'trunk-shared-lab', 'data-trunk-stage-link'):
+            self.assertNotIn(legacy, page)
+        self.assertNotIn("SW1", page)
+        self.assertNotIn("SW2", page)
+        self.assertNotContains(response, "ABRIR ESTA ETAPA NO LABORATÓRIO")
 
     def test_forwarding_model_supports_allowed_native_broadcast_and_independent_state(self):
         board = (settings.BASE_DIR / "static" / "js" / "switch-board.js").read_text(encoding="utf-8")
@@ -1676,27 +1780,24 @@ class TrunkConceptAndCheckpointTests(TestCase):
             self.assertIn(fragment, stage)
         self.assertIn('kind="broadcast"', stage)
 
-    def test_simplified_packet_view_focuses_on_vlan_id(self):
+    def test_frame_journey_supports_both_vlans_and_manual_tagged_progress(self):
         response = self.client.get(reverse("learning:trunk_concept"))
-        self.assertContains(response, "data-simple-packet", html=False)
-        self.assertContains(response, "data-dot1q-field", html=False)
-        self.assertContains(response, "VLAN ID")
-        self.assertNotContains(response, "TPID")
-        self.assertNotContains(response, "PCP")
-        self.assertNotContains(response, "DEI")
-
-    def test_walkthrough_is_manual_and_has_no_timer(self):
-        response = self.client.get(reverse("learning:trunk_concept"))
-        self.assertContains(response, 'data-step="0"', html=False)
-        self.assertContains(response, "data-dot1q-next", html=False)
         concept = (settings.BASE_DIR / "static" / "js" / "trunk-concept.js").read_text(encoding="utf-8")
         stage = (settings.BASE_DIR / "static" / "js" / "trunk-stage.js").read_text(encoding="utf-8")
+        self.assertContains(response, 'data-journey-vlan="10"', html=False)
+        self.assertContains(response, 'data-journey-vlan="20"', html=False)
+        for fragment in ('state.vlan = Number(vlan)', 'state.step = 1', 'state.step = 2', 'state.step = 3', 'VLAN ID ${state.vlan}', 'Frame recebido · sem tag'):
+            self.assertIn(fragment, concept)
         self.assertNotIn("setTimeout", concept)
         self.assertNotIn("setTimeout", stage)
-        self.assertIn(
-            "Source e Destination MAC continuam identificando origem e destino. O VLAN ID preserva o contexto VLAN durante o transporte.",
-            concept,
-        )
+
+    def test_allowed_vlan_toggle_blocks_vlan20_but_keeps_link_up_and_vlan10(self):
+        response = self.client.get(reverse("learning:trunk_concept"))
+        self.assertContains(response, 'data-link-status>UP</span>', html=False)
+        self.assertContains(response, 'data-allowed-list>10, 20</b>', html=False)
+        concept = (settings.BASE_DIR / "static" / "js" / "trunk-concept.js").read_text(encoding="utf-8")
+        for fragment in ('state.allowed = state.allowed.includes(20) ? [10] : [10, 20]', 'state.allowed.includes(state.vlan)', 'VLAN 20 foi removida da lista permitida', 'VLAN 10 continua permitida', 'VLAN 20 voltou à lista permitida'):
+            self.assertIn(fragment, concept)
 
     def test_cli_supports_required_observation_commands(self):
         source = (settings.BASE_DIR / "static" / "js" / "trunk-workbench.js").read_text(encoding="utf-8")
@@ -1704,16 +1805,18 @@ class TrunkConceptAndCheckpointTests(TestCase):
             self.assertIn(command, source.lower())
         response = self.client.get(reverse("learning:trunk_concept"))
         self.assertContains(response, "show interfaces trunk")
-        self.assertContains(response, "data-cli-trunk-row", html=False)
+        self.assertContains(response, "<details", html=False)
+        self.assertNotContains(response, "data-cli-trunk-row", html=False)
 
     def test_clarity_interactions_keep_the_javascript_contract(self):
         source = (settings.BASE_DIR / "static" / "js" / "trunk-concept.js").read_text(encoding="utf-8")
+        response = self.client.get(reverse("learning:trunk_concept"))
         for selector in (
-            "data-trunk-stage-link", "data-opening-frame", "data-role-access",
-            "data-dot1q-vlan", "data-dot1q-next", "data-dot1q-field",
-            "data-across-action", "data-summary-next", "data-cli-trunk-row",
+            "data-trunk-journey", "data-journey-vlan", "data-journey-next",
+            "data-journey-reset", "data-allowed-toggle", "data-route-tag",
             "data-reveal-reference", "data-trunk-checkpoint-start",
         ):
+            self.assertContains(response, selector, html=False)
             self.assertIn(selector, source)
 
     def test_direct_actions_replace_old_quizzes_and_rapid_fire(self):
@@ -1723,20 +1826,18 @@ class TrunkConceptAndCheckpointTests(TestCase):
             "data-allowed-choice", "data-trunk-rapid-fire", "data-rapid-answer",
         ):
             self.assertNotContains(response, selector, html=False)
-        for action in ("unicast", "broadcast", "restrict", "blocked", "restore"):
-            self.assertContains(response, f'data-across-action="{action}"', html=False)
-        self.assertContains(response, "LINK UP NÃO SIGNIFICA QUE TODA VLAN PODE ATRAVESSAR.")
+        self.assertContains(response, "uma VLAN pode ser bloqueada sem derrubar o enlace.")
+        self.assertContains(response, "roteamento de Camada 3")
+        self.assertContains(response, "o host recebe o frame sem precisar processar a tag.")
 
     def test_shared_controls_are_keyboard_native_and_layout_is_responsive(self):
         response = self.client.get(reverse("learning:trunk_concept"))
-        self.assertContains(response, '<button type="button" class="trunk-link" data-trunk-link', html=False)
-        self.assertContains(response, '<button type="button" data-dot1q-field', html=False)
-        self.assertContains(response, 'role="button" tabindex="0"', count=16, html=False)
+        self.assertContains(response, 'data-journey-live aria-live="polite"', html=False)
+        self.assertContains(response, 'data-journey-feedback aria-live="polite"', html=False)
+        self.assertContains(response, 'data-journey-next', html=False)
         self.assertContains(response, 'aria-live="polite"', html=False)
-        board = (settings.BASE_DIR / "static" / "js" / "switch-board.js").read_text(encoding="utf-8")
-        self.assertIn('event.key === "Enter" || event.key === " "', board)
         css = (settings.BASE_DIR / "static" / "css" / "trunk-concept.css").read_text(encoding="utf-8")
-        for fragment in ("position: sticky", "position: static", "max-width: 360px", "prefers-reduced-motion", ":focus-visible"):
+        for fragment in ("max-width:360px", "prefers-reduced-motion", ":focus-visible"):
             self.assertIn(fragment, css)
 
     def test_checkpoint_has_exactly_ten_with_requested_difficulty_and_investigations(self):

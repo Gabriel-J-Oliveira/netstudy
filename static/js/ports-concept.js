@@ -4,118 +4,198 @@
   const all = (selector, root = document) => [...root.querySelectorAll(selector)];
   const lab = one("[data-endpoint-lab]");
   if (!lab) return;
+
   const services = {
     web: {protocol: "TCP", port: "443", label: "Serviço web"},
     ssh: {protocol: "TCP", port: "22", label: "SSH"},
     dns: {protocol: "UDP", port: "53", label: "DNS"},
   };
-  const state = {scenario: "inspect", service: "web", step: -1, assembled: new Set()};
-  const timeline = one("[data-lab-steps]", lab), feedback = one("[data-lab-feedback]", lab);
-  const next = one("[data-lab-next]", lab), reply = one("[data-lab-reply]", lab);
-  const assembly = one("[data-lab-assembly]", lab), flows = one("[data-lab-flows]", lab);
-  const titles = {inspect: "Qual host? Qual serviço?", service: "Entrega ao serviço", assemble: "Monte o envio ao web", reply: "Resposta ao cliente", parallel: "Dois clientes, um serviço"};
-  const stages = {
-    inspect: ["Clique em Destination IP ou em Protocolo + Destination Port para inspecionar cada responsabilidade."],
-    service: ["Pacote preparado para o servidor 192.168.20.30.", "O protocolo e a porta de destino selecionam o serviço dentro do servidor."],
-    assemble: ["Selecione serviço web, porta temporária e protocolo.", "Envio montado: TCP 192.168.10.20:53012 → 192.168.20.30:443.", "O serviço web recebe dados no endpoint TCP 443."],
-    reply: ["Envio original: TCP 192.168.10.20:53012 → 192.168.20.30:443.", "Resposta: TCP 192.168.20.30:443 → 192.168.10.20:53012."],
-    parallel: ["Fluxo A: 192.168.10.20:53012 → 192.168.20.30:443.", "Fluxo B: 192.168.10.21:53013 → 192.168.20.30:443.", "Protocolo, IPs e portas de origem/destino distinguem os dois fluxos."],
-  };
-  function packet(reverse = false) {
-    const service = services[state.service];
-    const sourceIP = reverse ? "192.168.20.30" : "192.168.10.20";
-    const sourcePort = reverse ? service.port : "53012";
-    const destinationIP = reverse ? "192.168.10.20" : "192.168.20.30";
-    const destinationPort = reverse ? "53012" : service.port;
+  const state = {service: null, validated: false, sent: false, replyConfirmed: false, replied: false, parallel: false};
+  const fields = Object.fromEntries(all("[data-choice]", lab).map(field => [field.dataset.choice, field]));
+  const feedback = one("[data-lab-feedback]", lab);
+  const fieldFeedback = one("[data-field-feedback]", lab);
+  const replyFeedback = one("[data-reply-feedback]", lab);
+  const validateButton = one("[data-lab-validate]", lab);
+  const sendButton = one("[data-lab-send]", lab);
+  const replyStage = one("[data-reply-stage]", lab);
+  const replyCheck = one("[data-reply-check]", lab);
+  const replySend = one("[data-reply-send]", lab);
+  const parallelStage = one("[data-parallel-stage]", lab);
+  const timeline = one("[data-lab-steps]", lab);
+
+  function record(message) {
+    const li = document.createElement("li");
+    li.textContent = message;
+    timeline.appendChild(li);
+  }
+  function displayPacket({sourceIP, sourcePort, destinationIP, destinationPort, protocol, direction, result}) {
     one("[data-packet-source-ip]", lab).textContent = sourceIP;
     one("[data-packet-source-port]", lab).textContent = sourcePort;
     one("[data-packet-destination-ip]", lab).textContent = destinationIP;
     one("[data-packet-destination-port]", lab).textContent = destinationPort;
-    one("[data-packet-protocol]", lab).textContent = service.protocol;
-    one("[data-field-host]", lab).textContent = destinationIP;
-    one("[data-field-endpoint]", lab).textContent = `${service.protocol} ${destinationPort}`;
+    one("[data-packet-protocol]", lab).textContent = protocol;
+    one("[data-packet-direction]", lab).textContent = direction;
+    one("[data-endpoint-delivery-result]", lab).textContent = result;
   }
-  function render() {
-    one("[data-lab-title]", lab).textContent = titles[state.scenario];
-    lab.dataset.scenario = state.scenario;
-    assembly.hidden = state.scenario !== "assemble";
-    flows.hidden = state.scenario !== "parallel" || state.step < 0;
-    all("[data-lab-service]", lab).forEach(button => button.setAttribute("aria-pressed", String(button.dataset.labService === state.service)));
-    all("[data-assemble]", lab).forEach(button => button.setAttribute("aria-pressed", String(state.assembled.has(button.dataset.assemble))));
-    all("[data-ports-open]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.portsOpen === state.scenario && (!button.dataset.service || button.dataset.service === state.service))));
-    timeline.replaceChildren();
-    const messages = state.step < 0 ? [stages[state.scenario][0]] : stages[state.scenario].slice(0, state.step + 1);
-    messages.forEach(message => { const li = document.createElement("li"); li.textContent = message; timeline.appendChild(li); });
-    const reversed = state.scenario === "reply" && state.step === 1;
-    packet(reversed);
-    next.hidden = state.scenario === "inspect" || state.scenario === "reply" || state.step >= stages[state.scenario].length - 1 || (state.scenario === "assemble" && state.assembled.size < 3);
-    next.textContent = state.step < 0 ? "Iniciar entrega" : "Próxima etapa";
-    reply.hidden = state.scenario !== "reply" || state.step >= 1;
-  }
-  function select(scenario, service = "web") {
-    state.scenario = scenario; state.service = service; state.step = -1; state.assembled.clear();
-    feedback.textContent = "";
-    render();
-    lab.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start"});
-    lab.focus({preventScroll: true});
-  }
-  all("[data-ports-open]").forEach(button => button.addEventListener("click", () => select(button.dataset.portsOpen, button.dataset.service)));
-  all("[data-lab-service]", lab).forEach(button => button.addEventListener("click", () => {
-    state.scenario = "service"; state.service = button.dataset.labService; state.step = 0;
-    feedback.textContent = `${services[state.service].protocol} ${services[state.service].port} identifica o endpoint usado por ${services[state.service].label} no servidor.`;
-    render();
-  }));
-  all("[data-lab-field]", lab).forEach(button => button.addEventListener("click", () => {
-    const host = button.dataset.labField === "host";
-    feedback.textContent = host
-      ? "192.168.20.30 leva os dados ao servidor. Destination IP responde qual host receberá."
-      : `${services[state.service].protocol} ${services[state.service].port} indica qual serviço deve receber dentro dele. Protocolo e Destination Port identificam o endpoint.`;
-    all("[data-lab-field]", lab).forEach(field => field.setAttribute("aria-pressed", String(field === button)));
-  }));
-  all("[data-assemble]", lab).forEach(button => button.addEventListener("click", () => {
-    if (state.scenario !== "assemble") select("assemble");
-    state.assembled.add(button.dataset.assemble);
-    const detail = {
-      service: "Destino: TCP 443 pertence ao serviço web no servidor.",
-      client: "Origem: 53012 é a porta temporária do cliente; ela não precisa ser 443.",
-      protocol: "Protocolo: TCP faz parte da identificação desse endpoint.",
+  function currentRequest() {
+    return {
+      sourceIP: "192.168.10.20",
+      sourcePort: fields["source-port"].value,
+      destinationIP: fields["destination-ip"].value,
+      destinationPort: fields["destination-port"].value,
+      protocol: fields.protocol.value,
     };
-    feedback.textContent = detail[button.dataset.assemble];
-    render();
-    if (state.assembled.size === 3) feedback.textContent += " Envio pronto: avance para observar a entrega.";
+  }
+  function renderDraft() {
+    const request = currentRequest();
+    displayPacket({
+      sourceIP: request.sourceIP,
+      sourcePort: request.sourcePort || "—",
+      destinationIP: request.destinationIP || "—",
+      destinationPort: request.destinationPort || "—",
+      protocol: request.protocol || "—",
+      direction: "SOLICITAÇÃO · RASCUNHO",
+      result: "O Packet Inspector acompanha suas escolhas. Confira se protocolo, host e endpoint correspondem ao serviço selecionado.",
+    });
+  }
+  function resetJourney(keepService = false) {
+    state.validated = false;
+    state.sent = false;
+    state.replyConfirmed = false;
+    state.replied = false;
+    state.parallel = false;
+    all("[data-choice]", lab).forEach(field => { field.value = ""; });
+    all("[data-choice]", lab).forEach(field => { field.disabled = false; });
+    one("[data-reply-choice]", lab).value = "";
+    validateButton.disabled = !state.service;
+    sendButton.hidden = true;
+    sendButton.disabled = false;
+    replyStage.hidden = true;
+    parallelStage.hidden = true;
+    replyCheck.hidden = false;
+    replySend.hidden = true;
+    replySend.disabled = false;
+    replyFeedback.textContent = "";
+    fieldFeedback.textContent = "";
+    feedback.textContent = "";
+    timeline.replaceChildren();
+    const li = document.createElement("li");
+    li.textContent = state.service ? "Monte protocolo, destino e porta temporária; depois confira os campos." : "Escolha web, SSH ou DNS.";
+    timeline.appendChild(li);
+    displayPacket({sourceIP: "—", sourcePort: "—", destinationIP: "—", destinationPort: "—", protocol: "—", direction: "AGUARDANDO MONTAGEM", result: "O destino identifica primeiro o host; protocolo e porta de destino indicam o endpoint."});
+    one("[data-route-client]", lab).innerHTML = "Cliente<br><strong>192.168.10.20:53012</strong>";
+    if (!keepService) {
+      state.service = null;
+      one("[data-service-note]").textContent = "Escolha um serviço para ver seu protocolo e endpoint.";
+    }
+    all("[data-lab-service]", lab).forEach(button => button.setAttribute("aria-pressed", String(button.dataset.labService === state.service)));
+  }
+
+  all("[data-lab-service]", lab).forEach(button => button.addEventListener("click", () => {
+    state.service = button.dataset.labService;
+    resetJourney(true);
+    const service = services[state.service];
+    one("[data-service-note]").textContent = `${service.label} neste servidor: ${service.protocol} ${service.port}. Agora escolha os campos da solicitação.`;
+    fields["destination-ip"].value = "192.168.20.30";
+    validateButton.disabled = false;
+    record(`Serviço escolhido: ${service.label} usa ${service.protocol} ${service.port} neste cenário.`);
+    all("[data-lab-service]", lab).forEach(item => item.setAttribute("aria-pressed", String(item === button)));
   }));
-  next.addEventListener("click", () => {
-    if (state.step < stages[state.scenario].length - 1) state.step += 1;
-    if (state.scenario === "service" && state.step === 1) feedback.textContent = `O pacote chegou ao endpoint ${services[state.service].protocol} ${services[state.service].port} · ${services[state.service].label}.`;
-    if (state.scenario === "parallel" && state.step === 2) feedback.textContent = "Mesmo destino TCP 443, origens diferentes: dois fluxos distinguíveis.";
-    render();
+
+  all("[data-choice]", lab).forEach(field => field.addEventListener("change", () => {
+    if (state.sent) return;
+    if (state.validated) {
+      state.validated = false;
+      state.sent = false;
+      sendButton.hidden = true;
+      fieldFeedback.textContent = "O campo mudou; confira novamente antes de enviar.";
+    }
+    renderDraft();
+  }));
+
+  validateButton.addEventListener("click", () => {
+    if (!state.service) {
+      fieldFeedback.textContent = "Escolha primeiro web, SSH ou DNS.";
+      return;
+    }
+    const service = services[state.service];
+    const request = currentRequest();
+    const errors = [];
+    if (!request.protocol) errors.push("Escolha o protocolo.");
+    else if (request.protocol !== service.protocol) errors.push(`Protocolo: ${service.label} usa ${service.protocol} neste cenário; o transporte participa da identificação do endpoint.`);
+    if (!request.destinationIP) errors.push("Escolha o IP de destino.");
+    else if (request.destinationIP !== "192.168.20.30") errors.push("IP de destino: o serviço está no host 192.168.20.30; a porta não escolhe outro host.");
+    if (!request.destinationPort) errors.push("Escolha a porta de destino.");
+    else if (request.destinationPort !== service.port) errors.push(`Porta de destino: ${service.label} está disponível em ${service.protocol} ${service.port} neste servidor, não em ${request.protocol} ${request.destinationPort}.`);
+    if (!request.sourcePort) errors.push("Escolha uma porta temporária de origem.");
+    else if (request.sourcePort !== "53012") errors.push("Porta de origem: este cenário usa 53012 no cliente 192.168.10.20; ela identifica onde a resposta deve voltar.");
+    fieldFeedback.textContent = errors.length ? errors.join(" ") : `Campos compatíveis: ${service.protocol} ${request.destinationIP}:${service.port} seleciona ${service.label}; 53012 identifica o endpoint deste cliente.`;
+    state.validated = errors.length === 0;
+    sendButton.hidden = !state.validated;
+    if (state.validated) displayPacket({...request, direction: "SOLICITAÇÃO · CLIENTE → SERVIDOR", result: `Pronto para enviar ao endpoint ${service.protocol} ${service.port} de ${service.label}.`});
   });
-  reply.addEventListener("click", () => {
-    state.step = 1;
-    feedback.textContent = "Origem e destino se invertem; a resposta volta ao endpoint temporário 192.168.10.20:53012.";
-    render();
+
+  sendButton.addEventListener("click", () => {
+    if (!state.validated) return;
+    state.sent = true;
+    sendButton.disabled = true;
+    all("[data-choice]", lab).forEach(field => { field.disabled = true; });
+    const request = currentRequest();
+    displayPacket({...request, direction: "SOLICITAÇÃO · CLIENTE → SERVIDOR", result: `O host 192.168.20.30 recebeu o pacote e ${services[state.service].label} é identificado pelo endpoint ${request.protocol} ${request.destinationPort}.`});
+    record(`Solicitação enviada: ${request.protocol} ${request.sourceIP}:${request.sourcePort} → ${request.destinationIP}:${request.destinationPort}.`);
+    feedback.textContent = `Chegou ao host 192.168.20.30; ${services[state.service].label} recebe pelo endpoint ${request.protocol} ${request.destinationPort}.`;
+    replyStage.hidden = false;
+    replyStage.focus?.();
   });
-  one("[data-lab-reset]", lab).addEventListener("click", () => select(state.scenario, state.service));
+
+  replyCheck.addEventListener("click", () => {
+    const chosen = one("[data-reply-choice]", lab).value;
+    if (!chosen) {
+      replyFeedback.textContent = "Escolha a porta de destino da resposta.";
+      return;
+    }
+    if (chosen !== "53012") {
+      replyFeedback.textContent = chosen === services[state.service].port
+        ? `${chosen} é a porta do serviço no servidor. Na resposta, ela fica como origem; o destino é a porta temporária do cliente.`
+        : `${chosen} não é a porta temporária usada pelo cliente 192.168.10.20 nesta solicitação.`;
+      return;
+    }
+    state.replyConfirmed = true;
+    replyFeedback.textContent = "Isso: 53012 era a porta temporária de origem do cliente. Agora envie a resposta com os endpoints invertidos.";
+    replySend.hidden = false;
+  });
+
+  replySend.addEventListener("click", () => {
+    if (!state.replyConfirmed) return;
+    state.replied = true;
+    replySend.disabled = true;
+    const service = services[state.service];
+    displayPacket({sourceIP: "192.168.20.30", sourcePort: service.port, destinationIP: "192.168.10.20", destinationPort: "53012", protocol: service.protocol, direction: "RESPOSTA · SERVIDOR → CLIENTE", result: `A resposta de ${service.protocol} ${service.port} volta ao endpoint temporário 192.168.10.20:53012.`});
+    record(`Resposta: ${service.protocol} 192.168.20.30:${service.port} → 192.168.10.20:53012; os endpoints foram invertidos.`);
+    feedback.textContent = "A resposta chegou ao endpoint do cliente que iniciou esta comunicação.";
+    parallelStage.hidden = false;
+  });
+
+  one("[data-lab-parallel]", lab).addEventListener("click", () => {
+    if (!state.replied) return;
+    state.parallel = true;
+    displayPacket({sourceIP: "192.168.10.21", sourcePort: "53013", destinationIP: "192.168.20.30", destinationPort: "443", protocol: "TCP", direction: "SEGUNDO CLIENTE → SERVIDOR", result: "Fluxo B usa o mesmo serviço TCP 443; IP e porta de origem diferenciam o cliente e sua comunicação."});
+    record("Fluxo B destacado: TCP 192.168.10.21:53013 → 192.168.20.30:443. O destino permanece igual; a origem muda.");
+    feedback.textContent = "Compare os dois fluxos: ambos chegam a TCP 443, mas têm IP e porta de origem diferentes.";
+  });
+
+  one("[data-lab-reset]", lab).addEventListener("click", () => resetJourney());
 
   const terminal = one("[data-ports-terminal]");
   terminal?.addEventListener("submit", event => {
     event.preventDefault();
     const command = one("input", terminal).value.trim();
     const output = one("[data-ports-terminal-output]");
-    if (command === "netstat -ano") {
-      output.textContent = "TCP  192.168.10.20:53012  192.168.20.30:443  ESTABLISHED\nTCP  0.0.0.0:22           0.0.0.0:0           LISTENING\nUDP  0.0.0.0:53           *:*";
-    } else if (command === "netstat -ano | findstr :443") {
-      output.textContent = "TCP  192.168.10.20:53012  192.168.20.30:443  ESTABLISHED";
-    } else {
-      output.textContent = "Comando não disponível neste cenário. Use netstat -ano ou netstat -ano | findstr :443.";
-    }
+    const serverLines = "TCP  0.0.0.0:443           0.0.0.0:0             LISTENING     4240\nTCP  0.0.0.0:22            0.0.0.0:0             LISTENING     4120\nUDP  0.0.0.0:53            *:*                                 4000\nTCP  192.168.20.30:443     192.168.10.20:53012   ESTABLISHED   4240\nTCP  192.168.20.30:443     192.168.10.21:53013   ESTABLISHED   4240";
+    if (command === "netstat -ano") output.textContent = serverLines;
+    else if (command === "netstat -ano | findstr :443") output.textContent = serverLines.split("\n").filter(line => line.includes(":443")).join("\n");
+    else output.textContent = "Comando não disponível nesta simulação. Use netstat -ano ou netstat -ano | findstr :443.";
   });
-  all("[data-reference-reveal]").forEach(button => button.addEventListener("click", () => {
-    const card = button.closest("[data-self]");
-    one("[data-reference]", card).hidden = false;
-    one("textarea", card).readOnly = true;
-    button.disabled = true;
-  }));
 
   const checkpoint = one("#ports-checkpoint"), memory = new Map();
   const currentNumber = () => one(".gateway-checkpoint-header>strong", checkpoint)?.textContent.split(" ")[0] || "start";
@@ -146,5 +226,5 @@
       const note = document.createElement("p"); note.className = "gateway-feedback is-error"; note.textContent = error.message; checkpoint.appendChild(note);
     }
   });
-  render();
+  resetJourney();
 })();

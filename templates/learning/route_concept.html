@@ -1,6 +1,6 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Tabela de Rotas + Escolha de Caminho · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}?v=layout-2"><link rel="stylesheet" href="{% static 'css/context-glossary.css' %}"><link rel="stylesheet" href="{% static 'css/routing-table-visualizer.css' %}?v=route-flow-2"><link rel="stylesheet" href="{% static 'css/route-concept.css' %}?v=layout-2">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}?v=checkpoint-contrast-1"><link rel="stylesheet" href="{% static 'css/context-glossary.css' %}"><link rel="stylesheet" href="{% static 'css/routing-table-visualizer.css' %}?v=route-flow-2"><link rel="stylesheet" href="{% static 'css/route-concept.css' %}?v=layout-2">{% endblock %}
 {% block content %}
 <div class="route-concept">
   {{ basic_routes|json_script:"route-basic-data" }}

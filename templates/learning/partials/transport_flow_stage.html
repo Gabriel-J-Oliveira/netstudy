@@ -1,12 +1,19 @@
 <section class="transport-stage" id="transport-lab" data-transport-stage aria-label="Transport Behavior Lab" tabindex="-1">
-  <header><span>TRANSPORT BEHAVIOR LAB</span><strong data-stage-heading>Escolha uma observação</strong></header>
-  <div class="transport-modes" role="group" aria-label="Protocolo ativo"><button type="button" data-stage-mode="udp" aria-pressed="false">UDP</button><button type="button" data-stage-mode="tcp" aria-pressed="false">TCP</button></div>
-  <div class="transport-path" aria-label="Aplicação A, Transporte, Rede IP, Transporte, Aplicação B">
-    <span>Aplicação A</span><button type="button" data-stage-layer aria-label="Selecionar Camada de Transporte">Transporte</button><span>Rede IP</span><span>Transporte</span><span>Aplicação B</span>
+  <header class="transport-stage-heading"><div><span>TRANSPORT BEHAVIOR LAB</span><strong data-stage-heading>Escolha um cenário</strong></div><p data-stage-prompt>1 · Escolha cenário → 2 · Observe UDP → 3 · Observe TCP → 4 · Avance → 5 · Compare.</p></header>
+  <div class="transport-scenario-picker" role="group" aria-label="1. Escolher cenário">
+    <span>1 · ESCOLHER CENÁRIO</span>
+    <button type="button" data-transport-open="normal" aria-pressed="false">Datagramas independentes</button>
+    <button type="button" data-transport-open="loss" aria-pressed="false">Perda da parte 3</button>
+    <button type="button" data-transport-open="order" aria-pressed="false">Chegada 1, 3, 2</button>
+    <button type="button" data-transport-open="boundaries" aria-pressed="false">Envios ABC / DEF</button>
+    <button type="button" data-transport-open="connection" aria-pressed="false">Conexão (breve)</button>
   </div>
-  <p class="transport-prompt" data-stage-prompt>Selecione a Camada de Transporte no caminho ou escolha uma observação em uma das áreas.</p>
-  <div class="transport-observation"><div><small>ORIGEM / REDE</small><div class="transport-units" data-stage-source></div></div><div><small>APLICAÇÃO B</small><div class="transport-units" data-stage-destination></div></div></div>
-  <ol class="transport-timeline" data-stage-timeline aria-live="polite"><li>O percurso aparecerá aqui, uma etapa por clique.</li></ol>
+  <div class="transport-protocol-row"><span>2 · OBSERVAR CADA PROTOCOLO</span><div class="transport-modes" role="group" aria-label="Observar UDP ou TCP"><button type="button" data-stage-mode="udp" aria-pressed="false">Observar UDP</button><button type="button" data-stage-mode="tcp" aria-pressed="false">Observar TCP</button></div></div>
+  <div class="transport-path" aria-label="Aplicação A, Transporte, Rede IP, Transporte, Aplicação B"><span>Aplicação A</span><span>Transporte</span><span>Rede IP</span><span>Transporte</span><span>Aplicação B</span></div>
+  <p class="transport-markers">Os números e letras são simplificações visuais para acompanhar os dados; não representam mensagens preservadas pelo TCP.</p>
+  <div class="transport-observation"><div><small>REDE · CHEGADA</small><div class="transport-units" data-stage-source></div></div><div><small>DISPONÍVEL À APLICAÇÃO</small><div class="transport-units" data-stage-destination></div></div></div>
+  <ol class="transport-timeline" data-stage-timeline aria-live="polite"><li>Escolha um cenário para começar.</li></ol>
   <p class="transport-result" data-stage-result role="status" aria-live="polite"></p>
-  <div class="transport-controls"><button type="button" data-stage-next hidden>Próxima etapa</button><button type="button" data-stage-reset>Resetar cenário</button></div>
+  <div class="transport-controls"><button type="button" class="transport-next" data-stage-next hidden>Avançar etapa</button><button type="button" data-stage-compare disabled>5 · Comparar resultado</button><button type="button" data-stage-reset>Resetar cenário</button></div>
+  <section class="transport-comparison-result" data-stage-comparison hidden aria-live="polite"><h3>Comparação do cenário</h3><div><article><strong>UDP</strong><p data-comparison-udp></p></article><article><strong>TCP</strong><p data-comparison-tcp></p></article></div></section>
 </section>

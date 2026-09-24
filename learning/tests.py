@@ -129,7 +129,7 @@ class ProjectAndConceptTests(TestCase):
         response = self.client.get(reverse("learning:mac_concept"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "O endereço usado pela Ethernet")
-        self.assertContains(response, 'aria-current="page">MAC Address</a>', html=False)
+        self.assertContains(response, 'aria-current="page">Conteúdos</a>', html=False)
 
     def test_mac_area_one_builds_source_then_asks_for_destination_mac(self):
         response = self.client.get(reverse("learning:mac_concept"))
@@ -163,7 +163,7 @@ class ProjectAndConceptTests(TestCase):
         response = self.client.get(reverse("learning:frame_concept"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "O que é um Frame Ethernet?")
-        self.assertContains(response, 'aria-current="page">Frame Ethernet</a>', html=False)
+        self.assertContains(response, 'aria-current="page">Conteúdos</a>', html=False)
 
     def test_frame_keeps_arp_and_mac_available_and_links_to_both(self):
         response = self.client.get(reverse("learning:frame_concept"))
@@ -267,7 +267,8 @@ class ProjectAndConceptTests(TestCase):
         self.assertContains(response, "Agora você já sabe o suficiente")
         self.assertContains(response, "COMEÇAR CHECKPOINT")
         self.assertContains(response, reverse("learning:frame_checkpoint_start"))
-        self.assertContains(response, reverse("learning:switch_concept"))
+        self.assertContains(self.client.get(reverse("learning:home")), reverse("learning:switch_concept"))
+        self.assertEqual(self.client.get(reverse("learning:switch_concept")).status_code, 200)
         self.assertNotContains(response, 'href="/frame/atividades/', html=False)
         self.assertNotContains(response, 'href="/frame/rapid-fire/', html=False)
 
@@ -1316,8 +1317,8 @@ class SwitchConceptAndCheckpointTests(TestCase):
     def test_sidebar_home_and_frame_integrate_switch(self):
         route = reverse("learning:switch_concept")
         self.assertContains(self.client.get(reverse("learning:home")), route)
-        self.assertContains(self.client.get(reverse("learning:frame_concept")), route)
-        self.assertContains(self.client.get(route), 'aria-current="page"', html=False)
+        self.assertEqual(self.client.get(reverse("learning:frame_concept")).status_code, 200)
+        self.assertContains(self.client.get(route), 'aria-current="page">Conteúdos</a>', html=False)
 
     def test_checkpoint_has_requested_size_difficulty_and_types(self):
         self.assertEqual(len(SWITCH_ACTIVITIES), 10)
@@ -2621,36 +2622,61 @@ class TransportConceptTests(TestCase):
     def start(self):
         return self.client.post(reverse("learning:transport_checkpoint_start"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
 
-    def test_page_loads_with_exactly_five_areas_and_layer_definition(self):
+    def test_page_opens_with_short_transport_model_and_single_column_flow(self):
         response = self.client.get(reverse("learning:transport_concept"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-transport-area=", count=5, html=False)
-        self.assertContains(response, "OSI · CAMADA 4 — TRANSPORTE")
-        self.assertContains(response, "comunicação entre aplicações nos hosts finais")
+        self.assertContains(response, "data-transport-area=\"01\"", html=False)
+        self.assertContains(response, "IP leva dados entre hosts")
+        self.assertContains(response, "nenhum deles escolhe a rota")
+        self.assertContains(response, "datagramas separados")
+        self.assertContains(response, "fluxo contínuo de bytes")
+        self.assertContains(response, 'data-context-glossary', count=1, html=False)
+        self.assertContains(response, 'aria-controls="transport-tip-datagram"')
+        self.assertContains(response, 'id="transport-tip-datagram" role="tooltip" hidden')
+        self.assertContains(response, "Datagrama: unidade independente transportada pelo UDP.")
+        self.assertContains(response, "context-glossary.css")
+        self.assertContains(response, "context-glossary.js")
+        self.assertContains(response, "transport-visual-5")
+        html = response.content.decode()
+        self.assertLess(html.index("IP leva dados entre hosts"), html.index('id="transport-lab"'))
+        self.assertLess(html.index('id="transport-lab"'), html.index('id="transport-comparison-title"'))
+        css = (settings.BASE_DIR / "static" / "css" / "transport-concept.css").read_text(encoding="utf-8")
+        self.assertNotIn("position:sticky", css)
 
-    def test_single_shared_lab_udp_datagrams_boundaries_loss_and_order(self):
+    def test_single_shared_lab_contains_ordered_scenario_protocol_step_compare_controls(self):
         response = self.client.get(reverse("learning:transport_concept"))
         self.assertContains(response, "data-transport-stage", count=1, html=False)
-        for value in ("Transport Behavior Lab", "Aplicação A", "Rede IP", "Aplicação B", "data-stage-mode=\"udp\"", "data-transport-open=\"boundaries\""):
+        for value in ("Transport Behavior Lab", "Aplicação A", "Rede IP", "Aplicação B", "data-stage-mode=\"udp\"", "data-transport-open=\"boundaries\"", "data-stage-compare", "data-stage-next"):
             self.assertContains(response, value)
         source = (settings.BASE_DIR / "static" / "js" / "transport-concept.js").read_text(encoding="utf-8")
-        for fragment in ("A, B e C partem como datagramas independentes", "UDP não retransmite 3 automaticamente", "A rede entrega 1, 3, 2", "Os limites dos datagramas ABC e DEF são preservados"):
+        for fragment in ("Datagramas independentes", "A mesma perda: parte 3", "A rede entrega os dados na ordem 1, 3, 2", "Os limites dos datagramas ABC e DEF são preservados", "comparisonReady"):
             self.assertIn(fragment, source)
 
     def test_tcp_stream_retransmission_order_and_connection(self):
         response = self.client.get(reverse("learning:transport_concept"))
-        for value in ("fluxo de bytes orientado a conexão", "limites das operações de envio não são preservados", "Observar conexão", "não torna uma comunicação impossível de falhar"):
+        for value in ("Orientado a conexão", "limites dos envios", "Conexão (breve)", "não garante sucesso absoluto"):
             self.assertContains(response, value)
         source = (settings.BASE_DIR / "static" / "js" / "transport-concept.js").read_text(encoding="utf-8")
-        for fragment in ("C está ausente", "D pode ter chegado fisicamente", "TCP recupera conceitualmente C", "TCP reorganiza conceitualmente o fluxo", "Os limites dos dois envios não são mensagens preservadas"):
+        for fragment in ("3 chegou · aguarda 2", "4 · chegou", "TCP recupera a parte 3", "3 chegou antes do 2", "prefixo contíguo"):
             self.assertIn(fragment, source)
 
     def test_no_udp_always_faster_packet_inspector_and_ports_teaser(self):
         response = self.client.get(reverse("learning:transport_concept"))
-        self.assertContains(response, "Desempenho depende da aplicação, rede, implementação e protocolo superior")
-        self.assertContains(response, "PACKET INSPECTOR · ESTRUTURA SIMPLIFICADA")
-        self.assertContains(response, "Source Port e Destination Port")
-        self.assertContains(response, "endpoint da aplicação")
+        self.assertContains(response, "desempenho depende da aplicação, rede, implementação e protocolo superior")
+        self.assertContains(response, "UDP não implica perda obrigatória")
+        self.assertContains(response, "UDP é sempre mais rápido")
+        self.assertContains(response, reverse("learning:ports_concept"))
+
+    def test_real_world_transport_examples_follow_the_comparison_table(self):
+        response = self.client.get(reverse("learning:transport_concept"))
+        html = response.content.decode()
+        table_end = html.index("</table>")
+        examples_start = html.index('id="transport-examples-title"')
+        self.assertLess(table_end, examples_start)
+        for example in ("HTTP/1.1 ou HTTP/2", "SSH", "SFTP", "Consultas DNS", "RTP", "HTTP/3 usa QUIC sobre UDP"):
+            self.assertContains(response, example)
+        css = (settings.BASE_DIR / "static" / "css" / "transport-concept.css").read_text(encoding="utf-8")
+        self.assertIn("--gateway-ink:#102b42", css)
 
     def test_checkpoint_exact_shape_and_misconceptions(self):
         self.assertEqual(len(TRANSPORT_ACTIVITIES), 10)
@@ -2685,17 +2711,16 @@ class TransportConceptTests(TestCase):
         response = self.client.get(reverse("learning:transport_concept"))
         self.assertContains(response, "Resetar cenário")
         source = (settings.BASE_DIR / "static" / "js" / "transport-concept.js").read_text(encoding="utf-8")
-        for marker in ('aria-live="polite"', 'aria-pressed="false"', 'tabindex="-1"', 'data-stage-next', 'data-stage-reset'):
+        for marker in ('aria-live="polite"', 'aria-pressed="false"', 'tabindex="-1"', 'data-stage-next', 'data-stage-reset', 'data-stage-compare', 'data-prediction-toggle'):
             self.assertContains(response, marker)
-        self.assertIn('state = {protocol: null, scenario: "intro", step: -1}', source)
-        self.assertIn("prefers-reduced-motion", source)
+        self.assertIn('const state = { protocol: null, scenario: null, step: -1 }', source)
         self.assertNotIn("setTimeout", source)
         for marker in ("data-transport-rapid", "data-rapid-question", "data-udp-check", "data-tcp-check", "data-loss-visible"):
             self.assertNotContains(response, marker)
         self.assertNotIn("setTimeout", source)
         css = (settings.BASE_DIR / "static" / "css" / "transport-concept.css").read_text(encoding="utf-8")
-        self.assertIn("position:sticky", css)
-        self.assertIn("position:static", css)
+        self.assertNotIn("position:sticky", css)
+        self.assertIn("max-width:360px", css)
         self.assertIn("prefers-reduced-motion", css)
         self.assertContains(response, reverse("learning:icmp_concept"))
         self.assertContains(response, 'aria-current="page"', html=False)
@@ -2708,43 +2733,64 @@ class PortsConceptTests(TestCase):
     def start(self):
         return self.client.post(reverse("learning:ports_checkpoint_start"), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
 
-    def test_route_navigation_and_five_areas_one_lab(self):
+    def test_route_navigation_single_column_visualization_and_one_lab(self):
         response = self.client.get(reverse("learning:ports_concept"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-ports-area=", count=5, html=False)
+        self.assertContains(response, 'data-ports-area="01"', count=1, html=False)
         self.assertContains(response, "data-endpoint-lab", count=1, html=False)
         self.assertContains(response, 'aria-current="page"', html=False)
-        self.assertContains(response, "TCP 443 · Serviço web")
+        self.assertContains(response, "TCP 443 · Web")
         self.assertContains(response, "TCP 22 · SSH")
         self.assertContains(response, "UDP 53 · DNS")
+        self.assertContains(response, "192.168.10.20:53012 → 192.168.20.30:443")
+        self.assertContains(response, "192.168.20.30:443 → 192.168.10.20:53012")
+        self.assertContains(response, "TCP 53 e UDP 53 são endpoints distintos")
+        self.assertContains(response, 'data-context-glossary', count=2, html=False)
+        self.assertContains(response, "context-glossary.css")
+        self.assertContains(response, "context-glossary.js")
+        for tooltip_id in ("ports-tip-endpoint", "ports-tip-ephemeral"):
+            self.assertContains(response, f'aria-controls="{tooltip_id}"')
+            self.assertContains(response, f'aria-describedby="{tooltip_id}"')
+            self.assertContains(response, f'id="{tooltip_id}" role="tooltip" hidden')
+        html = response.content.decode()
+        self.assertLess(html.index("Um pedido e sua resposta"), html.index('id="endpoint-lab"'))
+        self.assertLess(html.index('id="endpoint-lab"'), html.index('id="ports-checkpoint"'))
+        self.assertNotIn('class="ports-layout"', html)
+        self.assertNotIn("<textarea", html)
+        self.assertNotIn("position:sticky", (settings.BASE_DIR / "static" / "css" / "ports-concept.css").read_text(encoding="utf-8"))
         self.assertContains(self.client.get(reverse("learning:home")), reverse("learning:ports_concept"))
         self.assertContains(self.client.get(reverse("learning:transport_concept")), reverse("learning:ports_concept"))
         self.assertContains(response, reverse("learning:dns_concept"))
 
-    def test_lab_packet_reply_parallel_and_accessibility(self):
+    def test_lab_fields_reply_prediction_parallel_flow_and_accessibility(self):
         response = self.client.get(reverse("learning:ports_concept"))
         for text in ("Source IP", "Destination IP", "Source Port", "Destination Port",
-                     "192.168.10.20:53012", "192.168.10.21:53013", "data-lab-reply",
-                     'aria-live="polite"', 'tabindex="-1"'):
+                     "192.168.10.20:53012", "data-reply-choice",
+                     "data-reply-check", "data-lab-parallel", 'aria-live="polite"', 'tabindex="-1"'):
             self.assertContains(response, text)
         source = (settings.BASE_DIR / "static" / "js" / "ports-concept.js").read_text(encoding="utf-8")
-        for text in ("192.168.20.30:443 → 192.168.10.20:53012", "data-lab-service",
-                     "state.assembled.size < 3", "data-lab-field", "prefers-reduced-motion",
-                     "fetch(form.action", "memory"):
+        for text in ("Protocolo:", "IP de destino:", "Porta de destino:", "Porta de origem:",
+                     'request.protocol !== service.protocol', 'request.destinationPort !== service.port',
+                     'chosen !== "53012"', "state.replyConfirmed", "renderDraft()",
+                     "192.168.10.20:53012", "192.168.10.21:53013", "fetch(form.action", "memory"):
             self.assertIn(text, source)
-        for unwanted in ("setTimeout", "location.reload", "data-transport-rapid"):
+        for unwanted in ("setTimeout", "location.reload", "<textarea"):
             self.assertNotIn(unwanted, source)
         css = (settings.BASE_DIR / "static" / "css" / "ports-concept.css").read_text(encoding="utf-8")
-        for text in ("position:sticky", "position:static", "focus-visible", "prefers-reduced-motion", "max-width:400px"):
+        for text in ("focus-visible", "prefers-reduced-motion", "max-width:360px"):
             self.assertIn(text, css)
+        self.assertNotIn("ports-popover", css)
+        self.assertNotIn("data-ports-glossary", source)
 
     def test_terminal_is_allowlisted(self):
         source = (settings.BASE_DIR / "static" / "js" / "ports-concept.js").read_text(encoding="utf-8")
         self.assertIn('command === "netstat -ano"', source)
         self.assertIn('command === "netstat -ano | findstr :443"', source)
-        self.assertIn("Comando não disponível neste cenário.", source)
-        self.assertIn("ESTABLISHED", source)
-        self.assertIn("LISTENING", source)
+        self.assertIn("Comando não disponível nesta simulação.", source)
+        self.assertIn("192.168.20.30:443", source)
+        self.assertIn("0.0.0.0:22", source)
+        self.assertIn("UDP  0.0.0.0:53", source)
+        self.assertIn("Terminal simulado executado no servidor", (settings.BASE_DIR / "templates" / "learning" / "ports_concept.html").read_text(encoding="utf-8"))
         self.assertNotIn("eval(", source)
 
     def test_checkpoint_shape_and_wrong_guided_lock(self):
@@ -2782,6 +2828,19 @@ class PortsConceptTests(TestCase):
 
 
 class NetworkServicesConceptTests(TestCase):
+    def test_shared_checkpoint_colors_are_scoped_and_loaded_on_every_page(self):
+        stylesheet = (settings.BASE_DIR / "static" / "css" / "gateway-concept.css").read_text(encoding="utf-8")
+        self.assertIn(".gateway-checkpoint { --gateway-blue: #087ea4; --gateway-ink: #102b42; --gateway-green: #08733e;", stylesheet)
+        self.assertIn(".gateway-scenario { padding: 1rem; background: var(--gateway-ink); color: #fff;", stylesheet)
+        self.assertIn(".gateway-primary { background: var(--gateway-blue) !important; color: #fff !important;", stylesheet)
+        for route in ("gateway_concept", "route_concept", "inter_vlan_concept", "icmp_concept",
+                      "transport_concept", "ports_concept", "dns_concept", "dhcp_concept"):
+            with self.subTest(route=route):
+                response = self.client.get(reverse(f"learning:{route}"))
+                self.assertContains(response, "gateway-concept.css")
+                self.assertContains(response, "checkpoint-contrast-1")
+                self.assertContains(response, 'class="gateway-checkpoint"')
+
     def test_pages_navigation_labs_and_accessibility(self):
         for kind, previous, next_topic in (
             ("dns", "ports_concept", "dhcp_concept"),
@@ -2790,7 +2849,7 @@ class NetworkServicesConceptTests(TestCase):
             with self.subTest(kind=kind):
                 response = self.client.get(reverse(f"learning:{kind}_concept"))
                 self.assertEqual(response.status_code, 200)
-                self.assertContains(response, f"data-{kind}-area=", count=5, html=False)
+                self.assertContains(response, f"data-{kind}-area=", count=1, html=False)
                 self.assertContains(response, f"data-{kind}-lab", count=1, html=False)
                 self.assertContains(response, f'id="{kind}-checkpoint"')
                 self.assertContains(response, 'aria-current="page"', html=False)
@@ -2806,6 +2865,37 @@ class NetworkServicesConceptTests(TestCase):
         css = (settings.BASE_DIR / "static" / "css" / "network-concept.css").read_text(encoding="utf-8")
         for marker in ("position:sticky", "position:static", "max-width:400px", "focus-visible", "prefers-reduced-motion"):
             self.assertIn(marker, css)
+        dns = self.client.get(reverse("learning:dns_concept"))
+        self.assertNotContains(dns, 'class="network-layout"')
+        self.assertNotContains(dns, "data-dns-open")
+        self.assertContains(dns, "dns-concept.css")
+        self.assertContains(dns, "data-dns-node=", count=3, html=False)
+        self.assertContains(dns, "data-dns-next")
+        self.assertContains(dns, "data-dns-clear")
+        self.assertContains(dns, "data-dns-query-count")
+        self.assertContains(dns, "intranet.exemplo.local → 192.168.20.30")
+        self.assertContains(dns, "nslookup")
+        self.assertContains(dns, "ping 192.168.20.30")
+        self.assertContains(dns, "TCP 443")
+        dns_css = (settings.BASE_DIR / "static" / "css" / "dns-concept.css").read_text(encoding="utf-8")
+        for marker in ("max-width:360px", "prefers-reduced-motion", "grid-template-columns:1fr"):
+            self.assertIn(marker, dns_css)
+        dhcp = self.client.get(reverse("learning:dhcp_concept"))
+        self.assertNotContains(dhcp, 'class="network-layout"')
+        self.assertNotContains(dhcp, "data-dhcp-open")
+        self.assertContains(dhcp, "dhcp-concept.css")
+        self.assertContains(dhcp, "data-dhcp-node=", count=3, html=False)
+        self.assertContains(dhcp, "data-dhcp-progress=", count=4, html=False)
+        self.assertContains(dhcp, "data-dhcp-client-field=", count=4, html=False)
+        self.assertContains(dhcp, "data-dhcp-field=", count=4, html=False)
+        self.assertContains(dhcp, "data-dhcp-next")
+        self.assertContains(dhcp, 'data-dhcp-state="missing"')
+        self.assertContains(dhcp, "ipconfig /all")
+        self.assertContains(dhcp, "ipconfig /renew")
+        self.assertContains(dhcp, "concessão temporária")
+        dhcp_css = (settings.BASE_DIR / "static" / "css" / "dhcp-concept.css").read_text(encoding="utf-8")
+        for marker in ("max-width:360px", "prefers-reduced-motion", "grid-template-columns:1fr", "[hidden]"):
+            self.assertIn(marker, dhcp_css)
 
     def test_labs_terminal_allowlist_and_ajax_memory(self):
         for kind, commands, fallback in (
@@ -2818,15 +2908,25 @@ class NetworkServicesConceptTests(TestCase):
                 source = (settings.BASE_DIR / "static" / "js" / f"{kind}-concept.js").read_text(encoding="utf-8")
                 for command in commands:
                     self.assertIn(f'command === "{command}"', source)
-                for marker in (fallback, "memory = new Map()", "fetch(form.action", "prefers-reduced-motion"):
+                for marker in (fallback, "memory = new Map()", "fetch(form.action"):
                     self.assertIn(marker, source)
                 for forbidden in ("setTimeout", "location.reload", "eval(", "data-rapid"):
                     self.assertNotIn(forbidden, source)
         dns = (settings.BASE_DIR / "static" / "js" / "dns-concept.js").read_text(encoding="utf-8")
-        for marker in ("Request:", "Response:", "cache-empty", "cache-full", "diagnose-nslookup", "diagnose-ping", "gateway/rota"):
+        for marker in ("Request:", "Response:", "state.cacheValid = true", "state.cacheValid = false", "state.queries += 1", "sem nova consulta ao resolvedor", "ipconfig /displaydns", "displayDns()"):
             self.assertIn(marker, dns)
+        self.assertIn('if (state.step === 3) state.queries += 1;', dns)
+        self.assertIn('if (state.step === 5) state.cacheValid = true;', dns)
+        self.assertIn('state.step = 0;', dns)
+        self.assertIn('state.queries = 0;', dns)
+        self.assertIn('state.cacheValid ? `${name} → ${address} · válido` : "Vazio"', dns)
         dhcp = (settings.BASE_DIR / "static" / "js" / "dhcp-concept.js").read_text(encoding="utf-8")
-        for marker in ("Discover:", "Offer:", "Request:", "ACK:", "169.254.x.x", "Máscara /24", "Gateway 192.168.10.1"):
+        for marker in ("Discover", "Offer", "Request", "ACK", "169.254.10.50", "Máscara 255.255.255.0", "Gateway 192.168.10.1"):
+            self.assertIn(marker, dhcp)
+        for marker in ('if (state.phase === 4) state.leaseConfirmed = true;',
+                       'if (!state.leaseConfirmed || state.phase < 4)',
+                       'state.mode === "missing"', 'Discover enviado; nenhuma Offer ou ACK observada.',
+                       'state.phase = 4;', 'state.leaseConfirmed = true;', 'allOutput()'):
             self.assertIn(marker, dhcp)
 
     def test_checkpoints_ten_items_wrong_hint_lock_reset_and_completion(self):

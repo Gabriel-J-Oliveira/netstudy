@@ -1,12 +1,42 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}DNS + Resolução de Nomes · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}"><link rel="stylesheet" href="{% static 'css/network-concept.css' %}">{% endblock %}
-{% block content %}<main class="network-concept dns-concept"><div class="network-layout"><div class="network-lessons">
-  <section class="network-area" data-dns-area="01"><span class="network-index">DNS + RESOLUÇÃO DE NOMES · ÁREA 01</span><h1>Nome não é destino de rede</h1><p>O cliente conhece <code>intranet.exemplo.local</code>, mas precisa do IPv4 associado para alcançar o host. DNS fornece informação de endereçamento: não transporta a página, não escolhe a rota e não prova que o serviço está funcionando.</p><p class="network-anchor">Nome → DNS → IPv4 do host</p><button type="button" data-dns-open="meaning">Inspecionar nome e endereço →</button></section>
-  <section class="network-area" data-dns-area="02"><span class="network-index">ÁREA 02 · CONSULTA</span><h2>Request e Response</h2><p><code>192.168.10.50</code> pergunta ao resolvedor <code>192.168.10.53</code> pelo nome. A resposta A neste cenário é <code>192.168.20.30</code>.</p><button type="button" data-dns-open="query">Acompanhar consulta →</button></section>
-  <section class="network-area" data-dns-area="03"><span class="network-index">ÁREA 03 · CACHE</span><h2>Resposta reutilizada enquanto válida</h2><p>Compare cache vazio e preenchido. Um cache válido pode evitar uma nova consulta, mas não demonstra que o serviço web está disponível agora.</p><div class="network-actions"><button type="button" data-dns-open="cache-empty">Cache vazio</button><button type="button" data-dns-open="cache-full">Cache preenchido</button></div></section>
-  <section class="network-area" data-dns-area="04"><span class="network-index">ÁREA 04 · DIAGNÓSTICO</span><h2>O que a evidência permite dizer?</h2><p>Um <code>nslookup</code> resolvido não testa a rota, a conexão TCP 443 ou a aplicação web. Um ping direto ao IP também não prova que o nome foi resolvido.</p><div class="network-actions"><button type="button" data-dns-open="diagnose-nslookup">Inspecionar nslookup</button><button type="button" data-dns-open="diagnose-ping">Inspecionar ping ao IP</button></div><details class="network-terminal"><summary>Terminal simulado</summary><form data-dns-terminal><label for="dns-command">Comando</label><input id="dns-command" autocomplete="off" spellcheck="false" placeholder="nslookup intranet.exemplo.local"><button type="submit">Executar</button></form><pre data-dns-terminal-output aria-live="polite">Use nslookup intranet.exemplo.local ou ipconfig /displaydns.</pre><p>Saídas simuladas apenas para este cenário.</p></details></section>
-  <section class="network-area" data-dns-area="05"><span class="network-index">ÁREA 05 · SÍNTESE</span><h2>Da identificação ao serviço</h2><p>Obtenha o IPv4 pelo nome antes de pensar no caminho e no endpoint da aplicação.</p><button type="button" data-dns-open="journey">Percorrer a sequência →</button><p class="network-anchor">Nome → DNS → IPv4 → gateway/rota → TCP + porta → serviço</p><nav class="concept-sequence"><a href="{% url 'learning:ports_concept' %}">← Portas + Cliente/Servidor</a><a href="{% url 'learning:dhcp_concept' %}">DHCP + Configuração Dinâmica →</a></nav></section>
-</div><aside class="network-lab-column" aria-label="Laboratório compartilhado de DNS">{% include "learning/partials/dns_resolution_lab.html" %}</aside></div>
-<section id="dns-checkpoint" class="network-checkpoint-shell" aria-live="polite">{% include "learning/partials/dns_checkpoint.html" %}</section></main>{% endblock %}
-{% block scripts %}<script src="{% static 'js/dns-concept.js' %}"></script>{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}?v=checkpoint-contrast-1"><link rel="stylesheet" href="{% static 'css/network-concept.css' %}"><link rel="stylesheet" href="{% static 'css/dns-concept.css' %}?v=dns-flow-1">{% endblock %}
+{% block content %}
+<main class="network-concept dns-concept">
+  <header class="dns-intro" data-dns-area="01">
+    <span class="network-index">DNS + RESOLUÇÃO DE NOMES</span>
+    <h1>Do nome ao endereço</h1>
+    <p>O cliente conhece <code>intranet.exemplo.local</code> e precisa obter seu IPv4. Neste cenário, pergunta pelo <strong>registro A</strong> ao <strong>resolvedor</strong> <code>192.168.10.53</code>, que responde <code>192.168.20.30</code>.</p>
+    <p class="dns-definitions"><strong>Resolvedor:</strong> servidor consultado para obter a resposta DNS. <strong>Registro A:</strong> associação de um nome a um IPv4. <strong>Cache:</strong> resposta guardada temporariamente para reutilização enquanto válida.</p>
+    <p>DNS fornece a associação nome–endereço; não entrega a página, escolhe a rota ou comprova que o serviço web funciona.</p>
+  </header>
+
+  <section class="dns-overview" aria-labelledby="dns-overview-title">
+    <h2 id="dns-overview-title">Primeiro resolver, depois tentar acessar</h2>
+    <div class="dns-overview-flow">
+      <div><small>CONSULTA · CLIENTE → RESOLVEDOR</small><span><code>192.168.10.50</code> pergunta a <code>192.168.10.53</code> por <code>intranet.exemplo.local</code>.</span></div>
+      <div><small>RESPOSTA · RESOLVEDOR → CLIENTE</small><span>Dado do registro A: <code>intranet.exemplo.local → 192.168.20.30</code>.</span></div>
+      <div><small>DEPOIS · OUTRA COMUNICAÇÃO</small><span>Com o IPv4, o cliente pode tentar acessar o servidor web. DNS não testa esse serviço.</span></div>
+    </div>
+  </section>
+
+  {% include "learning/partials/dns_resolution_lab.html" %}
+
+  <section class="dns-summary" aria-labelledby="dns-summary-title">
+    <h2 id="dns-summary-title">O que cada evidência mostra?</h2>
+    <p><code>nslookup</code> mostra uma resposta DNS para o nome. <code>ping 192.168.20.30</code> testa uma comunicação direta com o IP. Nenhum dos dois, isoladamente, comprova que a aplicação web em TCP 443 funciona.</p>
+    <p class="dns-anchor">Nome → resposta DNS → IPv4 conhecido → tentativa separada de acesso ao serviço</p>
+  </section>
+
+  <details class="network-terminal dns-terminal">
+    <summary>Ver terminal simulado do cliente</summary>
+    <p>Comandos executados no cliente <code>192.168.10.50</code>. As saídas são simuladas; <code>nslookup</code> consulta o resolvedor e não demonstra uso do cache local.</p>
+    <form data-dns-terminal><label for="dns-command">Comando</label><input id="dns-command" autocomplete="off" spellcheck="false" placeholder="ipconfig /displaydns"><button type="submit">Executar</button></form>
+    <pre data-dns-terminal-output aria-live="polite">Use nslookup intranet.exemplo.local ou ipconfig /displaydns.</pre>
+  </details>
+
+  <section id="dns-checkpoint" class="network-checkpoint-shell" aria-live="polite">{% include "learning/partials/dns_checkpoint.html" %}</section>
+  <nav class="concept-sequence" aria-label="Navegação do conteúdo"><a href="{% url 'learning:ports_concept' %}">← Portas + Cliente/Servidor</a><a href="{% url 'learning:dhcp_concept' %}">DHCP + Configuração Dinâmica →</a></nav>
+</main>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/dns-concept.js' %}?v=dns-flow-1"></script>{% endblock %}

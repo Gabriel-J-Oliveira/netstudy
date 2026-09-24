@@ -63,7 +63,7 @@
 .concept-sequence { display: flex; justify-content: space-between; gap: 1rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #bbcbd4; }
 
 .gateway-checkpoint-shell { margin: 5rem 0 2rem; }
-.gateway-checkpoint { padding: clamp(1.2rem, 3vw, 2.2rem); border: 1px solid #8fa9b8; background: #f7fafc; }
+.gateway-checkpoint { --gateway-blue: #087ea4; --gateway-ink: #102b42; --gateway-green: #08733e; padding: clamp(1.2rem, 3vw, 2.2rem); border: 1px solid #8fa9b8; background: #f7fafc; }
 .gateway-checkpoint-header { display: flex; justify-content: space-between; gap: 1rem; }
 .gateway-checkpoint-header span, .gateway-checkpoint-header small { margin-right: .45rem; font-weight: 900; }
 .gateway-progress { height: 7px; margin: .7rem 0 1.2rem; background: #d5e1e7; }

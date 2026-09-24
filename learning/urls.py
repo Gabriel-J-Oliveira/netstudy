@@ -4,6 +4,7 @@ from . import views
 app_name = "learning"
 urlpatterns = [
     path("", views.home, name="home"),
+    path("laboratorio/", views.integrated_lab, name="integrated_lab"),
     path("arp/iniciar/", views.start_session, name="start"),
     path("arp/conceito/", views.concept, name="concept"),
     path("arp/atividades/iniciar/", views.begin_activities, name="begin"),

@@ -1,16 +1,51 @@
 <section class="endpoint-lab" id="endpoint-lab" data-endpoint-lab aria-label="Endpoint Delivery Lab" tabindex="-1">
-  <header><span>ENDPOINT DELIVERY LAB</span><strong data-lab-title>Um servidor, vários endpoints</strong></header>
-  <div class="endpoint-topology"><div><small>APLICAÇÃO CLIENTE</small><strong data-lab-client>192.168.10.20 : 53012</strong></div><span>↓ REDE IP ↓</span><div><small>SERVIDOR · 192.168.20.30</small><button type="button" data-lab-service="web">TCP 443 · Serviço web</button><button type="button" data-lab-service="ssh">TCP 22 · SSH</button><button type="button" data-lab-service="dns">UDP 53 · DNS</button></div></div>
-  <div class="endpoint-inspector" aria-label="Packet Inspector simplificado"><strong>PACKET INSPECTOR</strong><pre>IPv4
-├ Source IP
-├ Destination IP
-└ TCP ou UDP
-  ├ Source Port
-  ├ Destination Port
-  └ Dados</pre><div><button type="button" data-lab-field="host">Destination IP <b data-field-host>192.168.20.30</b></button><button type="button" data-lab-field="endpoint">Protocolo + Destination Port <b data-field-endpoint>TCP 443</b></button></div><p>Source IP: <code data-packet-source-ip>192.168.10.20</code> · Source Port: <code data-packet-source-port>53012</code><br>Destination IP: <code data-packet-destination-ip>192.168.20.30</code> · Destination Port: <code data-packet-destination-port>443</code><br>Protocolo: <code data-packet-protocol>TCP</code> · Dados</p></div>
-  <div class="endpoint-assembly" data-lab-assembly hidden><p>Selecione os três elementos deste envio:</p><div><button type="button" data-assemble="service">Serviço web · TCP 443</button><button type="button" data-assemble="client">Porta temporária · 53012</button><button type="button" data-assemble="protocol">Protocolo · TCP</button></div></div>
-  <div class="endpoint-flows" data-lab-flows hidden><p><b>Fluxo A</b> <code>192.168.10.20:53012 → 192.168.20.30:443</code></p><p><b>Fluxo B</b> <code>192.168.10.21:53013 → 192.168.20.30:443</code></p></div>
-  <ol data-lab-steps aria-live="polite"><li>Selecione uma ação em uma das áreas para começar.</li></ol>
+  <header class="endpoint-heading"><span>LABORATÓRIO · PERCURSO MANUAL</span><h2>Do cliente ao serviço — e de volta</h2><p>Escolha o serviço, monte os campos e acompanhe cada sentido da comunicação.</p></header>
+  <div class="endpoint-steps" aria-label="Etapas do laboratório"><span>1 · Serviço</span><span>2 · Montar</span><span>3 · Entregar</span><span>4 · Responder</span><span>5 · Comparar</span></div>
+  <div class="endpoint-service-picker" role="group" aria-label="1. Escolher serviço">
+    <button type="button" data-lab-service="web" aria-pressed="false">Web <b>TCP 443</b></button>
+    <button type="button" data-lab-service="ssh" aria-pressed="false">SSH <b>TCP 22</b></button>
+    <button type="button" data-lab-service="dns" aria-pressed="false">DNS <b>UDP 53</b></button>
+  </div>
+  <p class="endpoint-service-note" data-service-note aria-live="polite">Escolha um serviço para ver seu protocolo e endpoint.</p>
+  <details class="endpoint-prediction"><summary>Prever: o IP do servidor basta para escolher o serviço?</summary><p>Não. O IP leva ao host; protocolo e porta de destino indicam qual endpoint de transporte recebe os dados dentro dele.</p></details>
+
+  <section class="endpoint-builder" aria-labelledby="endpoint-builder-title">
+    <h3 id="endpoint-builder-title">2 · Monte a solicitação</h3>
+    <div class="endpoint-fields">
+      <label>Protocolo<select data-choice="protocol"><option value="">Escolha…</option><option>TCP</option><option>UDP</option></select></label>
+      <label>IP de destino<select data-choice="destination-ip"><option value="">Escolha…</option><option>192.168.20.30</option><option>192.168.10.20</option></select></label>
+      <label>Porta de destino<select data-choice="destination-port"><option value="">Escolha…</option><option>443</option><option>22</option><option>53</option><option>80</option></select></label>
+      <label>Porta temporária de origem<select data-choice="source-port"><option value="">Escolha…</option><option>53012</option><option>53013</option><option>443</option></select></label>
+    </div>
+    <button type="button" data-lab-validate disabled>Conferir campos</button>
+    <button type="button" data-lab-send hidden>Enviar solicitação</button>
+    <p class="endpoint-field-feedback" data-field-feedback role="status" aria-live="polite"></p>
+  </section>
+
+  <div class="endpoint-route" aria-label="Percurso da solicitação"><div data-route-client>Cliente<br><strong>192.168.10.20:53012</strong></div><span aria-hidden="true">→</span><div data-route-server>Servidor<br><strong>192.168.20.30</strong></div></div>
+  <div class="endpoint-inspector" aria-label="Packet Inspector simplificado">
+    <strong>PACKET INSPECTOR · <span data-packet-direction>AGUARDANDO MONTAGEM</span></strong>
+    <div class="endpoint-packet-grid"><span>Source IP<b data-packet-source-ip>—</b></span><span>Source Port<b data-packet-source-port>—</b></span><span>Destination IP<b data-packet-destination-ip>—</b></span><span>Destination Port<b data-packet-destination-port>—</b></span><span>Protocolo<b data-packet-protocol>—</b></span></div>
+    <p data-endpoint-delivery-result aria-live="polite">O destino identifica primeiro o host; protocolo e porta de destino indicam o endpoint.</p>
+  </div>
+
+  <section class="endpoint-reply" data-reply-stage hidden aria-labelledby="reply-stage-title" tabindex="-1">
+    <h3 id="reply-stage-title">4 · Antes da resposta: escolha o destino no cliente</h3>
+    <p>O servidor está em <code>192.168.20.30</code>. Qual porta deve receber a resposta no cliente que iniciou este pedido?</p>
+    <label>Destination Port da resposta<select data-reply-choice><option value="">Escolha…</option><option>53012</option><option>53013</option><option>443</option></select></label>
+    <button type="button" data-reply-check>Conferir previsão</button>
+    <button type="button" data-reply-send hidden>Enviar resposta</button>
+    <p data-reply-feedback role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="endpoint-parallel" data-parallel-stage hidden aria-labelledby="parallel-title">
+    <h3 id="parallel-title">5 · Dois clientes no mesmo TCP 443</h3>
+    <p>O serviço é o mesmo; compare os campos de origem que distinguem as comunicações.</p>
+    <div class="endpoint-flows"><p><b>Fluxo A</b> <code>TCP · <mark>192.168.10.20</mark>:<mark>53012</mark> → 192.168.20.30:443</code></p><p><b>Fluxo B</b> <code>TCP · <mark>192.168.10.21</mark>:<mark>53013</mark> → 192.168.20.30:443</code></p></div>
+    <button type="button" data-lab-parallel>Mostrar os dois clientes no Packet Inspector</button>
+  </section>
+
+  <ol class="endpoint-timeline" data-lab-steps aria-live="polite"><li>Escolha web, SSH ou DNS.</li></ol>
   <p class="endpoint-feedback" data-lab-feedback role="status" aria-live="polite"></p>
-  <div class="endpoint-controls"><button type="button" data-lab-next hidden>Próxima etapa</button><button type="button" data-lab-reply hidden>Enviar resposta</button><button type="button" data-lab-reset>Reiniciar cenário</button></div>
+  <div class="endpoint-controls"><button type="button" data-lab-reset>Reiniciar percurso</button></div>
 </section>

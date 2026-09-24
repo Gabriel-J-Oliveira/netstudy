@@ -1,70 +1,51 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}TCP × UDP · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}"><link rel="stylesheet" href="{% static 'css/transport-concept.css' %}">{% endblock %}
-{% block content %}<main class="transport-concept">
-<div class="transport-layout">
-  <div class="transport-lessons">
-    <section class="transport-area" data-transport-area="01">
-      <span class="transport-index">TCP × UDP · ÁREA 01</span><h1>O papel do transporte</h1>
-      <span class="transport-layer-badge">OSI · CAMADA 4 — TRANSPORTE</span>
-      <p>A rede IP leva dados entre hosts. TCP e UDP oferecem serviços diferentes para a comunicação entre aplicações nos hosts finais. Escolher o caminho continua sendo tarefa do routing, na Camada 3.</p>
-      <p class="transport-question">A aplicação precisa de fluxo ordenado, recuperação de perda, datagramas independentes ou controle próprio?</p>
-      <button type="button" class="transport-action" data-transport-open="intro">Selecionar a Camada de Transporte no caminho →</button>
-    </section>
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}?v=checkpoint-contrast-1"><link rel="stylesheet" href="{% static 'css/transport-concept.css' %}?v=transport-visual-5"><link rel="stylesheet" href="{% static 'css/context-glossary.css' %}">{% endblock %}
+{% block content %}
+<main class="transport-concept">
+  <header class="transport-intro" data-transport-area="01">
+    <span class="transport-index">OSI · CAMADA 4 — TRANSPORTE</span>
+    <h1>TCP × UDP</h1>
+    <p>IP leva dados entre hosts. TCP e UDP oferecem serviços de transporte às aplicações; nenhum deles escolhe a rota.</p>
+    <div class="transport-model" aria-label="Contraste entre datagramas independentes e fluxo de bytes">
+      <div><strong>UDP</strong><span class="model-datagrams"><i>1</i><i>2</i><i>3</i></span><small>datagramas separados</small></div>
+      <span class="model-divider" aria-hidden="true">×</span>
+      <div><strong>TCP</strong><span class="model-stream"><i>1</i><i>2</i><i>3</i><i>4</i></span><small>fluxo contínuo de bytes</small></div>
+    </div>
+    <p>No UDP, cada <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="transport-tip-datagram" aria-describedby="transport-tip-datagram">datagrama</button><span id="transport-tip-datagram" role="tooltip" hidden>Datagrama: unidade independente transportada pelo UDP.</span></span> mantém seus próprios limites; no TCP, a aplicação recebe um fluxo de bytes.</p>
+  </header>
 
-    <section class="transport-area" data-transport-area="02">
-      <span class="transport-index">ÁREA 02 · UDP</span><h2>Datagramas independentes</h2>
-      <p>UDP preserva os limites de cada datagrama. Por si só, não oferece confirmação, retransmissão ou ordenação garantida. Observe três consequências no mesmo caminho:</p>
-      <div class="transport-actions" aria-label="Observações UDP">
-        <button type="button" data-transport-open="normal" data-transport-protocol="udp">Enviar A, B, C</button>
-        <button type="button" data-transport-open="loss" data-transport-protocol="udp">Perder o datagrama 3</button>
-        <button type="button" data-transport-open="order" data-transport-protocol="udp">Chegada 1, 3, 2</button>
+  {% include "learning/partials/transport_flow_stage.html" %}
+
+  <section class="transport-comparison" aria-labelledby="transport-comparison-title">
+    <span class="transport-index">COMPARAR SERVIÇOS</span><h2 id="transport-comparison-title">Escolha pelo requisito da aplicação</h2>
+    <div class="transport-table-wrap"><table class="transport-table"><caption>O que cada transporte oferece diretamente</caption><thead><tr><th scope="col">Propriedade</th><th scope="col">TCP</th><th scope="col">UDP</th></tr></thead><tbody>
+      <tr><th scope="row">Modelo</th><td>Fluxo de bytes</td><td>Datagramas independentes</td></tr>
+      <tr><th scope="row">Ordem</th><td>Em ordem para a aplicação</td><td>Não garantida pelo UDP</td></tr>
+      <tr><th scope="row">Perda</th><td>Mecanismos de recuperação enquanto a conexão funciona</td><td>Sem retransmissão automática do UDP</td></tr>
+      <tr><th scope="row">Conexão</th><td>Orientado a conexão</td><td>Sem conexão TCP-like</td></tr>
+    </tbody></table></div>
+    <section class="transport-examples" aria-labelledby="transport-examples-title">
+      <h3 id="transport-examples-title">Exemplos de uso no dia a dia</h3>
+      <div class="transport-examples-grid">
+        <article><h4>TCP</h4><p>Uma página servida por HTTP/1.1 ou HTTP/2, uma sessão SSH e uma transferência SFTP são exemplos comuns de aplicações que usam TCP.</p></article>
+        <article><h4>UDP</h4><p>Consultas DNS comuns, mídia em tempo real transportada por RTP e tráfego de jogos online frequentemente usam UDP. A aplicação pode acrescentar controles próprios.</p></article>
       </div>
-      <p class="transport-note">UDP não promete perda; ele não oferece garantia de entrega. Uma aplicação pode implementar confirmação, IDs ou recuperação acima do UDP.</p>
-      <details><summary>Um exemplo de controle acima do UDP</summary><p>QUIC usa UDP como base e implementa mecanismos adicionais acima dele.</p></details>
+      <p class="transport-examples-note">O protocolo depende da aplicação e de sua versão: por exemplo, HTTP/3 usa QUIC sobre UDP. São exemplos frequentes, não regras universais.</p>
     </section>
+    <p class="transport-summary">UDP não implica perda obrigatória e não impede controles acima dele. TCP não garante sucesso absoluto. “UDP é sempre mais rápido” não é uma conclusão válida: desempenho depende da aplicação, rede, implementação e protocolo superior.</p>
+  </section>
 
-    <section class="transport-area" data-transport-area="03">
-      <span class="transport-index">ÁREA 03 · TCP</span><h2>Fluxo, ordem e recuperação</h2>
-      <p>TCP oferece um fluxo de bytes orientado a conexão, em ordem, com mecanismos de recuperação enquanto a conexão funciona. A/B/C/D são apenas marcadores visuais de partes desse fluxo, não mensagens preservadas.</p>
-      <div class="transport-actions" aria-label="Observações TCP">
-        <button type="button" data-transport-open="loss" data-transport-protocol="tcp">Acompanhar perda de C</button>
-        <button type="button" data-transport-open="order" data-transport-protocol="tcp">Chegada 1, 3, 2</button>
-        <button type="button" data-transport-open="connection" data-transport-protocol="tcp">Observar conexão</button>
-      </div>
-      <p class="transport-note">TCP melhora a confiabilidade do transporte, mas não torna uma comunicação impossível de falhar.</p>
-      <details><summary>Teaser do estabelecimento</summary><p>SYN → SYN-ACK → ACK. O handshake completo fica para “TCP por dentro”.</p></details>
-    </section>
+  <section class="transport-predictions" aria-labelledby="transport-predictions-title">
+    <span class="transport-index">PREVER E CONFERIR</span><h2 id="transport-predictions-title">Faça uma previsão antes de ler a síntese</h2>
+    <article class="prediction-item"><p>Se TCP recebe a parte 3 antes da parte 2, ela já pode completar o fluxo entregue à aplicação?</p><button type="button" data-prediction-toggle aria-expanded="false">Conferir previsão</button><p data-prediction-answer hidden>A parte 3 pode chegar pela rede, mas TCP a mantém aguardando a parte 2; o fluxo anterior incompleto não é disponibilizado como se estivesse completo.</p></article>
+    <article class="prediction-item"><p>Se a aplicação envia <code>ABC</code> e depois <code>DEF</code> por TCP, esses limites são preservados?</p><button type="button" data-prediction-toggle aria-expanded="false">Conferir previsão</button><p data-prediction-answer hidden>Não. TCP entrega um fluxo contínuo de bytes. Os limites dos envios não definem as leituras da aplicação; uma leitura não precisa receber <code>ABCDEF</code> de uma só vez.</p></article>
+  </section>
 
-    <section class="transport-area" data-transport-area="04">
-      <span class="transport-index">ÁREA 04 · COMPARAR</span><h2>Escolha pelo requisito</h2>
-      <div class="transport-table-wrap"><table class="transport-table"><caption>Serviços oferecidos diretamente</caption><thead><tr><th scope="col">Necessidade</th><th scope="col">TCP</th><th scope="col">UDP</th></tr></thead><tbody>
-        <tr><th scope="row">Modelo de dados</th><td>Fluxo de bytes</td><td>Datagramas independentes</td></tr>
-        <tr><th scope="row">Ordem</th><td>Sim</td><td>Não garantida</td></tr>
-        <tr><th scope="row">Recuperação de perda</th><td>Mecanismos de transporte</td><td>Não automática</td></tr>
-        <tr><th scope="row">Estado</th><td>Conexão</td><td>Sem conexão TCP-like</td></tr>
-      </tbody></table></div>
-      <p>Selecione um requisito para ver o que ele permite concluir:</p>
-      <div class="transport-actions" aria-label="Requisitos de transporte">
-        <button type="button" data-transport-open="ordered" data-transport-protocol="tcp">Fluxo em ordem e recuperação</button>
-        <button type="button" data-transport-open="independent" data-transport-protocol="udp">Datagramas; controle acima</button>
-        <button type="button" data-transport-open="latency">Quero menor latência</button>
-      </div>
-      <p class="transport-note">UDP não proíbe confiabilidade; apenas não a fornece por si. TCP × UDP não significa bom × ruim nem rápido × lento. Desempenho depende da aplicação, rede, implementação e protocolo superior.</p>
-    </section>
+  <details class="transport-connection"><summary>Conexão TCP, em breve</summary><p>O laboratório mostra apenas estabelecer estado → trocar dados → encerrar. O handshake detalhado será estudado em “TCP por dentro”.</p></details>
 
-    <section class="transport-area" data-transport-area="05">
-      <span class="transport-index">ÁREA 05 · SÍNTESE</span><h2>Dois envios. Que limites chegam?</h2>
-      <p>A aplicação escreve <code>ABC</code> e depois <code>DEF</code>. Compare no laboratório o que cada transporte oferece.</p>
-      <div class="transport-actions"><button type="button" data-transport-open="boundaries" data-transport-protocol="udp">Ver limites no UDP</button><button type="button" data-transport-open="boundaries" data-transport-protocol="tcp">Ver fluxo no TCP</button></div>
-      <p class="transport-note">TCP entrega um fluxo contínuo de bytes; os limites das operações de envio não são preservados como mensagens. Não suponha que uma leitura receberá <code>ABCDEF</code> de uma só vez.</p>
-      <div class="transport-inspector"><strong>PACKET INSPECTOR · ESTRUTURA SIMPLIFICADA</strong><code>IPv4<br>└ TCP ou UDP<br>&nbsp; └ Dados</code><p>IP identifica o host. Transporte + portas identifica o endpoint da aplicação. Source Port e Destination Port serão o próximo assunto.</p></div>
-      <div class="transport-self"><article data-self><h3>Explique antes de revelar</h3><label>Qual é a principal diferença entre TCP e UDP?<textarea rows="4"></textarea></label><button type="button" data-reference-reveal>Conferir referência</button><p data-reference hidden>TCP fornece um fluxo de bytes orientado a conexão com mecanismos de entrega confiável e ordenada. UDP transporta datagramas independentes sem fornecer, por si próprio, confirmação, retransmissão ou ordenação.</p></article><article data-self><h3>Explique antes de revelar</h3><label>Por que dizer apenas “TCP é lento e UDP é rápido” é uma explicação ruim?<textarea rows="4"></textarea></label><button type="button" data-reference-reveal>Conferir referência</button><p data-reference hidden>Porque a diferença principal está nos serviços de transporte oferecidos por cada protocolo. TCP possui mecanismos de conexão, confirmação, ordenação e retransmissão; UDP é mais simples e deixa essas responsabilidades para outros níveis quando necessárias. O desempenho real depende da aplicação, da rede e do protocolo usado acima deles.</p></article></div>
-      <nav class="concept-sequence"><a href="{% url 'learning:icmp_concept' %}">← ICMP + Ping + Traceroute</a><a href="{% url 'learning:ports_concept' %}">Portas + Cliente/Servidor →</a></nav>
-    </section>
-  </div>
-  <aside class="transport-lab-column" aria-label="Laboratório compartilhado de transporte">{% include "learning/partials/transport_flow_stage.html" %}</aside>
-</div>
-<section id="transport-checkpoint" class="transport-checkpoint-shell" aria-live="polite">{% include "learning/partials/transport_checkpoint.html" %}</section>
-</main>{% endblock %}
-{% block scripts %}<script src="{% static 'js/transport-concept.js' %}"></script>{% endblock %}
+  <section id="transport-checkpoint" class="transport-checkpoint-shell" aria-live="polite" aria-label="Checkpoint TCP e UDP">{% include "learning/partials/transport_checkpoint.html" %}</section>
+  <nav class="concept-sequence" aria-label="Navegação do conteúdo"><a href="{% url 'learning:icmp_concept' %}">← ICMP + Ping + Traceroute</a><a href="{% url 'learning:ports_concept' %}">Próximo: Portas + Cliente/Servidor →</a></nav>
+</main>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/context-glossary.js' %}"></script><script src="{% static 'js/transport-concept.js' %}?v=transport-lab-2"></script>{% endblock %}

@@ -1,8 +1,40 @@
-<section class="network-lab" id="dhcp-lab" data-dhcp-lab aria-label="DHCP Configuration Lab" tabindex="-1">
-  <header><span>DHCP CONFIGURATION LAB</span><strong data-dhcp-title>Cliente sem IPv4</strong></header>
-  <div class="network-path"><div><small>CLIENTE</small><strong data-dhcp-client>IPv4 não configurado</strong></div><span>↔</span><div><small>SWITCH / VLAN</small><strong>Rede local</strong></div><span>↔</span><div><small>SERVIDOR DHCP</small><strong>192.168.10.53</strong></div></div>
-  <div class="network-fields" data-dhcp-fields><button type="button" data-dhcp-field="ip">IP · 192.168.10.50</button><button type="button" data-dhcp-field="mask">Máscara · /24</button><button type="button" data-dhcp-field="gateway">Gateway · 192.168.10.1</button><button type="button" data-dhcp-field="dns">DNS · 192.168.10.53</button></div>
-  <div class="network-evidence" data-dhcp-evidence hidden><p><b>Evidência observada</b><span data-dhcp-observed></span></p><p><b>Conclusão segura</b><span data-dhcp-safe></span></p><p><b>Ainda não sabemos</b><span data-dhcp-unknown></span></p></div>
-  <ol data-dhcp-steps aria-live="polite"><li>Escolha uma ação em uma das áreas.</li></ol><p class="network-feedback" data-dhcp-feedback role="status" aria-live="polite"></p>
-  <div class="network-controls"><button type="button" data-dhcp-next hidden>Próxima etapa</button><button type="button" data-dhcp-reset>Reiniciar cenário</button></div>
+<section class="network-lab dhcp-lab" id="dhcp-lab" data-dhcp-lab data-actor="client" aria-label="Laboratório de configuração DHCP" tabindex="-1">
+  <header><span>DHCP CONFIGURATION LAB</span><strong>DORA no seu ritmo</strong><p>Avance manualmente. A proposta não configura o cliente; o ACK confirma a concessão.</p></header>
+  <ol class="dhcp-dora-progress" aria-label="Etapas da troca DHCP"><li data-dhcp-progress="1">Discover</li><li data-dhcp-progress="2">Offer</li><li data-dhcp-progress="3">Request</li><li data-dhcp-progress="4">ACK</li></ol>
+  <div class="dhcp-lab-path" aria-label="Participantes da troca DHCP">
+    <div data-dhcp-node="client"><small>CLIENTE</small><strong data-dhcp-client>Sem IPv4 configurado</strong></div>
+    <span aria-hidden="true">↔</span>
+    <div data-dhcp-node="switch"><small>SWITCH / VLAN</small><strong>Rede local</strong></div>
+    <span aria-hidden="true">↔</span>
+    <div data-dhcp-node="server"><small>SERVIDOR DHCP</small><strong>192.168.10.53</strong></div>
+  </div>
+  <div class="dhcp-lab-grid">
+    <section class="dhcp-message" aria-label="Mensagem DHCP atual" aria-live="polite">
+      <h3>Mensagem em foco</h3>
+      <p><b>Mensagem</b><span data-dhcp-message-name>Aguardando Discover</span></p>
+      <p><b>Emissor → destinatário</b><span data-dhcp-direction>Cliente ainda não enviou mensagem.</span></p>
+      <p><b>Conteúdo</b><span data-dhcp-message-content>Cliente sem IPv4 configurado.</span></p>
+    </section>
+    <section class="dhcp-client-panel" aria-label="Configuração aplicada no cliente">
+      <h3>Cliente · configuração aplicada</h3>
+      <dl><div><dt>IPv4</dt><dd data-dhcp-client-field="ip">Não configurado</dd></div><div><dt>Máscara</dt><dd data-dhcp-client-field="mask">Não configurada</dd></div><div><dt>Gateway</dt><dd data-dhcp-client-field="gateway">Não configurado</dd></div><div><dt>DNS</dt><dd data-dhcp-client-field="dns">Não configurado</dd></div></dl>
+      <small>Uma Offer é apenas proposta; estes campos mudam após o ACK.</small>
+    </section>
+  </div>
+  <p class="dhcp-feedback" data-dhcp-feedback role="status" aria-live="polite">O cliente ainda não recebeu uma concessão.</p>
+  <div class="dhcp-controls"><button type="button" data-dhcp-next>Enviar Discover</button><button type="button" data-dhcp-reset>Reiniciar percurso</button></div>
+
+  <section class="dhcp-inspect" data-dhcp-inspect hidden aria-labelledby="dhcp-inspect-title">
+    <h3 id="dhcp-inspect-title">Onde cada parâmetro será usado?</h3>
+    <div class="dhcp-field-buttons"><button type="button" data-dhcp-field="ip" aria-pressed="false">IPv4</button><button type="button" data-dhcp-field="mask" aria-pressed="false">Máscara</button><button type="button" data-dhcp-field="gateway" aria-pressed="false">Gateway</button><button type="button" data-dhcp-field="dns" aria-pressed="false">DNS</button></div>
+    <p data-dhcp-field-use aria-live="polite">Selecione um campo para ver sua função na comunicação posterior.</p>
+  </section>
+
+  <section class="dhcp-diagnosis" aria-labelledby="dhcp-diagnosis-title">
+    <h3 id="dhcp-diagnosis-title">Diagnóstico · compare o estado do cliente</h3>
+    <div class="dhcp-diagnosis-controls"><button type="button" data-dhcp-state="valid">Concessão válida</button><button type="button" data-dhcp-state="missing">Sem resposta do servidor</button></div>
+    <div class="dhcp-evidence" aria-live="polite"><p><b>Observado</b><span data-dhcp-observed>Cliente ainda sem IPv4 configurado.</span></p><p><b>Conclusão permitida</b><span data-dhcp-safe>Ainda não há concessão aplicada.</span></p><p><b>Causas ainda não determinadas</b><span data-dhcp-unknown>Não há falha diagnosticada neste estado inicial.</span></p></div>
+  </section>
+
+  <details class="network-terminal dhcp-terminal"><summary>Ver terminal simulado do cliente</summary><p>Comandos no cliente Windows simulado. A saída acompanha o estado deste laboratório; não consulta o seu computador.</p><form data-dhcp-terminal><label for="dhcp-command">Comando</label><input id="dhcp-command" autocomplete="off" spellcheck="false" placeholder="ipconfig /all"><button type="submit">Executar</button></form><pre data-dhcp-terminal-output aria-live="polite">Use ipconfig /all ou ipconfig /renew.</pre></details>
 </section>

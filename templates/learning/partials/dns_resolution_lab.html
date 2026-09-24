@@ -1,8 +1,27 @@
-<section class="network-lab" id="dns-lab" data-dns-lab aria-label="DNS Resolution Lab" tabindex="-1">
-  <header><span>DNS RESOLUTION LAB</span><strong data-dns-title>Nome → endereço</strong></header>
-  <div class="network-path"><div><small>CLIENTE</small><strong>192.168.10.50</strong></div><span>→</span><div><small>RESOLVEDOR DNS</small><strong>192.168.10.53</strong></div><span>→</span><div><small>REGISTRO A</small><strong>192.168.20.30</strong></div></div>
-  <div class="network-data"><span>Nome consultado</span><code>intranet.exemplo.local</code><span>Cache do cliente</span><strong data-dns-cache>Não inspecionado</strong></div>
-  <div class="network-evidence" data-dns-evidence hidden><p><b>Evidência observada</b><span data-dns-observed></span></p><p><b>Conclusão segura</b><span data-dns-safe></span></p><p><b>Ainda não sabemos</b><span data-dns-unknown></span></p></div>
-  <ol data-dns-steps aria-live="polite"><li>Escolha uma ação em uma das áreas.</li></ol><p class="network-feedback" data-dns-feedback role="status" aria-live="polite"></p>
-  <div class="network-controls"><button type="button" data-dns-next hidden>Próxima etapa</button><button type="button" data-dns-reset>Reiniciar cenário</button></div>
+<section class="network-lab dns-lab" id="dns-lab" data-dns-lab data-actor="client" aria-label="Laboratório de resolução DNS" tabindex="-1">
+  <header><span>DNS RESOLUTION LAB</span><strong>Resolva o nome no seu ritmo</strong><p>Avance uma ação por vez. O cache permanece entre a primeira e a segunda tentativa.</p></header>
+  <div class="dns-lab-path" aria-label="Participantes da consulta e do acesso posterior">
+    <div data-dns-node="client"><small>CLIENTE</small><strong>192.168.10.50</strong></div>
+    <span aria-hidden="true">↔</span>
+    <div data-dns-node="resolver"><small>RESOLVEDOR DNS</small><strong>192.168.10.53</strong></div>
+    <span aria-hidden="true">·</span>
+    <div data-dns-node="web"><small>SERVIDOR WEB · DEPOIS</small><strong>192.168.20.30</strong></div>
+  </div>
+  <div class="dns-lab-grid">
+    <section class="dns-message" aria-label="Mensagem e resposta DNS">
+      <h3>Mensagem em foco</h3>
+      <p><b>Direção</b><span data-dns-direction>Cliente ainda não enviou uma consulta.</span></p>
+      <p><b>Tipo</b><span data-dns-message-kind>Nenhuma mensagem em trânsito</span></p>
+      <p><b>Pergunta</b><span data-dns-question>—</span></p>
+      <p><b>Dado da resposta A</b><span data-dns-answer>—</span></p>
+    </section>
+    <section class="dns-cache-panel" aria-label="Cache DNS do cliente">
+      <h3>Cache do cliente</h3>
+      <strong data-dns-cache>Vazio</strong>
+      <p>Consultas enviadas ao resolvedor neste percurso: <b data-dns-query-count>0</b></p>
+    </section>
+  </div>
+  <p class="dns-lab-feedback" data-dns-feedback role="status" aria-live="polite">O cliente conhece o nome, mas ainda não tem a associação IPv4 no cache.</p>
+  <div class="dns-lab-controls"><button type="button" data-dns-next>Solicitar o nome</button><button type="button" data-dns-clear>Limpar cache</button></div>
+  <details class="dns-timeline"><summary>Ver eventos desta tentativa</summary><ol data-dns-steps><li>O cliente conhece intranet.exemplo.local.</li></ol></details>
 </section>

@@ -1,37 +1,48 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Portas + Cliente/Servidor · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}"><link rel="stylesheet" href="{% static 'css/ports-concept.css' %}">{% endblock %}
-{% block content %}<main class="ports-concept">
-<div class="ports-layout"><div class="ports-lessons">
-  <section class="ports-area" data-ports-area="01"><span class="ports-index">PORTAS + CLIENTE/SERVIDOR · ÁREA 01</span><h1>IP leva ao host. E a aplicação?</h1>
-    <p>Vários serviços podem compartilhar o mesmo IP de um servidor. O endereço <code>192.168.20.30</code> leva ao host; protocolo e porta de destino ajudam a selecionar o endpoint de transporte de um serviço dentro dele.</p>
-    <p class="ports-anchor">IP responde “qual host?”. Protocolo + porta responde “qual endpoint de aplicação nesse host?”.</p>
-    <button type="button" data-ports-open="inspect">Inspecionar campos do envio →</button>
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}?v=checkpoint-contrast-1"><link rel="stylesheet" href="{% static 'css/ports-concept.css' %}?v=ports-flow-4"><link rel="stylesheet" href="{% static 'css/context-glossary.css' %}">{% endblock %}
+{% block content %}
+<main class="ports-concept">
+  <header class="ports-intro" data-ports-area="01">
+    <span class="ports-index">OSI · CAMADAS 4–7</span>
+    <h1>Portas + Cliente/Servidor</h1>
+    <p>IP identifica o host. Protocolo e porta de destino ajudam a entregar os dados ao endpoint correto. Neste cenário, o cliente inicia a solicitação e o servidor oferece o serviço; nenhum deles escolhe a rota.</p>
+    <p class="ports-definitions">
+      <span>Um <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="ports-tip-endpoint" aria-describedby="ports-tip-endpoint">endpoint</button><span id="ports-tip-endpoint" role="tooltip" hidden>Um lado identificado de uma comunicação de transporte: protocolo, endereço IP e porta.</span></span> combina protocolo, IP e porta para identificar onde os dados devem chegar.</span>
+      <span>A <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="ports-tip-ephemeral" aria-describedby="ports-tip-ephemeral">porta temporária</button><span id="ports-tip-ephemeral" role="tooltip" hidden>Porta de origem escolhida para esta comunicação do cliente. A resposta pode usar essa porta como destino.</span></span> identifica o lado cliente desta comunicação.</span>
+    </p>
+  </header>
+
+  <section class="ports-static-flow" aria-labelledby="ports-static-title">
+    <h2 id="ports-static-title">Um pedido e sua resposta</h2>
+    <div class="ports-services" aria-label="Serviços oferecidos no servidor 192.168.20.30"><strong>Servidor · 192.168.20.30 oferece</strong><span>TCP 443 · Web</span><span>TCP 22 · SSH</span><span>UDP 53 · DNS</span></div>
+    <div class="ports-direction"><span class="direction-label">SOLICITAÇÃO · CLIENTE → SERVIDOR</span><code>TCP · 192.168.10.20:53012 → 192.168.20.30:443</code></div>
+    <div class="ports-direction is-return"><span class="direction-label">RESPOSTA · SERVIDOR → CLIENTE</span><code>TCP · 192.168.20.30:443 → 192.168.10.20:53012</code></div>
+    <p class="ports-brief-note">TCP 53 e UDP 53 são endpoints distintos: o protocolo também faz parte da identificação. O número da porta, sozinho, não é o programa nem garante o mesmo serviço em toda máquina.</p>
   </section>
-  <section class="ports-area" data-ports-area="02"><span class="ports-index">ÁREA 02 · SERVIÇOS</span><h2>Um IP, três serviços</h2>
-    <p>No mesmo servidor, selecione um serviço e acompanhe a entrega. Uma porta não é o programa inteiro: ela identifica um endpoint de transporte usado por um serviço ou processo.</p>
-    <div class="ports-actions"><button type="button" data-ports-open="service" data-service="web">TCP 443 · Serviço web</button><button type="button" data-ports-open="service" data-service="ssh">TCP 22 · SSH</button><button type="button" data-ports-open="service" data-service="dns">UDP 53 · DNS</button></div>
-    <p class="ports-note">Protocolo também importa: <code>TCP 53</code> e <code>UDP 53</code> são endpoints de transporte distintos.</p>
+
+  {% include "learning/partials/endpoint_delivery_lab.html" %}
+
+  <section class="ports-closing" aria-labelledby="ports-fields-title">
+    <h2 id="ports-fields-title">Observe os campos nas duas comunicações</h2>
+    <p>O servidor continua em TCP 443, mas cada cliente tem uma origem própria. Compare IP e porta de origem junto com o destino e o protocolo.</p>
+    <div class="ports-tuple-table" role="table" aria-label="Campos dos dois clientes acessando o servidor web">
+      <div role="row"><strong role="columnheader">Protocolo</strong><strong role="columnheader">IP de origem</strong><strong role="columnheader">Porta de origem</strong><strong role="columnheader">IP de destino</strong><strong role="columnheader">Porta de destino</strong></div>
+      <div role="row"><span role="cell">TCP</span><span role="cell">192.168.10.20</span><span role="cell">53012</span><span role="cell">192.168.20.30</span><span role="cell">443</span></div>
+      <div role="row"><span role="cell">TCP</span><span role="cell">192.168.10.21</span><span role="cell">53013</span><span role="cell">192.168.20.30</span><span role="cell">443</span></div>
+    </div>
   </section>
-  <section class="ports-area" data-ports-area="03"><span class="ports-index">ÁREA 03 · CLIENTE</span><h2>A porta temporária do cliente</h2>
-    <p>No cenário web, o cliente envia de <code>192.168.10.20:53012</code> para <code>192.168.20.30:443</code> usando TCP. A porta <code>53012</code> é temporária neste cliente e ajuda a resposta a retornar ao endpoint correto.</p>
-    <button type="button" data-ports-open="assemble">Montar envio no laboratório →</button>
-    <p class="ports-note">O destino é <code>443</code> porque esse é o serviço web do servidor neste cenário. A origem não precisa usar a mesma porta.</p>
-  </section>
-  <section class="ports-area" data-ports-area="04"><span class="ports-index">ÁREA 04 · RESPOSTA</span><h2>O retorno inverte os endpoints</h2>
-    <p>Na resposta deste modelo cliente/servidor, o serviço web envia de <code>192.168.20.30:443</code> para <code>192.168.10.20:53012</code>, ainda por TCP.</p>
-    <button type="button" data-ports-open="reply">Preparar resposta →</button>
-    <p class="ports-anchor">A porta do serviço permanece do lado do servidor. A porta temporária identifica o endpoint do cliente que iniciou esta comunicação.</p>
-  </section>
-  <section class="ports-area" data-ports-area="05"><span class="ports-index">ÁREA 05 · SÍNTESE</span><h2>Dois clientes, o mesmo serviço</h2>
-    <p><code>192.168.10.20:53012</code> e <code>192.168.10.21:53013</code> podem acessar o mesmo <code>192.168.20.30:443</code>. A combinação abaixo distingue os fluxos; não é uma fórmula para decorar.</p>
-    <p class="ports-anchor">Protocolo + IP origem + porta origem + IP destino + porta destino</p>
-    <button type="button" data-ports-open="parallel">Comparar fluxos A e B →</button>
-    <details class="ports-terminal"><summary>Terminal simulado · netstat</summary><form data-ports-terminal><label for="ports-command">Comando</label><input id="ports-command" autocomplete="off" spellcheck="false" placeholder="netstat -ano"><button type="submit">Executar</button></form><pre data-ports-terminal-output aria-live="polite">Use netstat -ano ou netstat -ano | findstr :443.</pre><p>Saídas simuladas apenas para este cenário.</p></details>
-    <div class="ports-self"><article data-self><h3>Explique antes de revelar</h3><label>Por que o IP do servidor não basta para escolher o serviço?<textarea rows="4"></textarea></label><button type="button" data-reference-reveal>Conferir referência</button><p data-reference hidden>O IP identifica o host servidor. Como ele oferece serviços diferentes, protocolo e porta de destino indicam o endpoint de transporte usado pelo serviço que deve receber os dados.</p></article><article data-self><h3>Explique antes de revelar</h3><label>Por que a resposta do serviço web volta para a porta 53012 e não para outra porta do cliente?<textarea rows="4"></textarea></label><button type="button" data-reference-reveal>Conferir referência</button><p data-reference hidden>53012 é a porta temporária de origem do cliente neste cenário. Ao responder, o servidor inverte origem e destino, enviando de TCP 443 para 192.168.10.20:53012.</p></article></div>
-    <nav class="concept-sequence"><a href="{% url 'learning:transport_concept' %}">← TCP × UDP</a><a href="{% url 'learning:dns_concept' %}">DNS + Resolução de Nomes →</a></nav>
-  </section>
-</div><aside class="ports-lab-column" aria-label="Laboratório compartilhado de endpoints">{% include "learning/partials/endpoint_delivery_lab.html" %}</aside></div>
-<section id="ports-checkpoint" class="ports-checkpoint-shell" aria-live="polite">{% include "learning/partials/ports_checkpoint.html" %}</section>
-</main>{% endblock %}
-{% block scripts %}<script src="{% static 'js/ports-concept.js' %}"></script>{% endblock %}
+
+  <details class="ports-terminal">
+    <summary>Ver saída simulada de netstat</summary>
+    <p>Terminal simulado executado no servidor <code>192.168.20.30</code>. A saída corresponde aos serviços web, SSH e DNS configurados neste exemplo.</p>
+    <form data-ports-terminal><label for="ports-command">Comando</label><input id="ports-command" autocomplete="off" spellcheck="false" placeholder="netstat -ano"><button type="submit">Executar</button></form>
+    <pre data-ports-terminal-output aria-live="polite">Use netstat -ano ou netstat -ano | findstr :443.</pre>
+    <small>Saída simulada; não consulta as conexões reais do seu computador.</small>
+  </details>
+
+  <section id="ports-checkpoint" class="ports-checkpoint-shell" aria-live="polite" aria-label="Checkpoint de Portas + Cliente/Servidor">{% include "learning/partials/ports_checkpoint.html" %}</section>
+  <nav class="concept-sequence" aria-label="Navegação do conteúdo"><a href="{% url 'learning:transport_concept' %}">← TCP × UDP</a><a href="{% url 'learning:dns_concept' %}">DNS + Resolução de Nomes →</a></nav>
+</main>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/context-glossary.js' %}"></script><script src="{% static 'js/ports-concept.js' %}?v=ports-flow-4"></script>{% endblock %}

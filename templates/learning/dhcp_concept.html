@@ -1,12 +1,27 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}DHCP + Configuração Dinâmica · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}"><link rel="stylesheet" href="{% static 'css/network-concept.css' %}">{% endblock %}
-{% block content %}<main class="network-concept dhcp-concept"><div class="network-layout"><div class="network-lessons">
-  <section class="network-area" data-dhcp-area="01"><span class="network-index">DHCP + CONFIGURAÇÃO DINÂMICA · ÁREA 01</span><h1>Configuração antes da comunicação</h1><p>O cliente começa sem IPv4 configurado. DHCP pode fornecer IP, máscara, gateway e DNS, cada um com uma função diferente para os próximos passos da comunicação.</p><p class="network-anchor">DHCP fornece configuração; não substitui DNS, ARP, routing, TCP ou a aplicação.</p><button type="button" data-dhcp-open="meaning">Inspecionar o estado inicial →</button></section>
-  <section class="network-area" data-dhcp-area="02"><span class="network-index">ÁREA 02 · DORA</span><h2>Quatro mensagens, no ritmo do aluno</h2><p>Discover → Offer → Request → ACK. Neste cenário local, o cliente sem IP pode usar broadcast para encontrar o servidor DHCP.</p><button type="button" data-dhcp-open="dora">Acompanhar DORA →</button></section>
-  <section class="network-area" data-dhcp-area="03"><span class="network-index">ÁREA 03 · CONCESSÃO</span><h2>Quatro informações, quatro funções</h2><p>A concessão apresenta <code>192.168.10.50/24</code>, gateway <code>192.168.10.1</code> e DNS <code>192.168.10.53</code>. Inspecione cada campo no laboratório.</p><button type="button" data-dhcp-open="lease">Inspecionar concessão →</button></section>
-  <section class="network-area" data-dhcp-area="04"><span class="network-index">ÁREA 04 · DIAGNÓSTICO</span><h2>APIPA é pista, não causa raiz</h2><p>Compare a concessão válida com um endereço <code>169.254.x.x</code>. Ele pode indicar que uma concessão DHCP não foi recebida; sozinho não aponta a causa. Alcance, VLAN, servidor ou conectividade precisam ser investigados.</p><div class="network-actions"><button type="button" data-dhcp-open="diagnose-valid">Configuração válida</button><button type="button" data-dhcp-open="diagnose-apipa">Endereço 169.254.x.x</button></div><details class="network-terminal"><summary>Terminal simulado</summary><form data-dhcp-terminal><label for="dhcp-command">Comando</label><input id="dhcp-command" autocomplete="off" spellcheck="false" placeholder="ipconfig /all"><button type="submit">Executar</button></form><pre data-dhcp-terminal-output aria-live="polite">Use ipconfig /all ou ipconfig /renew.</pre><p>Saídas simuladas apenas para este cenário.</p></details></section>
-  <section class="network-area" data-dhcp-area="05"><span class="network-index">ÁREA 05 · SÍNTESE</span><h2>Configuração em uso</h2><p>Depois da concessão, o cliente consegue reconhecer sua rede local, usar o gateway para redes remotas e consultar DNS para nomes.</p><button type="button" data-dhcp-open="journey">Percorrer as funções →</button><p class="network-anchor">Configuração → rede local → gateway para redes remotas → DNS para nomes</p><nav class="concept-sequence"><a href="{% url 'learning:dns_concept' %}">← DNS + Resolução de Nomes</a><span>Próximo: TCP por dentro · em breve</span></nav></section>
-</div><aside class="network-lab-column" aria-label="Laboratório compartilhado de DHCP">{% include "learning/partials/dhcp_configuration_lab.html" %}</aside></div>
-<section id="dhcp-checkpoint" class="network-checkpoint-shell" aria-live="polite">{% include "learning/partials/dhcp_checkpoint.html" %}</section></main>{% endblock %}
-{% block scripts %}<script src="{% static 'js/dhcp-concept.js' %}"></script>{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gateway-concept.css' %}?v=checkpoint-contrast-1"><link rel="stylesheet" href="{% static 'css/network-concept.css' %}"><link rel="stylesheet" href="{% static 'css/dhcp-concept.css' %}?v=dhcp-flow-1">{% endblock %}
+{% block content %}
+<main class="network-concept dhcp-concept">
+  <header class="dhcp-intro" data-dhcp-area="01">
+    <span class="network-index">DHCP + CONFIGURAÇÃO DINÂMICA</span>
+    <h1>Configuração antes da comunicação</h1>
+    <p>DHCP fornece uma <strong>concessão temporária</strong> com IPv4, máscara, gateway e DNS. O IPv4 identifica o host; a máscara ajuda a reconhecer a rede local; o gateway é o próximo salto para redes remotas; o DNS é consultado para resolver nomes.</p>
+  </header>
+
+  <section class="dhcp-overview" aria-labelledby="dhcp-overview-title">
+    <h2 id="dhcp-overview-title">Uma troca local em quatro mensagens</h2>
+    <p class="dhcp-overview-path"><span>Cliente sem IPv4</span><b aria-hidden="true">↔</b><span>Switch / VLAN local</span><b aria-hidden="true">↔</b><span>Servidor DHCP <code>192.168.10.53</code></span></p>
+    <ol class="dhcp-overview-steps"><li>Discover <small>procura</small></li><li>Offer <small>propõe</small></li><li>Request <small>solicita</small></li><li>ACK <small>confirma</small></li></ol>
+    <p>A oferta <strong>propõe</strong> a configuração; o ACK <strong>confirma</strong> a concessão. Só depois da confirmação ela aparece aplicada no cliente desta simulação.</p>
+    <details><summary>E se o servidor estiver em outra rede?</summary><p>O percurso local abaixo não simula DHCP relay. Em outra rede, um relay pode encaminhar mensagens DHCP ao servidor; isso não muda a distinção entre oferta e confirmação.</p></details>
+  </section>
+
+  {% include "learning/partials/dhcp_configuration_lab.html" %}
+
+  <section class="dhcp-summary" aria-labelledby="dhcp-summary-title"><h2 id="dhcp-summary-title">Depois da concessão</h2><p>DHCP entrega parâmetros. DNS resolve nomes, o gateway encaminha tráfego remoto e os serviços precisam ser testados separadamente. A concessão tem prazo e pode precisar de renovação.</p></section>
+  <section id="dhcp-checkpoint" class="network-checkpoint-shell" aria-live="polite">{% include "learning/partials/dhcp_checkpoint.html" %}</section>
+  <nav class="concept-sequence" aria-label="Navegação do conteúdo"><a href="{% url 'learning:dns_concept' %}">← DNS + Resolução de Nomes</a><span>Próximo: TCP por dentro · em breve</span></nav>
+</main>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/dhcp-concept.js' %}?v=dhcp-flow-1"></script>{% endblock %}

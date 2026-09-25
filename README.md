@@ -75,6 +75,7 @@ A bancada em templates/learning/integrated_lab.html possui catálogo, área de m
 ### Responsabilidades dos arquivos
 
 - static/js/integrated-lab-model.js: catálogo, configurações, posições, conexões e adaptação do grafo para o simulador. Também exporta a API para Node.
+- O mesmo modelo define o **Scenario Schema v1** e as APIs exportScenario/importScenario. A configuração do cenário é separada do resultado dos testes.
 - static/js/integrated-lab-simulator.js: valida a montagem e **decide o percurso**. Calcula ARP, aprendizado/encaminhamento MAC por VLAN, passagem pelo trunk, decisão local/remoto do host e rotas diretamente conectadas de R1. Emite eventos ordenados com IDs de evento, equipamento, interface, cabo, frame e pacote e snapshots das tabelas MAC/ARP/rotas em cada evento.
 - static/js/integrated-lab.js: liga controles ao modelo e **representa os eventos**. A lógica de encaminhamento não deve ser duplicada na camada visual.
 - static/css/integrated-lab.css: largura quase total da área de conteúdo, bancada alta, cartões de equipamentos, inspetor e layout móvel.
@@ -96,7 +97,39 @@ No teste A→B, PC-A usa **a própria máscara** e classifica PC-B como remoto. 
 
 Falhas representadas no ponto em que ocorrem: gateway ausente ou fora da rede local; ARP do gateway sem resposta por cabo/porta/VLAN; falta de interface conectada à rede de destino; ARP do destino sem resposta na saída; IPv4 inválido. **Uma máscara errada no PC não é corrigida pelo gateway**: se o host considera o destino local, tenta ARP para o próprio destino na rede local.
 
-**Fora do escopo desta etapa:** mais roteadores, rotas estáticas, terminal/CLI na bancada, NAT, DHCP, router-on-a-stick, ping completo, autoplay e persistência da montagem. Terminais e laboratórios das aulas são demonstrações independentes.
+### Scenario Schema v1
+
+O contrato versionado está em static/js/integrated-lab-model.js e funciona em Node, sem DOM. exportScenario(state, metadata?) devolve um objeto novo; importScenario(scenario) valida o contrato e devolve {state, name, sourceId, destinationId}. Dados inválidos geram TypeError. Nome e par origem/destino são opcionais; se houver seleção, os dois IDs devem identificar PCs distintos e instalados.
+
+~~~js
+{
+  schemaVersion: 1,
+  name: "Duas redes por R1", // opcional; até 120 caracteres
+  devices: {
+    "pc-a": {
+      position: {x: 0.18, y: 0.22}, // ou null quando não instalado
+      config: {ip: "192.168.10.10", mask: "255.255.255.0",
+               mac: "AA:AA:AA:AA:AA:AA", gateway: "192.168.10.1"}
+    },
+    // Também contém pc-b, pc-c, pc-d, sw1, sw2 e r1.
+    // Switch: config = {vlans: {"sw1:gi0/1": 10, ...}, allowedVlans: [10, 20]}
+    // R1: config = {eth0: {ip, mask, mac}, eth1: {ip, mask, mac}}
+  },
+  connections: [{a: "pc-a:eth0", b: "sw1:gi0/1"}],
+  sourceId: "pc-a",      // opcional, sempre junto de destinationId
+  destinationId: "pc-b" // opcional
+}
+~~~
+
+O mapa devices inclui **todos os sete IDs do catálogo**, mesmo os não instalados, para preservar também configurações editáveis de equipamentos cuja posição é null. Armazena somente posição e configuração; tipo, nome e lista de interfaces são reconstruídos pelo catálogo. Cabos guardam apenas os dois endpoints; ID e tipo são reconstruídos pelo modelo. Não há interfaces redundantes no arquivo.
+
+O importador rejeita versão desconhecida, campos ausentes/desconhecidos, IDs fora do catálogo, posições fora da bancada, endereços ou máscaras estruturalmente inválidos, VLANs inválidas, conexões impossíveis/repetidas e seleção de PCs incoerente. Usa as mesmas regras de conexão e os limites do modelo. Valores semanticamente errados, mas estruturalmente válidos, como gateway na rede errada, continuam representáveis para estudo de falhas. O estado reconstruído não compartilha objetos mutáveis com o cenário recebido.
+
+**O cenário é somente a rede configurada.** Não contém eventos, histórico, resultado, tabelas MAC/ARP aprendidas, snapshots de rotas, cursor, modo da UI nem evento selecionado. Esses dados surgem novamente ao executar o simulador. Ainda não existe botão Salvar/Carregar, arquivo de cenário, localStorage ou persistência da bancada no Django.
+
+Uma futura definição de exercício de troubleshooting deve ficar em uma **camada separada** que referencie um cenário. Resposta esperada, correção, pistas e condição de sucesso não pertencem ao Schema v1. Também não existe terminal integrado nesta bancada; uma futura interface de comandos deverá consultar e alterar o mesmo modelo/simulador, mantendo os estados coerentes, em vez de manter um estado paralelo decorativo.
+
+**Fora do escopo desta etapa:** interface Salvar/Carregar, presets, desafios, terminal/CLI na bancada, mais roteadores, rotas estáticas, NAT, DHCP, DNS, Internet simulada, router-on-a-stick, ping/ICMP completo, autoplay, autenticação e persistência da montagem. Terminais e laboratórios das aulas são demonstrações independentes.
 
 ## Estrutura e pontos de edição
 
@@ -110,7 +143,8 @@ Falhas representadas no ponto em que ocorrem: gateway ausente ou fora da rede lo
 | Moldura, menu e largura geral | templates/learning/base.html, static/css/netstudy.css |
 | Bancada integrada | templates/learning/integrated_lab.html, static/js/integrated-lab-*.js, static/css/integrated-lab.css |
 | Testes Django | learning/tests.py, learning/test_integrated_lab.py |
-| Testes Node do laboratório | static/js/integrated-lab-model.test.js, static/js/integrated-lab-simulator.test.js |
+| Testes Node do laboratório | static/js/integrated-lab-model.test.js, static/js/integrated-lab-simulator.test.js, static/js/integrated-lab-scenario.test.js |
+| CI | .github/workflows/ci.yml (push e pull request para main) |
 
 Antes de editar uma página, leia o template, os partials incluídos, os CSS/JS carregados ao fim do template e a view que fornece o contexto. Alguns dados de exemplo são definidos na view (como as rotas de /tabela-de-rotas/); outros ficam nos componentes JS. Verifique sempre o estado atual do Git, pois mudanças de outra tarefa podem estar presentes na árvore de trabalho.
 
@@ -123,10 +157,11 @@ No Windows com .venv preparado:
 .\.venv\Scripts\python.exe manage.py test
 node static/js/integrated-lab-model.test.js
 node static/js/integrated-lab-simulator.test.js
+node static/js/integrated-lab-scenario.test.js
 node --check static/js/integrated-lab-model.js
 node --check static/js/integrated-lab-simulator.js
 node --check static/js/integrated-lab.js
 git diff --check
 ~~~
 
-Os testes Django cobrem páginas, endpoints e checkpoints. Os testes Node cobrem o modelo e o simulador da bancada, incluindo A→B/B→A, casos locais, trunk, falhas e limites. Para mudanças visuais ou de interação, confira também a página no navegador em desktop e largura móvel (360 px é uma referência usada no projeto). Este mapa não substitui a inspeção do código nem a validação do comportamento alterado.
+Os testes Django cobrem páginas, endpoints e checkpoints. Os testes Node cobrem o modelo, o simulador e o round-trip/isolamento/rejeições do Scenario Schema v1. O CI repete esses comandos em Linux com Python 3.11 e Node 22. Para mudanças visuais ou de interação, confira também a página no navegador em desktop e largura móvel (360 px é uma referência usada no projeto). Este mapa não substitui a inspeção do código nem a validação do comportamento alterado.

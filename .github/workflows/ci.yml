@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Django checks and tests
+        run: |
+          python manage.py check
+          python manage.py test
+      - name: Integrated lab Node tests
+        run: |
+          node static/js/integrated-lab-model.test.js
+          node static/js/integrated-lab-simulator.test.js
+          node static/js/integrated-lab-scenario.test.js
+      - name: JavaScript syntax
+        run: |
+          node --check static/js/integrated-lab-model.js
+          node --check static/js/integrated-lab-simulator.js
+          node --check static/js/integrated-lab.js
+      - name: Whitespace in changes
+        shell: bash
+        run: |
+          git diff --check
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            git diff --check "origin/$GITHUB_BASE_REF...HEAD"
+          elif git rev-parse HEAD^ >/dev/null 2>&1; then
+            git diff --check HEAD^ HEAD
+          fi

@@ -9,6 +9,7 @@
   const PC_IDS = Object.freeze(["pc-a", "pc-b", "pc-c", "pc-d"]);
   const SWITCH_IDS = Object.freeze(["sw1", "sw2"]);
   const ROUTER_IDS = Object.freeze(["r1"]);
+  const SCENARIO_VERSION = 1;
   const DEVICE_IDS = Object.freeze(["pc-a", "sw1", "pc-b", "pc-c", "r1", "sw2", "pc-d"]);
   const INTERFACES = Object.freeze({
     ...Object.fromEntries(PC_IDS.map(id => [`${id}:eth0`, {deviceId: id, name: "Eth0"}])),
@@ -76,5 +77,99 @@
   function eventTargets(event) {
     return {deviceId: event?.focusId || null, interfaceIds: event?.interfaceIds || [], connectionIds: event?.connectionIds || []};
   }
-  return {PC_IDS, SWITCH_IDS, ROUTER_IDS, DEVICE_IDS, INTERFACES, create, position, configure, connect, disconnect, adapt, eventTargets, connectionId};
+  const record = value => value !== null && typeof value === "object" && !Array.isArray(value) &&
+    (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
+  function keys(value, required, optional, label) {
+    if (!record(value)) throw new TypeError(label + " deve ser um objeto.");
+    const actual = Object.keys(value);
+    const allowed = [...required, ...optional];
+    if (required.some(key => !Object.hasOwn(value, key)) || actual.some(key => !allowed.includes(key)))
+      throw new TypeError(label + " possui campos ausentes ou desconhecidos.");
+  }
+  function address(config, label, withGateway = false) {
+    keys(config, withGateway ? ["ip", "mask", "mac", "gateway"] : ["ip", "mask", "mac"], [], label);
+    if (!simulator.ipv4(config.ip) || !simulator.mask(config.mask) ||
+        typeof config.mac !== "string" || !/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i.test(config.mac) ||
+        (withGateway && config.gateway !== "" && !simulator.ipv4(config.gateway)))
+      throw new TypeError(label + " tem IPv4, máscara, MAC ou gateway estruturalmente inválido.");
+  }
+  function switchConfig(config, id) {
+    keys(config, ["vlans", "allowedVlans"], [], "Configuração de " + id);
+    const ports = [1, 2, 3, 4].map(n => id + ":gi0/" + n);
+    keys(config.vlans, ports, [], "Portas de " + id);
+    if (ports.some(port => ![10, 20].includes(config.vlans[port])) ||
+        !Array.isArray(config.allowedVlans) ||
+        config.allowedVlans.some(vlan => ![10, 20].includes(vlan)) ||
+        new Set(config.allowedVlans).size !== config.allowedVlans.length)
+      throw new TypeError("VLANs inválidas em " + id + ".");
+  }
+  function importScenario(scenario) {
+    keys(scenario, ["schemaVersion", "devices", "connections"], ["name", "sourceId", "destinationId"], "Cenário");
+    if (scenario.schemaVersion !== SCENARIO_VERSION) throw new TypeError("schemaVersion desconhecida.");
+    if (Object.hasOwn(scenario, "name") && (typeof scenario.name !== "string" || !scenario.name.trim() || scenario.name.length > 120))
+      throw new TypeError("Nome do cenário inválido.");
+    keys(scenario.devices, DEVICE_IDS, [], "Equipamentos do cenário");
+    if (!Array.isArray(scenario.connections) || scenario.connections.length > simulator.LIMITS.links)
+      throw new TypeError("Lista de conexões inválida.");
+    let state = create();
+    for (const id of DEVICE_IDS) {
+      const entry = scenario.devices[id];
+      keys(entry, ["position", "config"], [], "Equipamento " + id);
+      if (entry.position !== null) {
+        keys(entry.position, ["x", "y"], [], "Posição de " + id);
+        if (![entry.position.x, entry.position.y].every(value => Number.isFinite(value) && value >= .08 && value <= .92))
+          throw new TypeError("Posição inválida em " + id + ".");
+        state = position(state, id, entry.position.x, entry.position.y).state;
+      }
+      if (PC_IDS.includes(id)) address(entry.config, id, true);
+      else if (SWITCH_IDS.includes(id)) switchConfig(entry.config, id);
+      else {
+        keys(entry.config, ["eth0", "eth1"], [], "Configuração de R1");
+        address(entry.config.eth0, "R1 Eth0");
+        address(entry.config.eth1, "R1 Eth1");
+      }
+      state = configure(state, id, entry.config).state;
+    }
+    for (const cable of scenario.connections) {
+      keys(cable, ["a", "b"], [], "Conexão");
+      if (typeof cable.a !== "string" || typeof cable.b !== "string" ||
+          !Object.hasOwn(INTERFACES, cable.a) || !Object.hasOwn(INTERFACES, cable.b))
+        throw new TypeError("Conexão usa interface inexistente.");
+      const change = connect(state, cable.a, cable.b);
+      if (change.error) throw new TypeError("Conexão inválida: " + change.error);
+      state = change.state;
+    }
+    const source = Object.hasOwn(scenario, "sourceId"), destination = Object.hasOwn(scenario, "destinationId");
+    if (source !== destination) throw new TypeError("Origem e destino devem aparecer juntos.");
+    if (source && (!PC_IDS.includes(scenario.sourceId) || !PC_IDS.includes(scenario.destinationId) ||
+        !state.devices[scenario.sourceId].position || !state.devices[scenario.destinationId].position ||
+        scenario.sourceId === scenario.destinationId))
+      throw new TypeError("Par de PCs inválido para o cenário.");
+    return {state, name: scenario.name ?? null, sourceId: source ? scenario.sourceId : null,
+      destinationId: destination ? scenario.destinationId : null};
+  }
+  function exportScenario(state, metadata = {}) {
+    keys(metadata, [], ["name", "sourceId", "destinationId"], "Metadados do cenário");
+    if (!record(state) || !record(state.devices) || !Array.isArray(state.connections))
+      throw new TypeError("Estado da bancada inválido.");
+    const devices = Object.fromEntries(DEVICE_IDS.map(id => {
+      const device = state.devices[id];
+      if (!record(device) || !record(device.config)) throw new TypeError("Equipamento " + id + " ausente.");
+      const config = PC_IDS.includes(id)
+        ? {ip: device.config.ip, mask: device.config.mask, mac: device.config.mac, gateway: device.config.gateway}
+        : SWITCH_IDS.includes(id)
+          ? {vlans: Object.fromEntries([1, 2, 3, 4].map(n => {
+            const port = id + ":gi0/" + n; return [port, device.config.vlans?.[port]];
+          })), allowedVlans: [...(device.config.allowedVlans || [])]}
+          : {eth0: {...device.config.eth0}, eth1: {...device.config.eth1}};
+      return [id, {position: device.position === null ? null : {...device.position}, config}];
+    }));
+    const scenario = {schemaVersion: SCENARIO_VERSION, ...metadata, devices,
+      connections: state.connections.map(link => ({a: link.a, b: link.b}))};
+    importScenario(scenario);
+    return scenario;
+  }
+  return {PC_IDS, SWITCH_IDS, ROUTER_IDS, DEVICE_IDS, INTERFACES, SCENARIO_VERSION,
+    create, position, configure, connect, disconnect, adapt, eventTargets, connectionId,
+    exportScenario, importScenario};
 });

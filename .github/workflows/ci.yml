@@ -34,11 +34,17 @@ jobs:
           node static/js/integrated-lab-model.test.js
           node static/js/integrated-lab-simulator.test.js
           node static/js/integrated-lab-scenario.test.js
+          node static/js/integrated-lab-storage.test.js
+          node static/js/integrated-lab-presets.test.js
+          node static/js/integrated-lab-exercise-engine.test.js
       - name: JavaScript syntax
         run: |
           node --check static/js/integrated-lab-model.js
           node --check static/js/integrated-lab-simulator.js
           node --check static/js/integrated-lab.js
+          node --check static/js/integrated-lab-storage.js
+          node --check static/js/integrated-lab-presets.js
+          node --check static/js/integrated-lab-exercise-engine.js
       - name: Whitespace in changes
         shell: bash
         run: |

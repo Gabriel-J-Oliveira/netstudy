@@ -1,9 +1,27 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Laboratório integrado · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/integrated-lab.css' %}?v=router-1">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/integrated-lab.css' %}?v=exercise-1">{% endblock %}
 {% block content %}
 <main class="integrated-lab" data-integrated-lab>
-  <header class="lab-intro"><span>LABORATÓRIO INTEGRADO · BANCADA EDITÁVEL</span><h1>Monte, conecte e teste sua rede</h1><p>Até quatro PCs, dois switches, um roteador com duas interfaces físicas e um enlace Trunk entre os switches.</p></header>
+  <header class="lab-intro"><span>LABORATÓRIO INTEGRADO · BANCADA EDITÁVEL</span><h1>Monte, conecte e teste sua rede</h1><p>Até quatro PCs, dois switches, um roteador com duas interfaces físicas e um enlace Trunk entre os switches. <a href="{% url 'learning:troubleshooting' %}">Ver exercícios de troubleshooting</a>.</p></header>
+  <section class="lab-exercise" data-lab-exercise hidden aria-labelledby="lab-exercise-title">
+    <div class="lab-exercise-heading"><div><span>EXERCÍCIO EM ANDAMENTO</span><h2 id="lab-exercise-title" data-lab-exercise-title>Diagnóstico de conectividade IPv4</h2></div><p data-lab-exercise-meta></p></div>
+    <p data-lab-exercise-prompt></p><p><strong>Objetivo:</strong> <span data-lab-exercise-objective></span></p>
+    <div class="lab-exercise-actions"><button type="button" data-lab-check-solution>Testar solução</button><button type="button" data-lab-new-exercise>Gerar novo exercício</button><a href="{% url 'learning:troubleshooting' %}">Voltar à lista</a></div>
+    <p class="lab-exercise-feedback" data-lab-exercise-feedback role="status" aria-live="polite">Use a bancada para investigar a falha.</p>
+  </section>
+  <section class="lab-presets" aria-labelledby="lab-presets-title">
+    <h2 id="lab-presets-title">Cenários do NetStudy</h2>
+    <p>Montagens prontas para explorar. Carregar não altera os cenários salvos neste navegador.</p>
+    <ul class="lab-preset-list" data-lab-preset-list></ul>
+    <p class="lab-preset-feedback" data-lab-preset-feedback role="status" aria-live="polite"></p>
+  </section>
+  <section class="lab-scenarios" aria-labelledby="lab-scenarios-title">
+    <div><h2 id="lab-scenarios-title">Meus cenários</h2><p>Salvos neste navegador. Importe ou exporte um arquivo JSON para transferir uma montagem.</p></div>
+    <div class="lab-scenario-fields"><label for="lab-scenario-name">Nome do cenário<input id="lab-scenario-name" data-lab-scenario-name maxlength="120" autocomplete="off" placeholder="Ex.: Duas VLANs e R1"></label><label for="lab-scenario-list">Cenários salvos<select id="lab-scenario-list" data-lab-scenario-list><option value="">Nenhum cenário salvo</option></select></label></div>
+    <div class="lab-scenario-actions"><button type="button" data-lab-save>Salvar</button><button type="button" data-lab-save-as>Salvar como novo</button><button type="button" data-lab-load>Carregar</button><button type="button" data-lab-delete>Excluir</button><button type="button" data-lab-import-button>Importar JSON</button><input type="file" data-lab-import-file accept=".json,application/json" aria-label="Selecionar cenário JSON" hidden><button type="button" data-lab-export>Exportar JSON</button></div>
+    <p class="lab-scenario-feedback" data-lab-scenario-feedback role="status" aria-live="polite">Nenhum cenário carregado.</p>
+  </section>
   <section class="lab-board" aria-labelledby="lab-board-title">
     <div class="lab-board-heading"><div><span>ÁREA DE TRABALHO</span><h2 id="lab-board-title">Sua bancada de rede</h2></div><p>Escolha no catálogo e clique em uma posição livre da bancada. Também é possível arrastar. Clique em um equipamento instalado para configurá-lo.</p></div>
     <div class="lab-palette" aria-label="Catálogo de equipamentos funcionais">
@@ -51,4 +69,4 @@
   </section>
 </main>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/integrated-lab-simulator.js' %}?v=router-1"></script><script src="{% static 'js/integrated-lab-model.js' %}?v=router-1"></script><script src="{% static 'js/integrated-lab.js' %}?v=router-1"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/integrated-lab-simulator.js' %}?v=router-1"></script><script src="{% static 'js/integrated-lab-model.js' %}?v=router-1"></script><script src="{% static 'js/integrated-lab-storage.js' %}?v=scenarios-1"></script><script src="{% static 'js/integrated-lab-presets.js' %}?v=presets-1"></script><script src="{% static 'js/integrated-lab-exercise-engine.js' %}?v=exercise-1"></script><script src="{% static 'js/integrated-lab.js' %}?v=exercise-1"></script>{% endblock %}

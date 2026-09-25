@@ -276,6 +276,10 @@ def integrated_lab(request):
     return render(request, "learning/integrated_lab.html", _context(request, current_topic="LAB"))
 
 
+def troubleshooting(request):
+    return render(request, "learning/troubleshooting.html", _context(request, current_topic="LAB"))
+
+
 def start_session(request):
     request.session["arp_progress"] = {"current_stage": "conceito", "completed_stages": [], "answers": {}}
     return redirect("learning:concept")

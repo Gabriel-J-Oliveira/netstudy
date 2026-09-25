@@ -49,6 +49,31 @@ class IntegratedLabPageTests(TestCase):
         self.assertContains(response, 'data-lab-prev')
         self.assertContains(response, 'data-lab-next')
         self.assertContains(response, 'aria-live="polite"')
+        for marker in (
+            'data-lab-scenario-name', 'data-lab-scenario-list', 'data-lab-scenario-feedback',
+            'data-lab-save', 'data-lab-save-as', 'data-lab-load', 'data-lab-delete',
+            'data-lab-import-button', 'data-lab-import-file', 'data-lab-export',
+            'js/integrated-lab-storage.js',
+        ):
+            self.assertContains(response, marker)
+        for marker in ('Cenários do NetStudy', 'data-lab-preset-list',
+                       'data-lab-preset-feedback', 'js/integrated-lab-presets.js'):
+            self.assertContains(response, marker)
+        for marker in ('data-lab-exercise', 'data-lab-exercise-title',
+                       'data-lab-exercise-prompt', 'data-lab-exercise-objective',
+                       'data-lab-exercise-meta', 'data-lab-check-solution',
+                       'data-lab-new-exercise', 'data-lab-exercise-feedback',
+                       'js/integrated-lab-exercise-engine.js'):
+            self.assertContains(response, marker)
+
+    def test_troubleshooting_list_starts_exercise_in_lab(self):
+        response = self.client.get(reverse('learning:troubleshooting'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Diagnóstico de conectividade IPv4')
+        self.assertContains(response, 'name="exercise" value="ipv4-connectivity"')
+        self.assertContains(response, 'value="intermediate"')
+        self.assertContains(response, 'value="advanced"')
+        self.assertContains(response, f'action="{reverse("learning:integrated_lab")}"')
 
     def test_sidebar_has_only_two_main_shortcuts(self):
         response = self.client.get(reverse("learning:integrated_lab"))

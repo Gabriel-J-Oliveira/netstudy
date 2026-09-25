@@ -1,0 +1,21 @@
+{% extends "learning/base.html" %}{% load static %}
+{% block title %}Troubleshooting · NetStudy{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/integrated-lab.css' %}?v=exercise-1">{% endblock %}
+{% block content %}
+<main class="troubleshooting-page">
+  <span class="troubleshooting-kicker">LABORATÓRIO INTEGRADO · EXERCÍCIOS</span>
+  <h1>Troubleshooting</h1>
+  <p>Investigue uma rede com conectividade interrompida. Teste o percurso, ajuste a bancada e valide o estado final.</p>
+  <section aria-labelledby="ipv4-exercise-title">
+    <h2 id="ipv4-exercise-title">Diagnóstico de conectividade IPv4</h2>
+    <p>PC-A precisa alcançar PC-C por duas redes e um roteador. Cada tentativa gera uma montagem reproduzível por seed, com uma ou duas falhas conforme a dificuldade.</p>
+    <form method="get" action="{% url 'learning:integrated_lab' %}">
+      <input type="hidden" name="exercise" value="ipv4-connectivity">
+      <label for="exercise-difficulty">Dificuldade</label>
+      <select id="exercise-difficulty" name="difficulty"><option value="intermediate">Intermediate · 1 falha</option><option value="advanced">Advanced · 2 falhas</option></select>
+      <button type="submit">Iniciar exercício</button>
+    </form>
+  </section>
+  <p><a href="{% url 'learning:integrated_lab' %}">Abrir bancada livre</a></p>
+</main>
+{% endblock %}

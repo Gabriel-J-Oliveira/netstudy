@@ -4,6 +4,9 @@
   const simulator = window.NetStudyLabSimulator;
   const model = window.NetStudyLabModel;
   if (!root || !simulator || !model) return;
+  const storageApi = window.NetStudyLabStorage;
+  const presets = window.NetStudyLabPresets?.PRESETS || [];
+  const exerciseEngine = window.NetStudyLabExerciseEngine;
 
   const canvas = root.querySelector("[data-lab-canvas]");
   const nodes = root.querySelector("[data-lab-nodes]");
@@ -15,8 +18,20 @@
   const allowedInputs = [...root.querySelectorAll("[data-lab-allowed]")];
   const sourceSelect = root.querySelector("[data-lab-source]");
   const destinationSelect = root.querySelector("[data-lab-destination]");
-  const state = {bench: model.create(), mode: "idle", targetId: null, pendingInterface: null, activeDevice: null, cursor: {x: .5, y: .5}, result: null, index: -1, running: false};
+  const scenarioName = root.querySelector("[data-lab-scenario-name]");
+  const scenarioList = root.querySelector("[data-lab-scenario-list]");
+  const scenarioFeedback = root.querySelector("[data-lab-scenario-feedback]");
+  const importFile = root.querySelector("[data-lab-import-file]");
+  const presetList = root.querySelector("[data-lab-preset-list]");
+  const presetFeedback = root.querySelector("[data-lab-preset-feedback]");
+  const exercisePanel = root.querySelector("[data-lab-exercise]");
+  const exerciseFeedback = root.querySelector("[data-lab-exercise-feedback]");
+  const checkSolution = root.querySelector("[data-lab-check-solution]");
+  const state = {bench: model.create(), mode: "idle", targetId: null, pendingInterface: null, activeDevice: null, cursor: {x: .5, y: .5}, result: null, index: -1, running: false, exercise: null};
   let pointerDrag = null;
+  let scenarios = null;
+  try { scenarios = storageApi.create(window.localStorage); }
+  catch (error) { scenarioFeedback.textContent = `Armazenamento local indisponível: ${error.message}`; scenarioFeedback.dataset.error = "true"; }
   const text = (selector, value) => { root.querySelector(selector).textContent = value; };
   const label = id => state.bench.devices[id]?.name || id;
 
@@ -30,7 +45,15 @@
   function apply(change, message, invalidateResult = true) {
     if (change.error) { announce(change.error); return false; }
     state.bench = change.state;
-    if (invalidateResult) invalidate();
+    if (invalidateResult) {
+      invalidate();
+      if (state.exercise) {
+        state.exercise.completed = false;
+        checkSolution.disabled = false;
+        exerciseFeedback.textContent = "Bancada alterada. Teste a comunicação e depois teste sua solução.";
+        exerciseFeedback.dataset.state = "";
+      }
+    }
     renderPair();
     renderBoard();
     renderConfig();
@@ -168,6 +191,94 @@
     sourceSelect.value = installed.includes(oldSource) ? oldSource : (installed[0] || "");
     destinationSelect.value = installed.includes(oldDestination) ? oldDestination : (installed.find(id => id !== sourceSelect.value) || "");
     text("[data-lab-arp-title]", "Associações ARP neste evento");
+  }
+  function scenarioMessage(message, error = false) {
+    scenarioFeedback.textContent = message;
+    scenarioFeedback.dataset.error = String(error);
+  }
+  function refreshScenarios(selected = scenarioList.value) {
+    if (!scenarios) return;
+    try {
+      const names = scenarios.list();
+      scenarioList.replaceChildren();
+      const empty = document.createElement("option");
+      empty.value = ""; empty.textContent = names.length ? "Selecione um cenário" : "Nenhum cenário salvo";
+      scenarioList.append(empty);
+      names.forEach(name => { const option = document.createElement("option"); option.value = name; option.textContent = name; scenarioList.append(option); });
+      scenarioList.value = names.includes(selected) ? selected : "";
+      root.querySelector("[data-lab-load]").disabled = !scenarioList.value;
+      root.querySelector("[data-lab-delete]").disabled = !scenarioList.value;
+    } catch (error) { scenarioMessage(error.message, true); }
+  }
+  function scenarioMetadata(name) {
+    const metadata = {};
+    if (name) metadata.name = name;
+    if (sourceSelect.value && destinationSelect.value && sourceSelect.value !== destinationSelect.value) {
+      metadata.sourceId = sourceSelect.value;
+      metadata.destinationId = destinationSelect.value;
+    }
+    return metadata;
+  }
+  function syncConfigInputs() {
+    inputs.forEach(input => {
+      const key = input.dataset.labInput;
+      input.value = key.startsWith("sw") ? state.bench.devices[key.slice(0, 3)].config.vlans[`${key.slice(0, 3)}:gi0/${key.slice(-1)}`]
+        : key.startsWith("r1-") ? state.bench.devices.r1.config[key.split("-")[1]][key.split("-")[2]]
+          : state.bench.devices[`pc-${key[0]}`].config[key.slice(2)];
+    });
+    allowedInputs.forEach(input => {
+      const [id, vlan] = input.dataset.labAllowed.split("-");
+      input.checked = state.bench.devices[id].config.allowedVlans.includes(Number(vlan));
+    });
+  }
+  function restoreBench(restored, message) {
+    presetFeedback.textContent = "";
+    state.bench = restored.state;
+    state.result = null; state.index = -1; state.activeDevice = null;
+    state.cursor = {x: .5, y: .5};
+    setMode("idle");
+    syncConfigInputs();
+    renderPair();
+    if (restored.sourceId) sourceSelect.value = restored.sourceId;
+    if (restored.destinationId) destinationSelect.value = restored.destinationId;
+    renderConfig();
+    invalidate("Cenário carregado. Execute um novo teste para gerar eventos e tabelas.");
+    announce(message);
+  }
+  function renderPresets() {
+    presetList.replaceChildren();
+    presets.forEach(item => {
+      const entry = document.createElement("li");
+      const name = document.createElement("strong"); name.textContent = item.scenario.name;
+      const description = document.createElement("p"); description.textContent = item.description;
+      const button = document.createElement("button");
+      button.type = "button"; button.dataset.labPreset = item.id;
+      button.textContent = "Carregar cenário";
+      button.setAttribute("aria-label", `Carregar ${item.scenario.name}`);
+      entry.append(name, description, button);
+      presetList.append(entry);
+    });
+  }
+  function nextExerciseSeed() {
+    const number = window.crypto?.getRandomValues ? window.crypto.getRandomValues(new Uint32Array(1))[0] : Date.now();
+    return String(number);
+  }
+  function startExercise(exerciseId, seed, difficulty) {
+    const instance = exerciseEngine.generateExercise(exerciseId, seed, {difficulty});
+    const restored = model.importScenario(instance.scenario);
+    state.exercise = {instance, completed: false};
+    exercisePanel.hidden = false;
+    root.querySelector(".lab-presets").hidden = true;
+    root.querySelector(".lab-scenarios").hidden = true;
+    text("[data-lab-exercise-title]", instance.title);
+    text("[data-lab-exercise-meta]", `${difficulty === "advanced" ? "Advanced" : "Intermediate"} · seed ${instance.seed}`);
+    text("[data-lab-exercise-prompt]", instance.prompt);
+    text("[data-lab-exercise-objective]", instance.objective.text);
+    checkSolution.disabled = false;
+    root.querySelector("[data-lab-reset]").textContent = "Reiniciar exercício";
+    restoreBench(restored, "Exercício iniciado. Investigue o percurso na bancada.");
+    exerciseFeedback.dataset.state = "";
+    exerciseFeedback.textContent = "Use Testar comunicação para observar o percurso. Ajuste a bancada e depois selecione Testar solução.";
   }
   function renderConnections() {
     const list = root.querySelector("[data-lab-connections]");
@@ -385,15 +496,153 @@
   });
   root.querySelector("[data-lab-prev]").addEventListener("click", () => { if (state.index > 0) { state.index--; renderEvent(); } });
   root.querySelector("[data-lab-next]").addEventListener("click", () => { if (state.result && state.index < state.result.events.length - 1) { state.index++; renderEvent(); } });
+  presetList.addEventListener("click", event => {
+    const button = event.target.closest("[data-lab-preset]");
+    if (!button) return;
+    const item = presets.find(preset => preset.id === button.dataset.labPreset);
+    if (!item) return;
+    try {
+      const restored = model.importScenario(item.scenario);
+      restoreBench(restored, `Cenário oficial “${restored.name}” carregado.`);
+      scenarioName.value = `Cópia de ${restored.name}`;
+      scenarioList.value = "";
+      refreshScenarios("");
+      presetFeedback.textContent = `“${restored.name}” carregado. Você pode editar a bancada e salvar uma cópia pessoal.`;
+      presetFeedback.dataset.error = "false";
+      scenarioMessage("Cenário oficial carregado; nenhuma cópia pessoal foi salva.");
+    } catch (error) {
+      presetFeedback.textContent = `Não foi possível carregar: ${error.message}`;
+      presetFeedback.dataset.error = "true";
+    }
+  });
+  scenarioList.addEventListener("change", () => {
+    if (scenarioList.value) scenarioName.value = scenarioList.value;
+    refreshScenarios();
+  });
+  function saveScenario(asNew) {
+    if (!scenarios) { scenarioMessage("Armazenamento local indisponível.", true); return; }
+    const name = scenarioName.value.trim();
+    if (!name) { scenarioMessage("Informe um nome para salvar o cenário.", true); scenarioName.focus(); return; }
+    try {
+      const existing = scenarios.list().find(item => item.toLocaleLowerCase() === name.toLocaleLowerCase());
+      if (existing && asNew) { scenarioMessage(`Já existe “${existing}”. Escolha outro nome para salvar como novo.`, true); return; }
+      if (existing && !window.confirm(`Substituir o cenário salvo “${existing}” pela configuração atual?`)) {
+        scenarioMessage("Substituição cancelada."); return;
+      }
+      const saved = scenarios.save(state.bench, scenarioMetadata(name), Boolean(existing));
+      scenarioName.value = saved.name;
+      refreshScenarios(saved.name);
+      scenarioMessage(saved.overwritten ? `Cenário “${saved.name}” atualizado.` : `Cenário “${saved.name}” salvo neste navegador.`);
+    } catch (error) { scenarioMessage(`Não foi possível salvar: ${error.message}`, true); }
+  }
+  root.querySelector("[data-lab-save]").addEventListener("click", () => saveScenario(false));
+  root.querySelector("[data-lab-save-as]").addEventListener("click", () => saveScenario(true));
+  root.querySelector("[data-lab-load]").addEventListener("click", () => {
+    if (!scenarios || !scenarioList.value) return;
+    try {
+      const restored = scenarios.load(scenarioList.value);
+      restoreBench(restored, `Cenário “${restored.name}” carregado.`);
+      scenarioName.value = restored.name;
+      scenarioMessage(`Cenário “${restored.name}” carregado. O teste anterior foi limpo.`);
+    } catch (error) { scenarioMessage(`Não foi possível carregar: ${error.message}`, true); }
+  });
+  root.querySelector("[data-lab-delete]").addEventListener("click", () => {
+    if (!scenarios || !scenarioList.value) return;
+    const name = scenarioList.value;
+    if (!window.confirm(`Excluir somente o cenário salvo “${name}”? A bancada atual continuará aberta.`)) {
+      scenarioMessage("Exclusão cancelada."); return;
+    }
+    try {
+      scenarios.remove(name);
+      refreshScenarios("");
+      scenarioMessage(`Cenário “${name}” excluído. A bancada atual foi mantida.`);
+    } catch (error) { scenarioMessage(`Não foi possível excluir: ${error.message}`, true); }
+  });
+  root.querySelector("[data-lab-import-button]").addEventListener("click", () => importFile.click());
+  importFile.addEventListener("change", async () => {
+    const file = importFile.files?.[0];
+    if (!file) return;
+    try {
+      if (!file.name.toLowerCase().endsWith(".json")) throw new TypeError("Selecione um arquivo .json.");
+      const restored = scenarios.importJson(await file.text());
+      restoreBench(restored, `Cenário importado de “${file.name}”.`);
+      scenarioName.value = restored.name || "";
+      scenarioList.value = ""; refreshScenarios("");
+      scenarioMessage(`Cenário importado de “${file.name}”. Use Salvar para guardá-lo neste navegador.`);
+    } catch (error) { scenarioMessage(`Importação recusada: ${error.message}`, true); }
+    finally { importFile.value = ""; }
+  });
+  root.querySelector("[data-lab-export]").addEventListener("click", () => {
+    try {
+      const {json, filename} = scenarios.exportJson(state.bench, scenarioMetadata(scenarioName.value.trim()));
+      const url = URL.createObjectURL(new Blob([json], {type: "application/json"}));
+      const link = document.createElement("a");
+      link.href = url; link.download = filename; link.hidden = true;
+      document.body.append(link); link.click(); link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      scenarioMessage(`Cenário exportado para “${filename}”.`);
+    } catch (error) { scenarioMessage(`Não foi possível exportar: ${error.message}`, true); }
+  });
+  checkSolution.addEventListener("click", () => {
+    if (!state.exercise || state.running) return;
+    state.running = true;
+    try {
+      const verdict = exerciseEngine.validateExercise(state.exercise.instance, state.bench);
+      state.result = verdict.result;
+      state.index = verdict.result.events.length ? verdict.result.events.length - 1 : -1;
+      renderEvent();
+      if (state.index < 0) status.textContent = verdict.feedback;
+      state.exercise.completed = verdict.complete;
+      checkSolution.disabled = verdict.complete;
+      exerciseFeedback.dataset.state = verdict.complete ? "success" : "error";
+      exerciseFeedback.textContent = verdict.complete
+        ? `${verdict.feedback} Exercício concluído. Você pode gerar outro exercício.` : verdict.feedback;
+    } catch (error) {
+      exerciseFeedback.dataset.state = "error";
+      exerciseFeedback.textContent = `Não foi possível validar a bancada: ${error.message}`;
+    } finally { state.running = false; }
+  });
+  root.querySelector("[data-lab-new-exercise]").addEventListener("click", () => {
+    if (!state.exercise) return;
+    const {exerciseId, difficulty, seed} = state.exercise.instance;
+    let fresh = nextExerciseSeed();
+    if (fresh === seed) fresh = String(Number(fresh) + 1);
+    const url = new URL(window.location.href);
+    url.searchParams.set("seed", fresh);
+    window.history.replaceState(null, "", url);
+    try { startExercise(exerciseId, fresh, difficulty); }
+    catch (error) { exerciseFeedback.dataset.state = "error"; exerciseFeedback.textContent = error.message; }
+  });
   root.querySelector("[data-lab-reset]").addEventListener("click", () => {
-    state.bench = model.create(); state.activeDevice = null; state.cursor = {x: .5, y: .5}; setMode("idle");
-    inputs.forEach(input => {
-      const key = input.dataset.labInput;
-      input.value = key.startsWith("sw") ? "10" : key.startsWith("r1-") ? state.bench.devices.r1.config[key.split("-")[1]][key.split("-")[2]] : state.bench.devices[`pc-${key[0]}`].config[key.slice(2)];
-    });
-    allowedInputs.forEach(input => { input.checked = true; });
+    if (state.exercise) {
+      const {exerciseId, seed, difficulty} = state.exercise.instance;
+      startExercise(exerciseId, seed, difficulty);
+      exerciseFeedback.textContent = "Exercício reiniciado com a mesma seed. Investigue novamente.";
+      return;
+    }
+    presetFeedback.textContent = "";
+    state.bench = model.create(); state.result = null; state.index = -1;
+    state.activeDevice = null; state.cursor = {x: .5, y: .5}; setMode("idle");
+    syncConfigInputs(); scenarioName.value = ""; scenarioList.value = ""; refreshScenarios("");
     renderPair(); invalidate("Bancada reiniciada. Monte e conecte os equipamentos."); renderConfig(); announce("Bancada reiniciada.");
+    scenarioMessage("Nova bancada. Cenários salvos permanecem disponíveis.");
   });
   window.addEventListener("resize", () => drawWires(state.result?.events[state.index] || null));
-  renderPair(); renderConfig(); renderEvent();
+  renderPresets(); renderPair(); renderConfig(); renderEvent(); refreshScenarios("");
+  const parameters = new URLSearchParams(window.location.search);
+  if (parameters.has("exercise")) {
+    try {
+      const seed = parameters.get("seed") || nextExerciseSeed();
+      if (!parameters.has("seed")) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("seed", seed);
+        window.history.replaceState(null, "", url);
+      }
+      startExercise(parameters.get("exercise"), seed, parameters.get("difficulty") || "intermediate");
+    } catch (error) {
+      exercisePanel.hidden = false;
+      exerciseFeedback.dataset.state = "error";
+      exerciseFeedback.textContent = `Exercício indisponível: ${error.message}`;
+    }
+  }
 })();

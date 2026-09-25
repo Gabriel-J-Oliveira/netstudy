@@ -52,6 +52,8 @@ A página inicial (/) apresenta **16 módulos**, na ordem abaixo. Todos têm um 
 
 Além da trilha, **/laboratorio/** abre a bancada integrada editável descrita adiante. O menu lateral contém apenas Conteúdos e Laboratório; a navegação entre aulas aparece nas próprias páginas. ARP tem ainda o fluxo de atividades em learning/exercises.py e Rapid Fire de 12 itens em learning/content.py; MAC tem atividades em learning/mac_exercises.py.
 
+**/troubleshooting/** lista exercícios da bancada. A primeira família, Diagnóstico de conectividade IPv4, abre o mesmo laboratório em modo exercício nas dificuldades Intermediate e Advanced.
+
 ### Padrão pedagógico das aulas
 
 As telas recentes seguem conceito breve → representação visual → interação guiada → interpretação/síntese → checkpoint. Diagramas conceituais estáticos não devem ganhar controles por acidente; o percurso detalhado fica no componente interativo da aula. Frame Ethernet e parte de ARP/MAC preservam fluxos anteriores mais extensos.
@@ -68,7 +70,7 @@ Muitos formulários de checkpoint são enviados por AJAX e recebem de volta um p
 
 ## Laboratório integrado (/laboratorio/)
 
-A bancada em templates/learning/integrated_lab.html possui catálogo, área de montagem larga e alta, configuração do equipamento selecionado, escolha livre de PC de origem/destino, teste manual, navegação por eventos, inspetor e tabelas no evento. Não há autoplay. Pode-se instalar e mover equipamentos com mouse ou teclado (setas e Enter), conectar interfaces, ajustar VLANs/Allowed VLANs e reiniciar a bancada.
+A bancada em templates/learning/integrated_lab.html possui catálogo, área de montagem larga e alta, configuração do equipamento selecionado, escolha livre de PC de origem/destino, teste manual, navegação por eventos, inspetor e tabelas no evento. Não há autoplay. Pode-se instalar e mover equipamentos com mouse ou teclado (setas e Enter), conectar interfaces, ajustar VLANs/Allowed VLANs e reiniciar a bancada. **Cenários do NetStudy** oferece montagens oficiais para carregar; **Meus cenários** salva e carrega montagens neste navegador, além de importar e exportar JSON.
 
 **Inventário e limites:** até 4 PCs (A–D), 2 switches (SW1/SW2), 1 roteador (R1), 7 equipamentos instalados, 7 cabos, 1 trunk entre switches e 128 eventos por teste. SW1/SW2 têm Gi0/1–Gi0/4 como portas Access configuráveis para VLAN 10 ou 20 e Gi0/5 como trunk. R1 tem Eth0 e Eth1, cada uma com IPv4, máscara e MAC próprios; cada interface liga-se a uma porta Access. Cada PC tem IPv4, máscara, MAC e gateway padrão. O modelo não permite PC–PC, roteador–roteador ou PC–trunk. Interrupção por limite é resultado interrompido, nunca sucesso.
 
@@ -76,6 +78,9 @@ A bancada em templates/learning/integrated_lab.html possui catálogo, área de m
 
 - static/js/integrated-lab-model.js: catálogo, configurações, posições, conexões e adaptação do grafo para o simulador. Também exporta a API para Node.
 - O mesmo modelo define o **Scenario Schema v1** e as APIs exportScenario/importScenario. A configuração do cenário é separada do resultado dos testes.
+- static/js/integrated-lab-storage.js: lista, salva, carrega e exclui cenários pessoais no localStorage; valida cada item pelo modelo e prepara importação/exportação JSON, sem DOM.
+- static/js/integrated-lab-presets.js: biblioteca oficial de quatro cenários Schema v1, sem localStorage. As topologias são montadas pelo modelo e seus cenários permanecem imutáveis.
+- static/js/integrated-lab-exercise-engine.js: definições, geração por seed e validação de exercícios, sem DOM ou persistência. A instância mantém regras e metadados separados do Scenario Schema v1.
 - static/js/integrated-lab-simulator.js: valida a montagem e **decide o percurso**. Calcula ARP, aprendizado/encaminhamento MAC por VLAN, passagem pelo trunk, decisão local/remoto do host e rotas diretamente conectadas de R1. Emite eventos ordenados com IDs de evento, equipamento, interface, cabo, frame e pacote e snapshots das tabelas MAC/ARP/rotas em cada evento.
 - static/js/integrated-lab.js: liga controles ao modelo e **representa os eventos**. A lógica de encaminhamento não deve ser duplicada na camada visual.
 - static/css/integrated-lab.css: largura quase total da área de conteúdo, bancada alta, cartões de equipamentos, inspetor e layout móvel.
@@ -125,11 +130,27 @@ O mapa devices inclui **todos os sete IDs do catálogo**, mesmo os não instalad
 
 O importador rejeita versão desconhecida, campos ausentes/desconhecidos, IDs fora do catálogo, posições fora da bancada, endereços ou máscaras estruturalmente inválidos, VLANs inválidas, conexões impossíveis/repetidas e seleção de PCs incoerente. Usa as mesmas regras de conexão e os limites do modelo. Valores semanticamente errados, mas estruturalmente válidos, como gateway na rede errada, continuam representáveis para estudo de falhas. O estado reconstruído não compartilha objetos mutáveis com o cenário recebido.
 
-**O cenário é somente a rede configurada.** Não contém eventos, histórico, resultado, tabelas MAC/ARP aprendidas, snapshots de rotas, cursor, modo da UI nem evento selecionado. Esses dados surgem novamente ao executar o simulador. Ainda não existe botão Salvar/Carregar, arquivo de cenário, localStorage ou persistência da bancada no Django.
+**O cenário é somente a rede configurada.** Não contém eventos, histórico, resultado, tabelas MAC/ARP aprendidas, snapshots de rotas, cursor, modo da UI nem evento selecionado. Esses dados surgem novamente ao executar o simulador.
 
-Uma futura definição de exercício de troubleshooting deve ficar em uma **camada separada** que referencie um cenário. Resposta esperada, correção, pistas e condição de sucesso não pertencem ao Schema v1. Também não existe terminal integrado nesta bancada; uma futura interface de comandos deverá consultar e alterar o mesmo modelo/simulador, mantendo os estados coerentes, em vez de manter um estado paralelo decorativo.
+### Save/Load local e arquivos JSON
 
-**Fora do escopo desta etapa:** interface Salvar/Carregar, presets, desafios, terminal/CLI na bancada, mais roteadores, rotas estáticas, NAT, DHCP, DNS, Internet simulada, router-on-a-stick, ping/ICMP completo, autoplay, autenticação e persistência da montagem. Terminais e laboratórios das aulas são demonstrações independentes.
+O módulo de storage guarda um **array de objetos Scenario Schema v1** na chave `netstudy:integrated-lab:scenarios:v1` do localStorage. Cada cenário salvo precisa ter nome único (sem diferenciar maiúsculas/minúsculas). Sobrescrever exige confirmação na UI; Salvar como rejeita nome existente. Excluir remove só o item escolhido. Dados locais corrompidos são recusados sem sobrescrita automática.
+
+Importar um `.json` valida pelo `importScenario` antes de substituir a bancada; a importação não salva automaticamente. Exportar usa `exportScenario` e produz JSON legível com nome de arquivo derivado do cenário. Carregar ou importar restaura rede e par de PCs, quando presente, e limpa eventos e tabelas anteriores. A persistência é apenas local ao navegador; não há contas nem backend Django para cenários.
+
+### Cenários oficiais
+
+A biblioteca inclui **LAN básica**, **VLANs separadas**, **Trunk entre switches** e **Roteamento entre duas redes**. Os quatro objetos são Scenario Schema v1 e passam por `importScenario` ao carregar, usando a mesma restauração da bancada dos cenários pessoais. O preset original não pode ser editado ou excluído pela UI; alterações na bancada podem ser salvas como uma cópia pessoal. Carregar um preset não grava no localStorage.
+
+### Exercise Engine v1
+
+Em `/troubleshooting/`, o aluno escolhe Intermediate (uma falha) ou Advanced (duas falhas) e abre a bancada para diagnosticar PC-A → PC-C. A seed exibida na UI reproduz exatamente a mesma instância na mesma dificuldade. O motor verifica que a rede base entrega, injeta falhas plausíveis em gateway, máscara, porta Access, Allowed VLANs do trunk ou IPv4/máscara de R1 e confirma que a entrega foi interrompida. A dificuldade Advanced inclui mais um host e usa pares de falhas.
+
+`generateExercise` devolve definição/objetivo, cenário Schema v1, invariantes e metadados internos da falha em campos separados. O cenário exportado contém apenas configurações, posições, cabos e origem/destino: nunca resposta ou metadados. `validateExercise` testa o estado atual pelo simulador e exige preservar redes /24, VLANs, trunk e encaminhamento por R1. O feedback usa o evento real em que a entrega parou; ao corrigir uma das duas falhas, o próximo teste avalia a falha restante. A conclusão e o botão Gerar novo exercício ficam no laboratório. Não há progresso persistente nem gravação automática em Meus cenários.
+
+Resposta esperada, correção, pistas e condição de sucesso não pertencem ao Schema v1. Também não existe terminal integrado nesta bancada; uma futura interface de comandos deverá consultar e alterar o mesmo modelo/simulador, mantendo os estados coerentes, em vez de manter um estado paralelo decorativo.
+
+**Fora do escopo desta etapa:** outras famílias de troubleshooting, progresso permanente, ranking, pontuação, dicas automáticas complexas, terminal/CLI na bancada, mais roteadores, rotas estáticas, NAT, DHCP, DNS, Internet simulada, router-on-a-stick, ping/ICMP completo, autoplay, autenticação e persistência no Django. Terminais e laboratórios das aulas são demonstrações independentes.
 
 ## Estrutura e pontos de edição
 
@@ -143,7 +164,7 @@ Uma futura definição de exercício de troubleshooting deve ficar em uma **cama
 | Moldura, menu e largura geral | templates/learning/base.html, static/css/netstudy.css |
 | Bancada integrada | templates/learning/integrated_lab.html, static/js/integrated-lab-*.js, static/css/integrated-lab.css |
 | Testes Django | learning/tests.py, learning/test_integrated_lab.py |
-| Testes Node do laboratório | static/js/integrated-lab-model.test.js, static/js/integrated-lab-simulator.test.js, static/js/integrated-lab-scenario.test.js |
+| Testes Node do laboratório | static/js/integrated-lab-model.test.js, static/js/integrated-lab-simulator.test.js, static/js/integrated-lab-scenario.test.js, static/js/integrated-lab-storage.test.js, static/js/integrated-lab-presets.test.js, static/js/integrated-lab-exercise-engine.test.js |
 | CI | .github/workflows/ci.yml (push e pull request para main) |
 
 Antes de editar uma página, leia o template, os partials incluídos, os CSS/JS carregados ao fim do template e a view que fornece o contexto. Alguns dados de exemplo são definidos na view (como as rotas de /tabela-de-rotas/); outros ficam nos componentes JS. Verifique sempre o estado atual do Git, pois mudanças de outra tarefa podem estar presentes na árvore de trabalho.
@@ -158,9 +179,15 @@ No Windows com .venv preparado:
 node static/js/integrated-lab-model.test.js
 node static/js/integrated-lab-simulator.test.js
 node static/js/integrated-lab-scenario.test.js
+node static/js/integrated-lab-storage.test.js
+node static/js/integrated-lab-presets.test.js
+node static/js/integrated-lab-exercise-engine.test.js
 node --check static/js/integrated-lab-model.js
 node --check static/js/integrated-lab-simulator.js
 node --check static/js/integrated-lab.js
+node --check static/js/integrated-lab-storage.js
+node --check static/js/integrated-lab-presets.js
+node --check static/js/integrated-lab-exercise-engine.js
 git diff --check
 ~~~
 

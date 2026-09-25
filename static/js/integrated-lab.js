@@ -42,7 +42,7 @@
     const element = document.createElement("article");
     element.className = `lab-node lab-node-${device.type}`;
     element.dataset.labNode = id;
-    element.innerHTML = `<div class="lab-node-top"><span class="lab-node-icon" aria-hidden="true"></span><button type="button" class="lab-drag-handle" data-lab-drag="${id}" draggable="true" aria-label="Mover ${device.name}">Mover</button></div><button type="button" class="lab-node-main" data-lab-open="${id}"><strong>${device.name}</strong><small>${device.type === "pc" ? "PC · Camada 2/3" : "Switch Ethernet"}</small></button><div class="lab-node-interfaces"></div>`;
+    element.innerHTML = `<div class="lab-node-top"><span class="lab-node-icon" aria-hidden="true"></span><button type="button" class="lab-drag-handle" data-lab-drag="${id}" draggable="true" aria-label="Mover ${device.name}">Mover</button></div><button type="button" class="lab-node-main" data-lab-open="${id}"><strong>${device.name}</strong><small>${device.type === "pc" ? "PC · Camada 2/3" : device.type === "router" ? "Roteador · Eth0 / Eth1" : "Switch Ethernet"}</small></button><div class="lab-node-interfaces"></div>`;
     const interfaceBox = element.querySelector(".lab-node-interfaces");
     device.interfaces.forEach(interfaceId => {
       const button = document.createElement("button");
@@ -128,13 +128,33 @@
           return `${state.bench.interfaces[interfaceId].name}: ${setting} · ${peer}`;
         });
         deviceState.textContent = `${used} de ${device.interfaces.length} interfaces conectadas. ${ports.join("; ")}.`;
+      } else if (device.type === "router") {
+        const details = device.interfaces.map(interfaceId => {
+          const link = state.bench.connections.find(cable => [cable.a, cable.b].includes(interfaceId));
+          const config = device.config[state.bench.interfaces[interfaceId].name.toLowerCase()];
+          const peer = link ? (link.a === interfaceId ? link.b : link.a) : null;
+          const vlan = peer && state.bench.devices[state.bench.interfaces[peer].deviceId].config.vlans[peer];
+          return `${state.bench.interfaces[interfaceId].name}: ${config.ip} / ${config.mask} · MAC ${config.mac} · ${peer ? `${label(state.bench.interfaces[peer].deviceId)} ${state.bench.interfaces[peer].name}, VLAN ${vlan}` : "sem cabo"}`;
+        });
+        deviceState.textContent = details.join("; ");
       } else {
         const link = state.bench.connections.find(cable => [cable.a, cable.b].includes(device.interfaces[0]));
         const switchPort = link ? (link.a === device.interfaces[0] ? link.b : link.a) : null;
         const switchId = switchPort && state.bench.interfaces[switchPort].deviceId;
-        deviceState.textContent = `Eth0 · MAC ${device.config.mac}. ${switchPort ? `Conectado a ${label(switchId)} ${state.bench.interfaces[switchPort].name}, VLAN ${state.bench.devices[switchId].config.vlans[switchPort]}.` : "Sem cabo conectado."}`;
+        deviceState.textContent = `Eth0 · MAC ${device.config.mac} · gateway ${device.config.gateway || "não configurado"}. ${switchPort ? `Conectado a ${label(switchId)} ${state.bench.interfaces[switchPort].name}, VLAN ${state.bench.devices[switchId].config.vlans[switchPort]}.` : "Sem cabo conectado."}`;
       }
     }
+    renderRouterState();
+  }
+  function renderRouterState() {
+    const router = state.bench.devices.r1;
+    const current = state.result?.events[state.index];
+    const routes = current?.tables.routes || ["eth0", "eth1"].map(iface => {
+      const config = router.config[iface], ip = simulator.ipv4(config.ip), mask = simulator.mask(config.mask);
+      return {interfaceId: `r1:${iface}`, prefix: ip && mask ? simulator.prefix(ip, mask) : "IPv4/máscara inválidos", connected: Boolean(state.bench.connections.find(link => [link.a, link.b].includes(`r1:${iface}`)))};
+    });
+    renderList("[data-lab-router-routes]", routes.filter(row => row.connected), row => `${state.bench.interfaces[row.interfaceId].name}: ${row.prefix} · diretamente conectada`, "Sem rotas conectadas.");
+    renderList("[data-lab-router-arp]", (current?.tables.arp || []).filter(row => row.owner === "r1"), row => `${state.bench.interfaces[row.interfaceId].name}: ${row.ip} → ${row.mac}`, "Ainda não aprendidas.");
   }
   function renderPair() {
     const installed = model.PC_IDS.filter(id => state.bench.devices[id].position);
@@ -147,7 +167,7 @@
     }
     sourceSelect.value = installed.includes(oldSource) ? oldSource : (installed[0] || "");
     destinationSelect.value = installed.includes(oldDestination) ? oldDestination : (installed.find(id => id !== sourceSelect.value) || "");
-    text("[data-lab-arp-title]", `Associação ARP de ${sourceSelect.value ? label(sourceSelect.value) : "origem"}`);
+    text("[data-lab-arp-title]", "Associações ARP neste evento");
   }
   function renderConnections() {
     const list = root.querySelector("[data-lab-connections]");
@@ -206,7 +226,7 @@
       if (device.position) { element.style.left = `${device.position.x * 100}%`; element.style.top = `${device.position.y * 100}%`; }
       element.dataset.selected = String(state.activeDevice === id);
       element.dataset.active = String(targets.deviceId === id);
-      element.dataset.blocked = String((event?.id === "arp-unanswered" || event?.id === "trunk-blocked") && event.focusId === id);
+      element.dataset.blocked = String(event?.outcome === "failure" && event.focusId === id);
       for (const interfaceId of device.interfaces) {
         const button = element.querySelector(`[data-lab-interface="${interfaceId}"]`);
         const setting = device.type !== "switch" ? "" : state.bench.interfaces[interfaceId].mode === "trunk" ? " · trunk" : ` · VLAN ${device.config.vlans[interfaceId]}`;
@@ -240,9 +260,19 @@
     const portName = id => id ? `${label(state.bench.interfaces[id].deviceId)} ${state.bench.interfaces[id].name}` : "—";
     text("[data-lab-interfaces]", event ? `${portName(event.incomingInterfaceId)} → ${(event.outgoingInterfaceIds || []).map(portName).join(", ") || "—"}` : "—");
     text("[data-lab-frame]", event?.frame ? `${event.frame.label} · Source ${event.frame.source} → Destination ${event.frame.destination} · ${event.frame.vlanTag ? `802.1Q VLAN ${event.frame.vlanTag}` : "sem tag (access)"}` : "—");
-    text("[data-lab-packet]", event?.packet ? `${event.packet.source} → ${event.packet.destination}` : "—");
+    text("[data-lab-packet]", event?.packet ? `${event.packet.source} → ${event.packet.destination} · TTL ${event.packet.ttl}` : "—");
     renderList("[data-lab-mac-table]", event?.tables.mac || [], row => `${row.switchId.toUpperCase()} · VLAN ${row.vlan} · ${row.mac} → ${row.port}`, "Sem entradas aprendidas.");
-    renderList("[data-lab-arp-table]", event?.tables.arp || [], row => `${row.ip} → ${row.mac}`, "Ainda não aprendida.");
+    renderList("[data-lab-arp-table]", event?.tables.arp || [], row => `${label(row.owner)} ${row.interfaceId ? state.bench.interfaces[row.interfaceId].name : ""} · ${row.ip} → ${row.mac}`, "Ainda não aprendida.");
+    renderRouterState();
+    const prior = state.result?.events.slice(0, state.index + 1) || [];
+    const incoming = prior.find(item => item.id === "router-receive")?.frame;
+    const decision = prior.find(item => item.id === "route-decision")?.routerDecision;
+    const outgoing = prior.find(item => item.id === "frame-out")?.frame;
+    const inspector = root.querySelector("[data-lab-router-inspector]");
+    inspector.hidden = !incoming;
+    text("[data-lab-frame-in]", incoming ? `${incoming.source} → ${incoming.destination} · VLAN de entrada` : "Ainda não recebido.");
+    text("[data-lab-route-decision]", decision ? `${decision.route} → ${state.bench.interfaces[decision.output].name} · TTL ${decision.ttlBefore} → ${decision.ttlAfter}` : "R1 ainda não escolheu a saída.");
+    text("[data-lab-frame-out]", outgoing ? `${outgoing.source} → ${outgoing.destination} · VLAN de saída` : "Ainda não criado.");
     root.querySelector("[data-lab-prev]").disabled = state.index <= 0;
     root.querySelector("[data-lab-next]").disabled = !state.result || state.index >= state.result.events.length - 1;
     const history = root.querySelector("[data-lab-history]"); history.replaceChildren();
@@ -326,10 +356,8 @@
   });
   inputs.forEach(input => input.addEventListener(input.tagName === "SELECT" ? "change" : "input", () => {
     const key = input.dataset.labInput;
-    const id = key.startsWith("sw") ? key.slice(0, 3) : `pc-${key[0]}`;
-    const values = id.startsWith("sw")
-      ? {vlans: {[`${id}:gi0/${key.slice(-1)}`]: Number(input.value)}}
-      : {[key.slice(2)]: input.value.trim()};
+    const id = key.startsWith("sw") ? key.slice(0, 3) : key.startsWith("r1-") ? "r1" : `pc-${key[0]}`;
+    const values = id.startsWith("sw") ? {vlans: {[`${id}:gi0/${key.slice(-1)}`]: Number(input.value)}} : id === "r1" ? {[key.split("-")[1]]: {[key.split("-")[2]]: input.value.trim()}} : {[key.slice(2)]: input.value.trim()};
     apply(model.configure(state.bench, id, values), `${label(id)} atualizado. Teste novamente para observar o efeito.`);
   }));
   allowedInputs.forEach(input => input.addEventListener("change", () => {
@@ -339,7 +367,7 @@
   }));
   [sourceSelect, destinationSelect].forEach(select => select.addEventListener("change", () => {
     invalidate("Par de PCs alterado. Execute um novo teste.");
-    text("[data-lab-arp-title]", `Associação ARP de ${sourceSelect.value ? label(sourceSelect.value) : "origem"}`);
+    text("[data-lab-arp-title]", "Associações ARP neste evento");
     announce("Origem ou destino alterado. Execute um novo teste.");
   }));
   root.querySelector("[data-lab-test]").addEventListener("click", () => {
@@ -361,7 +389,7 @@
     state.bench = model.create(); state.activeDevice = null; state.cursor = {x: .5, y: .5}; setMode("idle");
     inputs.forEach(input => {
       const key = input.dataset.labInput;
-      input.value = key.startsWith("sw") ? "10" : state.bench.devices[`pc-${key[0]}`].config[key.slice(2)];
+      input.value = key.startsWith("sw") ? "10" : key.startsWith("r1-") ? state.bench.devices.r1.config[key.split("-")[1]][key.split("-")[2]] : state.bench.devices[`pc-${key[0]}`].config[key.slice(2)];
     });
     allowedInputs.forEach(input => { input.checked = true; });
     renderPair(); invalidate("Bancada reiniciada. Monte e conecte os equipamentos."); renderConfig(); announce("Bancada reiniciada.");

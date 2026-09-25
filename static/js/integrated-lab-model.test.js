@@ -3,7 +3,10 @@ const model = require("./integrated-lab-model.js");
 const {simulate} = require("./integrated-lab-simulator.js");
 
 let bench = model.create();
-assert.equal(model.DEVICE_IDS.length, 6);
+assert.equal(model.DEVICE_IDS.length, 7);
+assert.deepEqual(bench.devices.r1.interfaces, ["r1:eth0", "r1:eth1"]);
+assert.notEqual(bench.devices.r1.config.eth0.mac, bench.devices.r1.config.eth1.mac);
+assert.equal(bench.devices["pc-a"].config.gateway, "");
 assert.equal(bench.devices.sw1.interfaces.length, 5);
 assert.equal(bench.interfaces["sw2:gi0/5"].mode, "trunk");
 assert.equal(model.adapt(bench, "pc-a", "pc-b").error, "Escolha um PC de origem instalado.");
@@ -11,6 +14,10 @@ for (const [index, id] of model.DEVICE_IDS.entries()) bench = model.position(ben
 assert.equal(model.connect(bench, "pc-a:eth0", "pc-b:eth0").state, undefined);
 assert.equal(model.connect(bench, "sw1:gi0/1", "sw2:gi0/1").state, undefined);
 assert.equal(model.connect(bench, "pc-a:eth0", "sw1:gi0/5").state, undefined);
+assert.equal(model.connect(bench, "r1:eth0", "sw1:gi0/5").state, undefined);
+assert.equal(model.connect(bench, "r1:eth0", "sw1:gi0/2").error, undefined);
+bench = model.connect(bench, "r1:eth0", "sw1:gi0/2").state;
+bench = model.disconnect(bench, bench.connections.at(-1).id).state;
 for (const [pc, sw, port] of [["pc-a", "sw1", 3], ["pc-b", "sw2", 1], ["pc-c", "sw1", 4], ["pc-d", "sw2", 2]]) bench = model.connect(bench, `${pc}:eth0`, `${sw}:gi0/${port}`).state;
 bench = model.connect(bench, "sw1:gi0/5", "sw2:gi0/5").state;
 assert.equal(bench.connections.length, 5);
@@ -25,6 +32,11 @@ assert.equal(simulate(model.adapt(bench, "pc-a", "pc-b").input).status, "failure
 bench = model.disconnect(bench, firstCable).state;
 assert.equal(simulate(model.adapt(bench, "pc-a", "pc-b").input).status, "failure");
 assert.equal(model.adapt(bench, "pc-b", "pc-b").error, "Origem e destino precisam ser PCs diferentes.");
+bench = model.configure(bench, "pc-a", {gateway: "192.168.10.1"}).state;
+bench = model.configure(bench, "r1", {eth0: {ip: "192.168.10.254"}}).state;
+assert.equal(bench.devices["pc-a"].config.gateway, "192.168.10.1");
+assert.equal(bench.devices.r1.config.eth0.ip, "192.168.10.254");
+assert.equal(bench.devices.r1.config.eth1.ip, "192.168.20.1");
 const targets = model.eventTargets({focusId: "sw2", interfaceIds: ["sw2:gi0/5"], connectionIds: ["cable"]});
 assert.deepEqual(targets, {deviceId: "sw2", interfaceIds: ["sw2:gi0/5"], connectionIds: ["cable"]});
-console.log("Modelo: 4 PCs, 2 switches, uplink e adaptação aprovados.");
+console.log("Modelo: 4 PCs, 2 switches, R1 físico, uplink e adaptação aprovados.");

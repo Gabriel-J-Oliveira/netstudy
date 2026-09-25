@@ -1,170 +1,132 @@
 # NetStudy
 
-Aplicativo pessoal de estudos de redes. A trilha cobre ARP, MAC Address, Frame Ethernet, Switch Ethernet, Unicast × Broadcast, VLAN, Trunk + 802.1Q e a introdução de Camada 3 com IPv4 + Sub-rede. O projeto não usa IA, contas de usuário nem histórico persistente.
+NetStudy é um aplicativo didático, em português, para estudar fundamentos de redes. Combina conceitos curtos, diagramas, interações no navegador e checkpoints com feedback. O conteúdo é escrito previamente; as simulações são determinísticas. Não há IA no produto, contas de usuário nem histórico permanente de aprendizagem.
 
-## Requisitos
+**Este README é um mapa do código atual.** Ao assumir uma tarefa, confira também a view, o template, os partials, o CSS/JS e os testes do módulo afetado. Cada aula tem demonstrações próprias; o laboratório integrado é uma bancada independente e não compartilha o estado dessas demonstrações.
 
-- Python 3.11 ou mais recente
-- `pip`
-- Navegador moderno
+## Executar localmente
 
-## Preparar o ambiente no Windows/PowerShell
+Requisitos: Python 3.11 ou posterior, pip e navegador moderno. Node.js é usado nos testes do simulador. A dependência Python direta é Django 5.2.17 em requirements.txt; SQLite vem com Python. A interface usa Django Templates, CSS/JavaScript próprios e Bootstrap 5.3.3 por CDN.
 
-Na pasta do projeto:
+No Windows/PowerShell, na raiz do repositório:
 
-```powershell
+~~~powershell
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe manage.py migrate
+.\.venv\Scripts\python.exe manage.py runserver
+~~~
 
-Se a política do PowerShell impedir a ativação, você pode executar os comandos diretamente com `.\.venv\Scripts\python.exe`.
+Abra http://127.0.0.1:8000/. Em outros sistemas, use o Python do respectivo ambiente virtual. O erro “no such table: django_session” significa que falta executar migrate no banco usado por esse processo. Se o Python global não encontrar Django, use o executável de .venv ou ative o ambiente.
 
-## Criar o banco e executar
+Para acesso na **rede local**, descubra o IPv4 atual da máquina (por exemplo, com ipconfig) e execute:
 
-```powershell
-python manage.py migrate
-python manage.py runserver
-```
+~~~powershell
+.\run-lan.ps1 -IpAddress SEU_IP_LOCAL
+~~~
 
-Abra `http://127.0.0.1:8000/` no navegador.
+O script aplica as migrations, define DJANGO_ALLOWED_HOSTS para esse IP enquanto roda e inicia o servidor de desenvolvimento na porta 8000. Pode ser necessário liberar a porta no firewall da rede privada. Não reutilize um IP antigo: ele pode mudar. As configurações de netstudy/settings.py usam DEBUG=True e chave fixa de desenvolvimento; não são uma configuração de produção. deploy.md contém notas de implantação, mas deve ser conferido contra o código antes de publicar.
 
-## Acessar de outras máquinas na rede local
+## Mapa do produto
 
-Descubra o IPv4 da interface conectada com `ipconfig`. Nesta máquina, a interface Ethernet usa `192.168.101.78` no momento. Inicie o NetStudy por esse endereço:
+A página inicial (/) apresenta **16 módulos**, na ordem abaixo. Todos têm um checkpoint de **10 situações**, definido em learning/<tema>_checkpoint.py. O conteúdo, o laboratório da aula e o checkpoint são partes distintas.
 
-```powershell
-.\run-lan.ps1 -IpAddress 192.168.101.78
-```
+| # | Módulo | URL | Interação ou foco |
+|---|---|---|---|
+| 1 | ARP | /arp/conceito/ | Request/Reply, cache e terminal; há atividades tradicionais e Rapid Fire à parte. |
+| 2 | MAC Address | /mac/ | Endereço MAC, exercícios e checkpoint. |
+| 3 | Frame Ethernet | /frame/ | Campos, montagem e inspeção do frame; integração com ARP. |
+| 4 | Switch Ethernet | /switch/ | Aprendizado MAC, tabela MAC e encaminhamento. |
+| 5 | Unicast × Broadcast | /unicast-broadcast/ | Unicast conhecido, broadcast e unknown unicast. |
+| 6 | VLAN | /vlan/ | Separação lógica, portas Access e limite do broadcast. |
+| 7 | Trunk + 802.1Q | /trunk-8021q/ | VLANs no mesmo enlace, percurso do frame e Allowed VLANs. |
+| 8 | IPv4 + Sub-rede | /ipv4-subnet/ | Máscara, prefixo e decisão local/remoto. |
+| 9 | Default Gateway + Next Hop | /default-gateway/ | Primeira entrega local e ARP do próximo salto. |
+| 10 | Tabela de Rotas + Escolha de Caminho | /tabela-de-rotas/ | Correspondência de prefixos e escolha manual da rota mais específica. |
+| 11 | Inter-VLAN Routing | /inter-vlan-routing/ | Dois frames ligados por uma função de Camada 3. |
+| 12 | ICMP + Ping + Traceroute | /icmp-ping-traceroute/ | Echo Request/Reply e sondas com TTL crescente. |
+| 13 | TCP × UDP | /tcp-udp/ | Comparação dos serviços de transporte. |
+| 14 | Portas + Cliente/Servidor | /portas-cliente-servidor/ | Entrega ao endpoint e resposta do servidor. |
+| 15 | DNS + Resolução de Nomes | /dns-resolucao-nomes/ | Consulta de nomes, laboratório e evidências. |
+| 16 | DHCP + Configuração Dinâmica | /dhcp-configuracao-dinamica/ | DORA e configuração recebida. |
 
-O script aplica as migrations, configura esse IP em `DJANGO_ALLOWED_HOSTS` somente durante a execução e inicia o Django na porta 8000. Mantenha o terminal aberto. Em outra máquina que consiga alcançar essa rede, abra `http://192.168.101.78:8000/`. Se o endereço da máquina mudar, substitua o valor de `-IpAddress` e use a nova URL.
+Além da trilha, **/laboratorio/** abre a bancada integrada editável descrita adiante. O menu lateral contém apenas Conteúdos e Laboratório; a navegação entre aulas aparece nas próprias páginas. ARP tem ainda o fluxo de atividades em learning/exercises.py e Rapid Fire de 12 itens em learning/content.py; MAC tem atividades em learning/mac_exercises.py.
 
-Se o Firewall do Windows bloquear conexões de entrada, abra um PowerShell **como administrador** e crie uma regra restrita à sub-rede local (ajuste o IP se ele tiver mudado):
+### Padrão pedagógico das aulas
 
-```powershell
-New-NetFirewallRule -DisplayName "NetStudy LAN 8000" -Direction Inbound -Action Allow -Protocol TCP -LocalAddress 192.168.101.78 -LocalPort 8000 -RemoteAddress LocalSubnet -Profile Domain,Private
-```
+As telas recentes seguem conceito breve → representação visual → interação guiada → interpretação/síntese → checkpoint. Diagramas conceituais estáticos não devem ganhar controles por acidente; o percurso detalhado fica no componente interativo da aula. Frame Ethernet e parte de ARP/MAC preservam fluxos anteriores mais extensos.
 
-Este modo usa o servidor de desenvolvimento do Django e deve ficar restrito à rede local confiável. Para publicar na internet, siga [deploy.md](deploy.md).
+Termos auxiliares podem usar popovers com sublinhado pontilhado. O componente compartilhado está em static/js/context-glossary.js e static/css/context-glossary.css; algumas páginas usam uma variante própria existente. Conceitos centrais ficam no texto principal. As interações buscam uso por teclado, foco visível, feedback acessível, layout móvel e respeito a movimento reduzido.
 
-## Verificações
+Gateway, Rotas, Inter-VLAN e ICMP usam, respectivamente, os partials l3_path_stage, routing_table_visualizer, inter_vlan_path_stage e diagnostic_path_stage, com JS/CSS de mesmo nome. Switch/VLAN/Trunk têm componentes didáticos de Camada 2, também usados nos checkpoints. Esses componentes **não são o simulador da bancada integrada**.
 
-```powershell
-python manage.py test
-python manage.py check
-```
+### Checkpoints e persistência
 
-## Estrutura
+learning/urls.py define as rotas; learning/views.py renderiza páginas e processa formulários. Situações, respostas, feedback, pistas e equívocos pedagógicos ficam nos arquivos learning/*_checkpoint.py. O progresso é guardado na **sessão Django**, usando o SQLite local; daí a necessidade da tabela django_session. Não há autenticação nem armazenamento permanente de pontuação.
 
-```text
-NetStudy/
-├── manage.py
-├── requirements.txt
-├── netstudy/             # Configuração e URLs principais do Django
-├── learning/             # Conteúdo estruturado, fluxo, views e testes
-├── templates/learning/   # Templates da sessão
-└── static/
-    ├── css/              # Estilos dos conceitos e componentes interativos
-    ├── js/               # Interações em JavaScript simples, sem frameworks
-    └── images/concepts/arp/
-```
+Muitos formulários de checkpoint são enviados por AJAX e recebem de volta um partial HTML atualizado. Ao alterar atividades que inserem componentes interativos, confira se o JavaScript reinicializa o componente após a substituição do HTML. Preserve CSRF, memória de respostas, pistas, avanço, reinício e resumo final.
 
-O conteúdo estruturado dos checkpoints fica em arquivos Python dentro de `learning/`, incluindo `arp_checkpoint.py`, `mac_checkpoint.py`, `frame_checkpoint.py`, `switch_checkpoint.py`, `delivery_checkpoint.py`, `vlan_checkpoint.py` e `trunk_checkpoint.py`. O progresso é guardado somente na sessão Django e pode ser reiniciado pela própria interface.
+## Laboratório integrado (/laboratorio/)
 
-Na sessão normal, respostas incorretas são mantidas como alternativas descartadas e não revelam a correta. A segunda resposta incorreta libera a pista definida no conteúdo; um acerto é registrado como `immediate` ou `guided`.
+A bancada em templates/learning/integrated_lab.html possui catálogo, área de montagem larga e alta, configuração do equipamento selecionado, escolha livre de PC de origem/destino, teste manual, navegação por eventos, inspetor e tabelas no evento. Não há autoplay. Pode-se instalar e mover equipamentos com mouse ou teclado (setas e Enter), conectar interfaces, ajustar VLANs/Allowed VLANs e reiniciar a bancada.
 
-A trilha principal alterna hotspots de terminal e topologia, associação de pares, preenchimento por tokens, classificação em áreas, reparo de frase, ordenação, previsão, comando, comparação de saídas, construção de tabela e mapas de diagnóstico e conceito. As interações de encaixe funcionam por clique, sem depender de arrastar com o mouse.
+**Inventário e limites:** até 4 PCs (A–D), 2 switches (SW1/SW2), 1 roteador (R1), 7 equipamentos instalados, 7 cabos, 1 trunk entre switches e 128 eventos por teste. SW1/SW2 têm Gi0/1–Gi0/4 como portas Access configuráveis para VLAN 10 ou 20 e Gi0/5 como trunk. R1 tem Eth0 e Eth1, cada uma com IPv4, máscara e MAC próprios; cada interface liga-se a uma porta Access. Cada PC tem IPv4, máscara, MAC e gateway padrão. O modelo não permite PC–PC, roteador–roteador ou PC–trunk. Interrupção por limite é resultado interrompido, nunca sucesso.
 
-## Switch Ethernet
+### Responsabilidades dos arquivos
 
-O conteúdo está disponível em:
+- static/js/integrated-lab-model.js: catálogo, configurações, posições, conexões e adaptação do grafo para o simulador. Também exporta a API para Node.
+- static/js/integrated-lab-simulator.js: valida a montagem e **decide o percurso**. Calcula ARP, aprendizado/encaminhamento MAC por VLAN, passagem pelo trunk, decisão local/remoto do host e rotas diretamente conectadas de R1. Emite eventos ordenados com IDs de evento, equipamento, interface, cabo, frame e pacote e snapshots das tabelas MAC/ARP/rotas em cada evento.
+- static/js/integrated-lab.js: liga controles ao modelo e **representa os eventos**. A lógica de encaminhamento não deve ser duplicada na camada visual.
+- static/css/integrated-lab.css: largura quase total da área de conteúdo, bancada alta, cartões de equipamentos, inspetor e layout móvel.
 
-```text
-http://127.0.0.1:8000/switch/
-```
+O teste usa uma cópia da configuração no clique em “Testar comunicação”. Alterar equipamento, cabo, VLAN ou o par de PCs invalida o resultado anterior. Anterior/Próximo percorrem os snapshots sem revelar informações futuras. Ao clicar R1, a interface mostra Eth0/Eth1, rotas de interfaces conectadas e associações ARP existentes no evento selecionado. Nos momentos relevantes, o inspetor apresenta lado a lado Frame de entrada, Decisão do roteador e Frame de saída.
 
-A página possui cinco áreas conceituais lineares: decisão inicial, aprendizagem pela origem, encaminhamento pelo destino, unknown unicast e consolidação. No conteúdo, o `Interactive Switch Board` opera em modo didático simplificado, mantendo visíveis somente a topologia principal, as portas Gi0/1, Gi0/4 e Gi0/6, o frame e a tabela MAC. Port Inspector, timeline, contadores e detalhes de VLAN continuam disponíveis no componente reutilizável para o checkpoint e módulos posteriores, mas não competem com a explicação introdutória.
+### Cenário reproduzível de roteamento
 
-As atividades mais avançadas usam uma bancada de investigação com ações controladas, terminal do host, CLI educacional do switch, coleta de evidências e checklist de progresso. Os comandos suportados incluem `ping`, `arp -a`, `ipconfig /all`, `show mac address-table`, `show interfaces status` e `show interfaces Gi0/x`. A atividade final combina os dois terminais para investigar uma entrada MAC desatualizada, gerar novo tráfego e confirmar a recuperação do encaminhamento. Toda a simulação é determinística, roda localmente em JavaScript simples e pode ser reiniciada sem recarregar a página.
+~~~text
+PC-A    192.168.10.10/24  gateway 192.168.10.1  MAC AA:AA:AA:AA:AA:AA  VLAN 10
+R1 Eth0 192.168.10.1/24                         MAC 10:10:10:10:10:10  VLAN 10
+R1 Eth1 192.168.20.1/24                         MAC 20:20:20:20:20:20  VLAN 20
+PC-B    192.168.20.20/24  gateway 192.168.20.1  MAC BB:BB:BB:BB:BB:BB  VLAN 20
+~~~
 
-## Unicast × Broadcast
+Conecte PC-A e R1 Eth0 a portas Access VLAN 10; R1 Eth1 e PC-B a portas Access VLAN 20. As interfaces do roteador podem estar no mesmo switch ou em switches diferentes, segundo os cabos disponíveis. O trunk pode ligar SW1 a SW2, mas **não é requisito universal** para rotear entre as VLANs. A montagem física válida define os trechos reais.
 
-O conteúdo seguinte ao Switch está disponível em:
+No teste A→B, PC-A usa **a própria máscara** e classifica PC-B como remoto. Faz ARP para 192.168.10.1, envia o frame AA → R1 Eth0 e mantém Destination IP = 192.168.20.20 no pacote. R1 encerra o frame, seleciona a rede 192.168.20.0/24 diretamente conectada por Eth1, faz ARP para PC-B na saída e cria um novo frame R1 Eth1 → BB. Os IPs de origem e destino permanecem neste cenário sem NAT; o TTL cai de 64 para 63. B→A usa primeiro Eth1 e depois Eth0. Entrega local na mesma VLAN, inclusive através do trunk, continua funcionando sem roteador.
 
-```text
-http://127.0.0.1:8000/unicast-broadcast/
-```
+Falhas representadas no ponto em que ocorrem: gateway ausente ou fora da rede local; ARP do gateway sem resposta por cabo/porta/VLAN; falta de interface conectada à rede de destino; ARP do destino sem resposta na saída; IPv4 inválido. **Uma máscara errada no PC não é corrigida pelo gateway**: se o host considera o destino local, tenta ARP para o próprio destino na rede local.
 
-A aula possui cinco áreas conceituais lineares: leitura do Destination MAC, unicast direcionado, broadcast local, distinção entre broadcast e unknown unicast e síntese com ARP Request/Reply. A topologia didática permanece em PC-A/Gi0/1, PC-B/Gi0/4 e PC-C/Gi0/6. O `Interactive Switch Board` opera em modo simplificado no conteúdo, sem Port Inspector, timeline, contadores ou detalhes de VLAN; os recursos avançados continuam disponíveis no checkpoint.
+**Fora do escopo desta etapa:** mais roteadores, rotas estáticas, terminal/CLI na bancada, NAT, DHCP, router-on-a-stick, ping completo, autoplay e persistência da montagem. Terminais e laboratórios das aulas são demonstrações independentes.
 
-O checkpoint contém dez situações, com distribuição de dificuldade 2/4/4 entre os níveis 3, 4 e 5. As investigações combinam Packet Inspector, tabela MAC, CLI, terminal do host, Port Inspector e Evidence Board. Todo o fluxo funciona assincronamente, preserva o estado da bancada e pode ser reiniciado sem reload.
+## Estrutura e pontos de edição
 
-VLAN deixou de ser apenas contextualização: o módulo seguinte implementa portas Access, associação lógica, domínio de broadcast e tabela MAC com contexto VLAN. O módulo Trunk + 802.1Q estende esse contexto por dois switches.
+| Necessidade | Fonte principal |
+|---|---|
+| Configuração Django, SQLite, hosts | netstudy/settings.py |
+| Rotas e views | learning/urls.py, learning/views.py |
+| Questões e feedback | learning/<tema>_checkpoint.py |
+| Página de uma aula | templates/learning/<tema>_concept.html e partials incluídos |
+| Comportamento/estilo de uma aula | static/js/<tema>-concept.js, static/css/<tema>-concept.css e componente reutilizado |
+| Moldura, menu e largura geral | templates/learning/base.html, static/css/netstudy.css |
+| Bancada integrada | templates/learning/integrated_lab.html, static/js/integrated-lab-*.js, static/css/integrated-lab.css |
+| Testes Django | learning/tests.py, learning/test_integrated_lab.py |
+| Testes Node do laboratório | static/js/integrated-lab-model.test.js, static/js/integrated-lab-simulator.test.js |
 
-## VLAN
+Antes de editar uma página, leia o template, os partials incluídos, os CSS/JS carregados ao fim do template e a view que fornece o contexto. Alguns dados de exemplo são definidos na view (como as rotas de /tabela-de-rotas/); outros ficam nos componentes JS. Verifique sempre o estado atual do Git, pois mudanças de outra tarefa podem estar presentes na árvore de trabalho.
 
-O módulo está disponível em:
+## Verificação
 
-```text
-http://127.0.0.1:8000/vlan/
-```
+No Windows com .venv preparado:
 
-A experiência possui cinco áreas conceituais lineares: necessidade da separação, grupos lógicos no mesmo switch, associação por porta Access, efeito da VLAN sobre frames e síntese. A topologia permanece em PC-A/Gi0/1, PC-B/Gi0/2, PC-C/Gi0/3 e PC-D/Gi0/4. O `Interactive Switch Board` usa uma variante didática de VLAN com quadro enxuto e inspetor simples; CLI, Evidence Board, troubleshooting e detalhes futuros de trunk permanecem exclusivamente no checkpoint e nos módulos posteriores.
+~~~powershell
+.\.venv\Scripts\python.exe manage.py check
+.\.venv\Scripts\python.exe manage.py test
+node static/js/integrated-lab-model.test.js
+node static/js/integrated-lab-simulator.test.js
+node --check static/js/integrated-lab-model.js
+node --check static/js/integrated-lab-simulator.js
+node --check static/js/integrated-lab.js
+git diff --check
+~~~
 
-O checkpoint contém dez situações com dificuldade progressiva `[3, 3, 4, 4, 4, 4, 5, 5, 5, 5]`. As investigações avançadas exigem ações na bancada, coleta explícita de evidências, correção controlada e reteste. A CLI educacional aceita `show vlan brief`, `show interfaces Gi0/x switchport` e `show mac address-table`, além dos comandos já disponíveis nos módulos anteriores.
-
-Este módulo se concentra nas portas Access. A continuação em Trunk + 802.1Q ativa tagged frames, native VLAN e allowed VLANs em uma topologia com dois switches.
-
-## Trunk + 802.1Q
-
-O módulo está disponível em:
-
-```text
-http://127.0.0.1:8000/trunk-8021q/
-```
-
-A experiência possui exatamente sete áreas conceituais e evolui o mesmo `Interactive Switch Board` para um `Dual Switch Stage`: duas instâncias com estados independentes, conectadas por um `TrunkLink` interativo entre Gi0/8. O estágio apresenta Port Inspector para portas Access/Trunk, Trunk Inspector, Packet Inspector com o contexto 802.1Q, linhas do tempo e MAC Address Tables próprias de SW1 e SW2.
-
-O motor valida estado e modo do link, allowed VLANs e native VLAN. Broadcast e unknown unicast só atravessam o trunk dentro do contexto VLAN elegível; frames da native VLAN são representados como untagged no modelo pedagógico. As CLIs de SW1 e SW2 aceitam `show interfaces trunk`, `show interfaces Gi0/8 switchport`, `show vlan brief` e `show mac address-table`.
-
-O checkpoint contém dez situações com dificuldade `[3, 3, 4, 4, 4, 4, 5, 5, 5, 5]`. As situações 5, 7, 8, 9 e 10 usam Investigation Mode e Evidence Board; o desafio final isola uma allowed VLAN ausente em SW2, aplica uma correção controlada e valida ARP e known unicast. O fluxo é assíncrono, preserva immediate/guided e restaura switches, trunk, terminais, evidências, seleções, contadores e timelines pelo reset local.
-
-Inter-VLAN Routing continua fora do escopo: trunk transporta múltiplos contextos VLAN mantendo a separação, mas não roteia entre eles.
-
-## IPv4 + Sub-rede
-
-O módulo está disponível em:
-
-```text
-http://127.0.0.1:8000/ipv4-subnet/
-```
-
-A página possui sete áreas conceituais sobre endereço lógico, interpretação conjunta de IPv4 e máscara, identificação do bloco, decisão local/remoto, prefixos `/24` a `/28`, terminal e síntese. O binário aparece somente depois do modelo visual de intervalos; `/16` é usado para mostrar que o limite da rede depende do prefixo.
-
-O componente reutilizável `IPv4 / Subnet Visualizer` recebe IPv4, prefixo, destino e gateway opcional. Ele calcula e apresenta endereço de rede, broadcast, primeiro e último host convencional, total de endereços, hosts utilizáveis, máscara, tamanho do bloco, partes de rede/host e classificação local/remoto. A implementação fica em `static/js/subnet-visualizer.js` e pode ser reaproveitada futuramente nos módulos de gateway, routing, DHCP e ACL.
-
-O terminal educacional aceita `ipconfig /all`, `ping 192.168.10.80` e `ping 192.168.20.80`, mantendo o foco na decisão de entrega em vez do sucesso do ping. Default Gateway + Routing permanece como próximo conteúdo.
-
-A especificação recebida para esta versão termina antes de fornecer os enunciados, respostas e feedbacks das dez situações anunciadas para o checkpoint. Para respeitar a regra de não inventar conteúdo pedagógico, a página sinaliza essa dependência e não cria perguntas fictícias.
-
-## Rapid Fire
-
-O modo compacto com 12 itens pode ser aberto pela página de conceito ARP ou diretamente em:
-
-```text
-http://127.0.0.1:8000/arp/rapid-fire/
-```
-
-## Imagem conceitual opcional
-
-O layout procura o arquivo:
-
-```text
-static/images/concepts/arp/arp-basic-flow.png
-static/images/concepts/arp/arp-request-broadcast.png
-static/images/concepts/arp/arp-cache-before-after.png
-static/images/concepts/arp/arp-local-vs-remote.png
-```
-
-Enquanto esses arquivos não existirem, a página mostra placeholders discretos. O projeto não gera essas imagens.
+Os testes Django cobrem páginas, endpoints e checkpoints. Os testes Node cobrem o modelo e o simulador da bancada, incluindo A→B/B→A, casos locais, trunk, falhas e limites. Para mudanças visuais ou de interação, confira também a página no navegador em desktop e largura móvel (360 px é uma referência usada no projeto). Este mapa não substitui a inspeção do código nem a validação do comportamento alterado.

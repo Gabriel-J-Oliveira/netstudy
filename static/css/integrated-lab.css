@@ -63,3 +63,19 @@
 @media(max-width:800px){.lab-workspace,.lab-result-grid{grid-template-columns:1fr}.lab-canvas{height:760px}.lab-connections{display:block}.lab-connections ul{margin-top:.4rem}}
 @media(max-width:380px){.integrated-lab{padding:.75rem}.lab-board{padding:.75rem}.lab-context label{width:100%}.lab-event-controls{gap:.35rem}.lab-event-controls button{padding:.4rem}.lab-intro h1{font-size:2rem}.lab-node{width:145px}.lab-node-switch{width:180px}.lab-node-interfaces button{font-size:.6rem;padding:.2rem}.lab-event dl{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.integrated-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* A bancada ocupa toda a largura disponível da área de conteúdo. */
+.main-content:has(.integrated-lab){padding:12px 12px 50px}
+.content-column:has(.integrated-lab){max-width:none;width:100%}
+.integrated-lab{max-width:none;width:100%;padding:clamp(.35rem,.7vw,.8rem)}
+.lab-canvas{height:max(980px,calc(100vh - 170px))}
+.lab-node-router{width:205px;border-color:#8a5b26;background:#fffaf1}
+.lab-node-router .lab-node-icon{border-radius:50%;background:#f5d59b;border-color:#8a5b26}
+.lab-router-interface{padding:.65rem;margin:.55rem 0;border:1px solid #d2c3aa;border-radius:.5rem;background:#fffaf2}
+.lab-router-interface>strong,.lab-router-state>strong{display:block}
+.lab-router-state{font-size:.84rem}.lab-router-state>strong{margin-top:.6rem}.lab-router-state ul{margin:.3rem 0;padding-left:1.2rem}
+.lab-router-inspector{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem;margin-top:.9rem}
+.lab-router-inspector article{padding:.7rem;border:1px solid #c4d4e2;border-radius:.5rem;background:#f8fbfd;min-width:0;overflow-wrap:anywhere}
+.lab-router-inspector h4{font-size:.86rem;font-weight:800;margin:0}.lab-router-inspector p{font-size:.82rem;margin:.35rem 0 0}
+@media(max-width:800px){.lab-canvas{height:900px}.lab-router-inspector{grid-template-columns:1fr}}
+@media(max-width:380px){.main-content:has(.integrated-lab){padding:8px 6px 40px}.integrated-lab{padding:.2rem}.lab-board{padding:.5rem}.lab-node-router{width:165px}}

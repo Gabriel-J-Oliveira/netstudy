@@ -1,22 +1,23 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Laboratório integrado · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/integrated-lab.css' %}?v=lab-7">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/integrated-lab.css' %}?v=router-1">{% endblock %}
 {% block content %}
 <main class="integrated-lab" data-integrated-lab>
-  <header class="lab-intro"><span>LABORATÓRIO INTEGRADO · BANCADA EDITÁVEL</span><h1>Monte, conecte e teste sua LAN</h1><p>Até quatro PCs e dois switches, com um enlace trunk entre eles.</p></header>
+  <header class="lab-intro"><span>LABORATÓRIO INTEGRADO · BANCADA EDITÁVEL</span><h1>Monte, conecte e teste sua rede</h1><p>Até quatro PCs, dois switches, um roteador com duas interfaces físicas e um enlace Trunk entre os switches.</p></header>
   <section class="lab-board" aria-labelledby="lab-board-title">
-    <div class="lab-board-heading"><div><span>ÁREA DE TRABALHO</span><h2 id="lab-board-title">Sua LAN no switch</h2></div><p>Escolha no catálogo e clique em uma posição livre da bancada. Também é possível arrastar. Clique em um equipamento instalado para configurá-lo.</p></div>
+    <div class="lab-board-heading"><div><span>ÁREA DE TRABALHO</span><h2 id="lab-board-title">Sua bancada de rede</h2></div><p>Escolha no catálogo e clique em uma posição livre da bancada. Também é possível arrastar. Clique em um equipamento instalado para configurá-lo.</p></div>
     <div class="lab-palette" aria-label="Catálogo de equipamentos funcionais">
       <button type="button" draggable="true" data-lab-catalog="pc-a" aria-pressed="false">+ PC-A</button>
       <button type="button" draggable="true" data-lab-catalog="sw1" aria-pressed="false">+ SW1</button>
       <button type="button" draggable="true" data-lab-catalog="sw2" aria-pressed="false">+ SW2</button>
+      <button type="button" draggable="true" data-lab-catalog="r1" aria-pressed="false">+ R1</button>
       <button type="button" draggable="true" data-lab-catalog="pc-b" aria-pressed="false">+ PC-B</button>
       <button type="button" draggable="true" data-lab-catalog="pc-c" aria-pressed="false">+ PC-C</button>
       <button type="button" draggable="true" data-lab-catalog="pc-d" aria-pressed="false">+ PC-D</button>
     </div>
     <div class="lab-canvas" data-lab-canvas tabindex="0" role="group" aria-label="Bancada de rede. Selecione um equipamento no catálogo e clique aqui para instalá-lo. No modo mover, clique no novo local ou use as setas do teclado.">
       <svg class="lab-wires" data-lab-wires aria-hidden="true"></svg>
-      <div class="lab-canvas-hint" data-lab-canvas-hint>Selecione um PC ou o switch no catálogo para começar.</div>
+      <div class="lab-canvas-hint" data-lab-canvas-hint>Selecione um equipamento no catálogo para começar.</div>
       <div data-lab-nodes></div>
     </div>
     <p class="lab-feedback" data-lab-feedback role="status" aria-live="polite">A bancada está vazia. Selecione um equipamento no catálogo.</p>
@@ -25,28 +26,29 @@
       <section class="lab-context" id="lab-context" aria-labelledby="lab-context-title">
         <div class="lab-panel-heading"><span>EQUIPAMENTO SELECIONADO</span><h3 id="lab-context-title" data-lab-config-title>Selecione um equipamento</h3></div>
         <p data-lab-config-empty>Clique em um equipamento da bancada para abrir sua configuração e estado.</p>
-        <fieldset data-lab-config="pc-a" hidden><legend>PC-A · Eth0</legend><label>IPv4<input data-lab-input="a-ip" value="192.168.10.10" inputmode="decimal"></label><label>Máscara<input data-lab-input="a-mask" value="255.255.255.0" inputmode="decimal"></label><label>MAC<input data-lab-input="a-mac" value="AA:AA:AA:AA:AA:AA"></label></fieldset>
+        <fieldset data-lab-config="pc-a" hidden><legend>PC-A · Eth0</legend><label>IPv4<input data-lab-input="a-ip" value="192.168.10.10" inputmode="decimal"></label><label>Máscara<input data-lab-input="a-mask" value="255.255.255.0" inputmode="decimal"></label><label>MAC<input data-lab-input="a-mac" value="AA:AA:AA:AA:AA:AA"></label><label>Gateway padrão<input data-lab-input="a-gateway" value="" inputmode="decimal"></label></fieldset>
         <fieldset data-lab-config="sw1" hidden><legend>SW1 · portas access</legend><label>Gi0/1<select data-lab-input="sw1-port1"><option value="10">VLAN 10</option><option value="20">VLAN 20</option></select></label><label>Gi0/2<select data-lab-input="sw1-port2"><option value="10">VLAN 10</option><option value="20">VLAN 20</option></select></label><label>Gi0/3<select data-lab-input="sw1-port3"><option value="10">VLAN 10</option><option value="20">VLAN 20</option></select></label><label>Gi0/4<select data-lab-input="sw1-port4"><option value="10">VLAN 10</option><option value="20">VLAN 20</option></select></label><div class="lab-trunk-options"><strong>Gi0/5 · trunk: VLANs admitidas nesta ponta</strong><label><input type="checkbox" data-lab-allowed="sw1-10" checked> VLAN 10</label><label><input type="checkbox" data-lab-allowed="sw1-20" checked> VLAN 20</label></div></fieldset>
         <fieldset data-lab-config="sw2" hidden><legend>SW2 · portas access</legend><label>Gi0/1<select data-lab-input="sw2-port1"><option value="10">VLAN 10</option><option value="20">VLAN 20</option></select></label><label>Gi0/2<select data-lab-input="sw2-port2"><option value="10">VLAN 10</option><option value="20">VLAN 20</option></select></label><label>Gi0/3<select data-lab-input="sw2-port3"><option value="10">VLAN 10</option><option value="20">VLAN 20</option></select></label><label>Gi0/4<select data-lab-input="sw2-port4"><option value="10">VLAN 10</option><option value="20">VLAN 20</option></select></label><div class="lab-trunk-options"><strong>Gi0/5 · trunk: VLANs admitidas nesta ponta</strong><label><input type="checkbox" data-lab-allowed="sw2-10" checked> VLAN 10</label><label><input type="checkbox" data-lab-allowed="sw2-20" checked> VLAN 20</label></div></fieldset>
-        <fieldset data-lab-config="pc-b" hidden><legend>PC-B · Eth0</legend><label>IPv4<input data-lab-input="b-ip" value="192.168.10.20" inputmode="decimal"></label><label>Máscara<input data-lab-input="b-mask" value="255.255.255.0" inputmode="decimal"></label><label>MAC<input data-lab-input="b-mac" value="BB:BB:BB:BB:BB:BB"></label></fieldset>
-        <fieldset data-lab-config="pc-c" hidden><legend>PC-C · Eth0</legend><label>IPv4<input data-lab-input="c-ip" value="192.168.10.30" inputmode="decimal"></label><label>Máscara<input data-lab-input="c-mask" value="255.255.255.0" inputmode="decimal"></label><label>MAC<input data-lab-input="c-mac" value="CC:CC:CC:CC:CC:CC"></label></fieldset>
-        <fieldset data-lab-config="pc-d" hidden><legend>PC-D · Eth0</legend><label>IPv4<input data-lab-input="d-ip" value="192.168.10.40" inputmode="decimal"></label><label>Máscara<input data-lab-input="d-mask" value="255.255.255.0" inputmode="decimal"></label><label>MAC<input data-lab-input="d-mac" value="DD:DD:DD:DD:DD:DD"></label></fieldset>
+        <fieldset data-lab-config="r1" hidden><legend>R1 · interfaces físicas</legend><div class="lab-router-interface"><strong>Eth0</strong><label>IPv4<input data-lab-input="r1-eth0-ip" value="192.168.10.1" inputmode="decimal"></label><label>Máscara<input data-lab-input="r1-eth0-mask" value="255.255.255.0" inputmode="decimal"></label><label>MAC<input data-lab-input="r1-eth0-mac" value="10:10:10:10:10:10"></label></div><div class="lab-router-interface"><strong>Eth1</strong><label>IPv4<input data-lab-input="r1-eth1-ip" value="192.168.20.1" inputmode="decimal"></label><label>Máscara<input data-lab-input="r1-eth1-mask" value="255.255.255.0" inputmode="decimal"></label><label>MAC<input data-lab-input="r1-eth1-mac" value="20:20:20:20:20:20"></label></div><div class="lab-router-state"><strong>Rotas diretamente conectadas</strong><ul data-lab-router-routes><li>Selecione R1.</li></ul><strong>Associações ARP de R1 neste evento</strong><ul data-lab-router-arp><li>Ainda não aprendidas.</li></ul></div></fieldset>
+        <fieldset data-lab-config="pc-b" hidden><legend>PC-B · Eth0</legend><label>IPv4<input data-lab-input="b-ip" value="192.168.10.20" inputmode="decimal"></label><label>Máscara<input data-lab-input="b-mask" value="255.255.255.0" inputmode="decimal"></label><label>MAC<input data-lab-input="b-mac" value="BB:BB:BB:BB:BB:BB"></label><label>Gateway padrão<input data-lab-input="b-gateway" value="" inputmode="decimal"></label></fieldset>
+        <fieldset data-lab-config="pc-c" hidden><legend>PC-C · Eth0</legend><label>IPv4<input data-lab-input="c-ip" value="192.168.10.30" inputmode="decimal"></label><label>Máscara<input data-lab-input="c-mask" value="255.255.255.0" inputmode="decimal"></label><label>MAC<input data-lab-input="c-mac" value="CC:CC:CC:CC:CC:CC"></label><label>Gateway padrão<input data-lab-input="c-gateway" value="" inputmode="decimal"></label></fieldset>
+        <fieldset data-lab-config="pc-d" hidden><legend>PC-D · Eth0</legend><label>IPv4<input data-lab-input="d-ip" value="192.168.10.40" inputmode="decimal"></label><label>Máscara<input data-lab-input="d-mask" value="255.255.255.0" inputmode="decimal"></label><label>MAC<input data-lab-input="d-mac" value="DD:DD:DD:DD:DD:DD"></label><label>Gateway padrão<input data-lab-input="d-gateway" value="" inputmode="decimal"></label></fieldset>
         <p data-lab-device-state hidden></p>
         <button type="button" data-lab-move hidden>Mover equipamento</button>
       </section>
       <section class="lab-controls" aria-labelledby="lab-controls-title"><div class="lab-panel-heading"><span>TESTE MANUAL</span><h3 id="lab-controls-title">Percurso da comunicação</h3></div>
         <div class="lab-pair"><label>Origem<select data-lab-source aria-label="PC de origem"></select></label><label>Destino<select data-lab-destination aria-label="PC de destino"></select></label></div>
         <div class="lab-test-actions"><button type="button" data-lab-test>Testar comunicação</button><button type="button" data-lab-reset>Reiniciar bancada</button></div>
-        <p class="lab-status" data-lab-status role="status" aria-live="polite">Instale e conecte dois PCs e o switch para testar.</p>
+        <p class="lab-status" data-lab-status role="status" aria-live="polite">Instale e conecte dois PCs por um ou dois switches para testar.</p>
         <div class="lab-event-controls"><button type="button" data-lab-prev disabled>← Anterior</button><strong data-lab-position>Sem evento</strong><button type="button" data-lab-next disabled>Próximo →</button></div>
       </section>
     </div>
     <div class="lab-result-grid">
-      <section class="lab-event" aria-label="Evento selecionado"><div class="lab-event-title"><span data-lab-event-kind>OBSERVAÇÃO</span><h3 data-lab-observation>Pronto para montar</h3></div><p data-lab-explanation>Os eventos serão calculados da configuração atual.</p><dl><div><dt>Entrada → saída</dt><dd data-lab-interfaces>—</dd></div><div><dt>Frame Ethernet</dt><dd data-lab-frame>—</dd></div><div><dt>Pacote IPv4</dt><dd data-lab-packet>—</dd></div></dl></section>
-      <section class="lab-table" aria-label="Tabelas no evento"><h3>Tabelas MAC dos switches</h3><ul data-lab-mac-table><li>Sem entradas aprendidas.</li></ul><h3 data-lab-arp-title>Associação ARP da origem</h3><ul data-lab-arp-table><li>Ainda não aprendida.</li></ul></section>
+      <section class="lab-event" aria-label="Evento selecionado"><div class="lab-event-title"><span data-lab-event-kind>OBSERVAÇÃO</span><h3 data-lab-observation>Pronto para montar</h3></div><p data-lab-explanation>Os eventos serão calculados da configuração atual.</p><dl><div><dt>Entrada → saída</dt><dd data-lab-interfaces>—</dd></div><div><dt>Frame Ethernet</dt><dd data-lab-frame>—</dd></div><div><dt>Pacote IPv4</dt><dd data-lab-packet>—</dd></div></dl><div class="lab-router-inspector" data-lab-router-inspector hidden><article><h4>Frame de entrada</h4><p data-lab-frame-in>—</p></article><article><h4>Decisão do roteador</h4><p data-lab-route-decision>—</p></article><article><h4>Frame de saída</h4><p data-lab-frame-out>—</p></article></div></section>
+      <section class="lab-table" aria-label="Tabelas no evento"><h3>Tabelas MAC dos switches</h3><ul data-lab-mac-table><li>Sem entradas aprendidas.</li></ul><h3 data-lab-arp-title>Associações ARP neste evento</h3><ul data-lab-arp-table><li>Ainda não aprendidas.</li></ul></section>
     </div>
     <details class="lab-history"><summary>Ver histórico deste teste</summary><ol data-lab-history></ol></details>
   </section>
 </main>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/integrated-lab-simulator.js' %}?v=lab-7"></script><script src="{% static 'js/integrated-lab-model.js' %}?v=lab-7"></script><script src="{% static 'js/integrated-lab.js' %}?v=lab-7"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/integrated-lab-simulator.js' %}?v=router-1"></script><script src="{% static 'js/integrated-lab-model.js' %}?v=router-1"></script><script src="{% static 'js/integrated-lab.js' %}?v=router-1"></script>{% endblock %}

@@ -277,7 +277,38 @@ def integrated_lab(request):
 
 
 def troubleshooting(request):
-    return render(request, "learning/troubleshooting.html", _context(request, current_topic="LAB"))
+    families = [
+        {"id": "ipv4", "title": "IPv4", "description": "Investigue decisões de entrega e endereçamento dos hosts."},
+        {"id": "vlan-access", "title": "VLAN Access", "description": "Investigue a participação dos hosts nos domínios locais."},
+        {"id": "trunk-8021q", "title": "Trunk 802.1Q", "description": "Investigue a comunicação entre hosts distribuídos em dois switches."},
+        {"id": "routing", "title": "Routing", "description": "Investigue uma entrega que precisa atravessar duas redes."},
+        {"id": "static-routing", "title": "Rotas estáticas", "description": "Investigue o caminho de ida e volta entre dois roteadores."},
+        {"id": "external-routing", "title": "Rede externa", "description": "Investigue rota padrão, próximo salto e retorno por roteadores ISP lógicos."},
+        {"id": "nat-pat", "title": "NAT/PAT", "description": "Investigue tradução de origem e retorno no acesso externo."},
+        {"id": "services", "title": "DHCP, DNS e serviços", "description": "Investigue falhas de configuração e aplicação com L2/L3 funcional."},
+        {"id": "mixed", "title": "Diagnóstico misto", "description": "Investigue o percurso completo sem uma categoria de causa indicada."},
+    ]
+    return render(request, "learning/troubleshooting.html", _context(request, current_topic="LAB", exercise_families=families))
+
+
+def external_labs_catalog(request):
+    from .external_labs import LABS
+
+    return render(request, "learning/external_labs_catalog.html", _context(
+        request, current_topic="EXTERNAL_LABS", external_labs=LABS,
+    ))
+
+
+def external_lab_detail(request, slug):
+    from django.http import Http404
+    from .external_labs import LAB_BY_SLUG
+
+    lab = LAB_BY_SLUG.get(slug)
+    if lab is None:
+        raise Http404("Laboratório não encontrado")
+    return render(request, "learning/external_lab_detail.html", _context(
+        request, current_topic="EXTERNAL_LABS", lab=lab,
+    ))
 
 
 def start_session(request):

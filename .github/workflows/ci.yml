@@ -32,15 +32,36 @@ jobs:
       - name: Integrated lab Node tests
         run: |
           node static/js/integrated-lab-model.test.js
+          node static/js/integrated-lab-profiles.test.js
+          node static/js/integrated-lab-terminal.test.js
+          node static/js/integrated-lab-cisco.test.js
+          node static/js/integrated-lab-host.test.js
+          node static/js/integrated-lab-routeros.test.js
+          node static/js/integrated-lab-dell.test.js
+          node static/js/integrated-lab-ping.test.js
+          node static/js/integrated-lab-l3-routing.test.js
+          node static/js/integrated-lab-traceroute.test.js
+          node static/js/integrated-lab-nat.test.js
+          node static/js/integrated-lab-services.test.js
           node static/js/integrated-lab-simulator.test.js
           node static/js/integrated-lab-scenario.test.js
           node static/js/integrated-lab-storage.test.js
           node static/js/integrated-lab-presets.test.js
           node static/js/integrated-lab-exercise-engine.test.js
+          node static/js/integrated-lab-operational.test.js
+          node static/js/integrated-lab-dynamic.test.js
       - name: JavaScript syntax
         run: |
           node --check static/js/integrated-lab-model.js
+          node --check static/js/integrated-lab-profiles.js
+          node --check static/js/integrated-lab-terminal.js
+          node --check static/js/integrated-lab-cisco.js
+          node --check static/js/integrated-lab-host.js
+          node --check static/js/integrated-lab-routeros.js
+          node --check static/js/integrated-lab-switch-cli.js
+          node --check static/js/integrated-lab-dell.js
           node --check static/js/integrated-lab-simulator.js
+          node --check static/js/integrated-lab-services.js
           node --check static/js/integrated-lab.js
           node --check static/js/integrated-lab-storage.js
           node --check static/js/integrated-lab-presets.js

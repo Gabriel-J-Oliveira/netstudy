@@ -70,7 +70,9 @@ assert.equal(simulate({...model.adapt(one, "pc-a", "pc-b").input, destinationId:
 const limited = run(cross, "pc-a", "pc-b", {events: 3});
 assert.equal(limited.status, "interrupted");
 assert.ok(!limited.events.some(e => e.outcome === "success"));
-assert.deepEqual([LIMITS.devices, LIMITS.links, LIMITS.events, LIMITS.history], [7, 7, 128, 128]);
+assert.equal(LIMITS.devices, undefined);
+assert.equal(LIMITS.links, undefined);
+assert.deepEqual([LIMITS.events, LIMITS.history], [1024, 256]);
 
 function routed() {
   let state = model.create();
@@ -136,6 +138,6 @@ for (const id of ["pc-c", "pc-d"]) fullBench = model.position(fullBench, id, .5,
 fullBench = model.connect(fullBench, "pc-c:eth0", "sw1:gi0/3").state;
 fullBench = model.connect(fullBench, "pc-d:eth0", "sw2:gi0/3").state;
 fullBench = model.configure(fullBench, "sw2", {vlans: {"sw2:gi0/3": 20}}).state;
-assert.equal(fullBench.connections.length, LIMITS.links);
+assert.equal(fullBench.connections.length, 7);
 assert.equal(run(fullBench).status, "success");
 console.log("Simulador: LAN, trunk, roteamento físico, falhas e limites aprovados.");

@@ -27,7 +27,7 @@ assert.equal(Object.hasOwn(scenario, "interfaces"), false);
 assert.deepEqual(scenario.connections[0], {a: "pc-a:eth0", b: "sw1:gi0/1"});
 for (const forbidden of ["events", "history", "arp", "mac", "routes", "result", "cursor", "mode", "index", "correctAnswer", "expectedFix"])
   assert.equal(Object.hasOwn(scenario, forbidden), false);
-assert.deepEqual(Object.keys(scenario.devices["pc-a"]).sort(), ["config", "position"]);
+assert.deepEqual(Object.keys(scenario.devices["pc-a"]).sort(), ["config", "position", "profile"]);
 assert.deepEqual(Object.keys(scenario.devices.sw1.config).sort(), ["allowedVlans", "vlans"]);
 assert.deepEqual(Object.keys(scenario.devices.r1.config).sort(), ["eth0", "eth1"]);
 
@@ -73,7 +73,7 @@ rejects(value => { value.connections.push({a: "sw1:gi0/1", b: "sw2:gi0/1"}); }, 
 rejects(value => { value.devices["pc-a"].config.ip = "192.168.10.999"; }, /estruturalmente inválido/);
 rejects(value => { value.devices.r1.config.eth1.mask = "255.0.255.0"; }, /estruturalmente inválido/);
 rejects(value => { value.devices["pc-b"].config.gateway = "foo"; }, /estruturalmente inválido/);
-rejects(value => { value.devices.sw2.config.vlans["sw2:gi0/1"] = 30; }, /VLANs inválidas/);
+rejects(value => { value.devices.sw2.config.vlans["sw2:gi0/1"] = 4095; }, /VLANs inválidas/);
 rejects(value => { value.devices["pc-a"].position.x = 2; }, /Posição inválida/);
 rejects(value => { value.sourceId = "pc-a"; value.destinationId = "pc-a"; }, /Par de PCs inválido/);
 rejects(value => { value.result = {status: "success"}; }, /Cenário/);

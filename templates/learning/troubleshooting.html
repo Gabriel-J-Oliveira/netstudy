@@ -1,21 +1,26 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Troubleshooting · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/integrated-lab.css' %}?v=exercise-1">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/integrated-lab.css' %}?v=dynamic-2">{% endblock %}
 {% block content %}
 <main class="troubleshooting-page">
   <span class="troubleshooting-kicker">LABORATÓRIO INTEGRADO · EXERCÍCIOS</span>
   <h1>Troubleshooting</h1>
   <p>Investigue uma rede com conectividade interrompida. Teste o percurso, ajuste a bancada e valide o estado final.</p>
-  <section aria-labelledby="ipv4-exercise-title">
-    <h2 id="ipv4-exercise-title">Diagnóstico de conectividade IPv4</h2>
-    <p>PC-A precisa alcançar PC-C por duas redes e um roteador. Cada tentativa gera uma montagem reproduzível por seed, com uma ou duas falhas conforme a dificuldade.</p>
+  <p>Intermediate apresenta uma falha; Advanced apresenta duas falhas independentes. Cada seed reproduz a mesma montagem. No modo operacional, os equipamentos usam terminais de fabricantes e hosts; cabos continuam editáveis na bancada.</p>
+  {% for family in exercise_families %}
+  <section aria-labelledby="{{ family.id }}-exercise-title">
+    <h2 id="{{ family.id }}-exercise-title">{{ family.title }}</h2>
+    <p>{{ family.description }}</p>
     <form method="get" action="{% url 'learning:integrated_lab' %}">
-      <input type="hidden" name="exercise" value="ipv4-connectivity">
-      <label for="exercise-difficulty">Dificuldade</label>
-      <select id="exercise-difficulty" name="difficulty"><option value="intermediate">Intermediate · 1 falha</option><option value="advanced">Advanced · 2 falhas</option></select>
+      <input type="hidden" name="exercise" value="{{ family.id }}">
+      <label for="{{ family.id }}-difficulty">Dificuldade</label>
+      <select id="{{ family.id }}-difficulty" name="difficulty"><option value="intermediate">Intermediate · 1 falha</option><option value="advanced">Advanced · 2 falhas</option></select>
+      <label for="{{ family.id }}-mode">Modo</label>
+      <select id="{{ family.id }}-mode" name="mode"><option value="bench">Bancada</option><option value="operational">Operacional · terminais</option></select>
       <button type="submit">Iniciar exercício</button>
     </form>
   </section>
+  {% endfor %}
   <p><a href="{% url 'learning:integrated_lab' %}">Abrir bancada livre</a></p>
 </main>
 {% endblock %}

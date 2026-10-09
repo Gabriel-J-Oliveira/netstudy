@@ -12,7 +12,7 @@ assert.equal(bench.interfaces["sw2:gi0/5"].mode, "trunk");
 assert.equal(model.adapt(bench, "pc-a", "pc-b").error, "Escolha um PC de origem instalado.");
 for (const [index, id] of model.DEVICE_IDS.entries()) bench = model.position(bench, id, .15 + index * .1, .3).state;
 assert.equal(model.connect(bench, "pc-a:eth0", "pc-b:eth0").state, undefined);
-assert.equal(model.connect(bench, "sw1:gi0/1", "sw2:gi0/1").state, undefined);
+assert.equal(model.connect(bench, "sw1:gi0/1", "sw2:gi0/1").error, undefined);
 assert.equal(model.connect(bench, "pc-a:eth0", "sw1:gi0/5").state, undefined);
 assert.equal(model.connect(bench, "r1:eth0", "sw1:gi0/5").state, undefined);
 assert.equal(model.connect(bench, "r1:eth0", "sw1:gi0/2").error, undefined);

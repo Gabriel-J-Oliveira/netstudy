@@ -1,0 +1,117 @@
+const assert = require('node:assert/strict');
+const model = require('./integrated-lab-model.js');
+const simulator = require('./integrated-lab-simulator.js');
+const terminal = require('./integrated-lab-terminal.js');
+const engine = require('./integrated-lab-exercise-engine.js');
+const profiles = require('./integrated-lab-profiles.js');
+const {PRESETS} = require('./integrated-lab-presets.js');
+
+const preset = PRESETS.find(item => item.id === 'external-nat-pat');
+assert.ok(preset);
+assert.equal(profiles.get('router', 'cisco-ios').capabilities.sourceNatPat, true);
+assert.equal(profiles.get('router', 'mikrotik-routeros').capabilities.sourceNatPat, true);
+const loaded = model.importScenario(preset.scenario);
+const run = state => simulator.simulate(model.adapt(state, loaded.sourceId, loaded.destinationId).input);
+const apply = change => { assert.equal(change.error, undefined, change.error); return change.state; };
+assert.equal(run(loaded.state).status, 'success');
+const good = run(loaded.state), translated = good.events.find(event => event.id === 'nat-source');
+const reversed = good.events.find(event => event.id === 'nat-reverse');
+assert.ok(translated && reversed);
+assert.ok(good.events.findIndex(event => event.id === 'route-decision') < good.events.indexOf(translated));
+assert.equal(translated.natTranslation.before.source, '192.168.10.10');
+assert.equal(translated.packet.source, '10.0.0.1');
+assert.equal(translated.packet.destination, '203.0.113.20');
+assert.equal(reversed.natTranslation.before.destination, '10.0.0.1');
+assert.equal(reversed.packet.destination, '192.168.10.10');
+assert.equal(good.events[0].tables.nat.length, 0);
+assert.equal(translated.tables.nat.length, 1);
+assert.equal(good.tables.nat[0].translatedId, 10001);
+assert.ok(good.events.some(event => event.id === 'echo-reply-received' && event.packet.destination === '192.168.10.10'));
+
+const noNat = apply(model.setNat(loaded.state, 'router-1', {enabled: false}));
+assert.equal(run(noNat).status, 'failure');
+assert.ok(run(noNat).events.some(event => event.id === 'echo-request-arrived'));
+assert.ok(!run(noNat).events.some(event => event.id === 'nat-source'));
+const wrongRoles = apply(model.setNat(loaded.state, 'router-1', {inside: 'eth1', outside: 'eth0'}));
+assert.equal(run(wrongRoles).status, 'failure');
+const wrongPolicy = apply(model.setNat(loaded.state, 'router-1', {sourceNetwork: '192.168.30.0'}));
+assert.equal(run(wrongPolicy).status, 'failure');
+const noRoute = apply(model.removeStaticRoute(loaded.state, 'router-1', '0.0.0.0', '0.0.0.0'));
+assert.equal(run(noRoute).status, 'failure');
+assert.ok(!run(noRoute).events.some(event => event.id === 'nat-source'));
+const noReturn = apply(model.removeStaticRoute(loaded.state, 'router-3', '10.0.0.0', '255.255.255.0'));
+const failedReturn = run(noReturn);
+assert.equal(failedReturn.status, 'failure');
+assert.ok(failedReturn.events.some(event => event.id === 'nat-source'));
+assert.ok(failedReturn.events.some(event => event.id === 'echo-request-arrived'));
+assert.ok(!failedReturn.events.some(event => event.id === 'nat-reverse'));
+assert.equal(simulator.traceroute(model.adaptForPing(loaded.state, 'pc-1').input, '203.0.113.20').status, 'reached');
+const saved = model.exportScenario(loaded.state, {name: 'Teste NAT', sourceId: 'pc-1', destinationId: 'pc-2'});
+assert.deepEqual(model.importScenario(saved).state.devices['router-1'].config.nat, loaded.state.devices['router-1'].config.nat);
+const invalid = structuredClone(saved); invalid.devices['router-1'].config.nat.outside = 'eth0';
+assert.throws(() => model.importScenario(invalid), /NAT inválido/);
+let legacy = model.setNat(model.create(), 'r1', {inside: 'eth0', outside: 'eth1', sourceNetwork: '192.168.10.0', sourceMask: '255.255.255.0', enabled: true}).state;
+assert.equal(model.importScenario(model.exportScenario(legacy)).state.devices.r1.config.nat.enabled, true);
+
+let state = loaded.state, session = terminal.createSession(state.devices['router-1']);
+const command = value => {
+  const result = terminal.execute(session, value, state);
+  assert.equal(result.error, null, `${value}: ${result.error?.message}`);
+  session = result.session;
+  if (result.bench) state = result.bench;
+  return result.output.join('\n');
+};
+command('enable');
+assert.match(command('show running-config'), /ip nat inside source list 1 interface GigabitEthernet0\/1 overload/);
+assert.match(command('show ip nat translations'), /Nenhuma tradução/);
+const event = good.events.at(-1);
+assert.match(terminal.execute(session, 'show ip nat translations', {...state, observation: event}).output.join('\n'), /192\.168\.10\.10:1/);
+assert.match(command('show ip nat statistics'), /Source NAT\/PAT: ativo/);
+command('configure terminal');
+command('interface GigabitEthernet0/1');
+command('no ip nat outside');
+assert.equal(run(state).status, 'failure');
+command('ip nat outside');
+assert.equal(run(state).status, 'success');
+command('end');
+command('configure terminal');
+command('no ip nat inside source list 1 interface GigabitEthernet0/1 overload');
+assert.equal(run(state).status, 'failure');
+command('ip nat inside source list 1 interface GigabitEthernet0/1 overload');
+assert.equal(run(state).status, 'success');
+command('access-list 1 permit 192.168.30.0 0.0.0.255');
+assert.equal(run(state).status, 'failure');
+command('access-list 1 permit 192.168.10.0 0.0.0.255');
+assert.equal(run(state).status, 'success');
+
+state = model.setProfile(loaded.state, 'router-1', 'mikrotik-routeros').state;
+session = terminal.createSession(state.devices['router-1']);
+assert.match(command('/ip firewall nat print'), /masquerade/);
+command('/ip firewall nat remove 0');
+assert.equal(run(state).status, 'failure');
+command('/ip firewall nat add chain=srcnat action=masquerade src-address=192.168.10.0/24 out-interface=ether2');
+assert.equal(run(state).status, 'success');
+
+const cases = new Set();
+for (const difficulty of ['intermediate', 'advanced']) for (let seed = 0; seed < 24; seed++) {
+  const instance = engine.generateExercise('nat-pat', seed, {difficulty});
+  assert.deepEqual(instance, engine.generateExercise('nat-pat', seed, {difficulty}));
+  assert.ok(!JSON.stringify(instance).includes('faults'));
+  for (const hidden of ['faultMetadata', 'solution', 'correctAnswer', 'invariants']) assert.ok(!Object.hasOwn(instance, hidden));
+  const broken = model.importScenario(instance.scenario).state;
+  const initial = engine.validateExercise(instance, broken);
+  assert.equal(initial.complete, false);
+  cases.add(initial.category);
+  const fixed = model.importScenario(preset.scenario).state;
+  fixed.devices['pc-1'].config.ip = broken.devices['pc-1'].config.ip;
+  fixed.devices['pc-2'].config.ip = broken.devices['pc-2'].config.ip;
+  assert.equal(engine.validateExercise(instance, fixed).complete, true);
+  const bypass = apply(model.configure(fixed, 'pc-1', {ip: '192.168.10.99'}));
+  assert.equal(engine.validateExercise(instance, bypass).category, 'invariant');
+  if (difficulty === 'advanced') {
+    const partiallyFixed = apply(model.setNat(broken, 'router-1', fixed.devices['router-1'].config.nat));
+    assert.equal(engine.validateExercise(instance, partiallyFixed).category, 'nat-return');
+  }
+}
+assert.ok(cases.has('nat-missing') && cases.has('nat-roles') && cases.has('nat-policy') && cases.has('nat-return'));
+console.log('NAT/PAT: ida, retorno, falhas, CLI, cenário e exercícios aprovados.');

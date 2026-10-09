@@ -1,0 +1,85 @@
+{% extends "learning/base.html" %}{% load static %}
+{% block title %}{{ lab.title }} · Laboratórios Práticos · NetStudy{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/external-labs.css' %}">{% endblock %}
+{% block content %}
+<article class="external-labs external-detail" data-external-lab="{{ lab.slug }}" data-progress-version="1">
+  <p><a href="{% url 'learning:external_labs_catalog' %}">← Todos os Laboratórios Práticos</a></p>
+  <header class="external-hero">
+    <span class="eyebrow">{{ lab.subject }} · {{ lab.difficulty }}</span>
+    <h1>{{ lab.title }}</h1>
+    <p>{{ lab.summary }}</p>
+    <p class="external-disclaimer">A validação é manual. Marcar um critério registra sua conferência; o NetStudy não inspeciona o GNS3.</p>
+  </header>
+
+  <section aria-labelledby="mission-title">
+    <h2 id="mission-title">Contexto e missão</h2>
+    <p>{{ lab.context }}</p><p><strong>Sua missão:</strong> {{ lab.mission }}</p>
+  </section>
+
+  <section aria-labelledby="requirements-title">
+    <h2 id="requirements-title">Requisitos e appliances</h2>
+    <ul>{% for item in lab.requirements %}<li>{{ item }}</li>{% endfor %}</ul>
+    <p class="external-note">{{ lab.appliance_note }}</p>
+  </section>
+
+  <section aria-labelledby="topology-title">
+    <h2 id="topology-title">Topologia e conexões</h2>
+    <figure class="external-topology" role="group" aria-labelledby="topology-title topology-caption">
+      <div class="external-nodes" aria-label="Equipamentos">
+        {% for name, role in lab.nodes %}<div class="external-node"><strong>{{ name }}</strong><small>{{ role }}</small></div>{% endfor %}
+      </div>
+      <div class="external-links" aria-label="Conexões físicas">
+        {% for source, target, medium in lab.links %}
+        <div class="external-link"><strong>{{ source }}</strong><span class="external-wire"><span>{{ medium }}</span></span><strong>{{ target }}</strong></div>
+        {% endfor %}
+      </div>
+      <figcaption id="topology-caption">Cada linha representa um cabo. Os rótulos indicam o papel da conexão; adapte os nomes de interfaces ao appliance escolhido.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="address-title">
+    <h2 id="address-title">Plano de endereçamento</h2>
+    <div class="external-table-wrap"><table><thead><tr><th scope="col">Equipamento / interface</th><th scope="col">IPv4 / prefixo</th><th scope="col">Gateway</th></tr></thead><tbody>
+      {% for name, address, gateway in lab.addresses %}<tr><th scope="row">{{ name }}</th><td><code>{{ address }}</code></td><td><code>{{ gateway }}</code></td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <section aria-labelledby="restrictions-title">
+    <h2 id="restrictions-title">Restrições</h2>
+    <ul>{% for item in lab.restrictions %}<li>{{ item }}</li>{% endfor %}</ul>
+  </section>
+
+  <section aria-labelledby="criteria-title">
+    <h2 id="criteria-title">Critérios de validação</h2>
+    <p>Verifique cada resultado no GNS3 e marque somente depois de observar a evidência.</p>
+    <div class="external-checks" data-progress-group="criteria">
+      {% for item in lab.criteria %}<label><input type="checkbox" data-progress-index="{{ forloop.counter0 }}"><span>{{ item }}</span></label>{% endfor %}
+    </div>
+  </section>
+
+  <section aria-labelledby="evidence-title">
+    <h2 id="evidence-title">Checklist de evidências</h2>
+    <p>Guarde as capturas ou saídas no seu próprio ambiente. O NetStudy registra apenas as marcações neste navegador.</p>
+    <div class="external-checks" data-progress-group="evidence">
+      {% for item in lab.evidence %}<label><input type="checkbox" data-progress-index="{{ forloop.counter0 }}"><span>{{ item }}</span></label>{% endfor %}
+    </div>
+    <p class="external-progress" data-progress-status role="status" aria-live="polite"></p>
+  </section>
+
+  <section aria-labelledby="hints-title">
+    <h2 id="hints-title">Dicas progressivas</h2>
+    <p>Abra uma dica de cada vez, conforme precisar.</p>
+    {% for item in lab.hints %}<details class="external-reveal" data-hint-index="{{ forloop.counter0 }}" {% if not forloop.first %}hidden{% endif %}><summary>Dica {{ forloop.counter }}</summary><p>{{ item }}</p></details>{% endfor %}
+  </section>
+
+  <section aria-labelledby="solution-title">
+    <h2 id="solution-title">Solução comentada</h2>
+    <details class="external-reveal external-solution" data-solution><summary>Revelar solução comentada</summary>
+      <ol>{% for item in lab.solution %}<li>{{ item }}</li>{% endfor %}</ol>
+      <p>Compare essas decisões com sua configuração e evidências; a sintaxe exata depende do appliance utilizado.</p>
+    </details>
+  </section>
+  <nav class="external-end-nav" aria-label="Navegação dos laboratórios"><a href="{% url 'learning:external_labs_catalog' %}">Voltar ao catálogo</a><a href="{% url 'learning:integrated_lab' %}">Bancada integrada</a></nav>
+</article>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/external-labs.js' %}" defer></script>{% endblock %}

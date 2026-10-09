@@ -1,0 +1,25 @@
+{% extends "learning/base.html" %}{% load static %}
+{% block title %}Laboratórios Práticos · NetStudy{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/external-labs.css' %}">{% endblock %}
+{% block content %}
+<div class="external-labs">
+  <header class="external-hero">
+    <span class="eyebrow">PRÁTICA EM AMBIENTE EXTERNO</span>
+    <h1>Laboratórios Práticos</h1>
+    <p>Missões para montar, configurar e diagnosticar redes no GNS3 com sistemas virtualizados reais. O NetStudy orienta a atividade; as verificações são manuais, pelas evidências coletadas no seu ambiente.</p>
+  </header>
+  <div class="external-catalog">
+    {% for lab in external_labs %}
+    <article class="external-card">
+      <span class="external-meta">{{ lab.subject }} · {{ lab.difficulty }}</span>
+      <h2>{{ lab.title }}</h2>
+      <p>{{ lab.summary }}</p>
+      <p class="external-count">{{ lab.requirements|length }} requisitos · {{ lab.criteria|length }} critérios · {{ lab.hints|length }} dicas</p>
+      <a class="btn btn-primary" href="{% url 'learning:external_lab_detail' lab.slug %}">Abrir atividade <span aria-hidden="true">→</span></a>
+    </article>
+    {% endfor %}
+  </div>
+  <p class="external-aside">Use imagens e licenças obtidas por meios autorizados. Nenhum appliance é distribuído pelo NetStudy.</p>
+  <p class="external-aside">No Windows, use a GNS3 VM para os appliances QEMU/Docker indicados. Referências: <a href="https://docs.gns3.com/docs/getting-started/setup-wizard-gns3-vm/" target="_blank" rel="noopener noreferrer">GNS3 VM</a> · <a href="https://docs.gns3.com/docs/using-gns3/beginners/switching-and-gns3/" target="_blank" rel="noopener noreferrer">switching no GNS3</a> · <a href="https://docs.gns3.com/docs/troubleshooting-faq/where-do-i-get-ios-images/" target="_blank" rel="noopener noreferrer">obtenção autorizada de imagens Cisco</a>.</p>
+</div>
+{% endblock %}

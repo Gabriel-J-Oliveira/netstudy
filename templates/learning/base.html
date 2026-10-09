@@ -14,8 +14,9 @@
     <aside class="sidebar">
       <span class="brand">NetStudy</span>
       <nav class="topic-navigation" aria-label="Navegação principal">
-        <a href="{% url 'learning:home' %}" {% if current_topic != 'LAB' %}aria-current="page"{% endif %}>Conteúdos</a>
+        <a href="{% url 'learning:home' %}" {% if current_topic != 'LAB' and current_topic != 'EXTERNAL_LABS' %}aria-current="page"{% endif %}>Conteúdos</a>
         <a href="{% url 'learning:integrated_lab' %}" {% if current_topic == 'LAB' %}aria-current="page"{% endif %}>Laboratório</a>
+        <a href="{% url 'learning:external_labs_catalog' %}" {% if current_topic == 'EXTERNAL_LABS' %}aria-current="page"{% endif %}>Laboratórios Práticos</a>
       </nav>
     </aside>
     <main class="main-content">

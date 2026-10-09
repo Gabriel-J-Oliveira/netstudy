@@ -9,23 +9,25 @@ global.localStorage = {getItem: () => { localTouches++; throw new Error("preset 
 const {PRESETS} = require("./integrated-lab-presets.js");
 delete global.localStorage;
 assert.equal(localTouches, 0);
-assert.deepEqual(PRESETS.map(item => item.id), ["basic-lan", "separate-vlans", "switch-trunk", "two-networks-router"]);
-assert.equal(new Set(PRESETS.map(item => item.scenario.name)).size, 4);
+assert.deepEqual(PRESETS.map(item => item.id), ["basic-lan", "separate-vlans", "switch-trunk", "two-networks-router", "lan-services", "external-network", "external-nat-pat", "external-default-missing", "external-next-hop-wrong", "external-return-missing"]);
+assert.equal(new Set(PRESETS.map(item => item.scenario.name)).size, 10);
 
 const byId = Object.fromEntries(PRESETS.map(item => [item.id, item]));
 for (const preset of PRESETS) {
   const original = JSON.stringify(preset.scenario);
   assert.equal(preset.scenario.schemaVersion, model.SCENARIO_VERSION);
-  assert.deepEqual(Object.keys(preset.scenario).sort(),
-    ["connections", "destinationId", "devices", "name", "schemaVersion", "sourceId"]);
-  assert.equal(Object.isFrozen(preset.scenario.devices["pc-a"].config), true);
+  assert.deepEqual(Object.keys(preset.scenario).sort(), preset.scenario.format === "dynamic"
+    ? ["connections", "destinationId", "devices", "format", "name", "nextIds", "schemaVersion", "sourceId"]
+    : ["connections", "destinationId", "devices", "name", "schemaVersion", "sourceId"]);
+  const hostId = preset.scenario.sourceId;
+  assert.equal(Object.isFrozen(preset.scenario.devices[hostId].config), true);
   const restored = model.importScenario(preset.scenario);
   assert.equal(restored.name, preset.scenario.name);
   assert.deepEqual(model.exportScenario(restored.state, {
     name: restored.name, sourceId: restored.sourceId, destinationId: restored.destinationId
   }), preset.scenario);
-  restored.state.devices["pc-a"].config.ip = "10.99.99.99";
-  restored.state.devices["pc-a"].position.x = .9;
+  restored.state.devices[hostId].config.ip = "10.99.99.99";
+  restored.state.devices[hostId].position.x = .9;
   assert.equal(JSON.stringify(preset.scenario), original, "editar uma bancada não pode alterar o preset");
 }
 
@@ -90,4 +92,4 @@ restored.state.devices["pc-c"].config.ip = "192.168.20.40";
 personal.save(restored.state, {name: "Minha cópia", sourceId: "pc-a", destinationId: "pc-c"});
 assert.deepEqual(personal.list(), ["Minha cópia"]);
 assert.equal(JSON.stringify(routed), originalPreset);
-console.log("Presets: quatro schemas válidos, topologias, resultados e isolamento aprovados.");
+console.log("Presets: dez schemas válidos, topologias, resultados e isolamento aprovados.");

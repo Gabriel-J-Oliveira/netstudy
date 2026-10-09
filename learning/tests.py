@@ -129,7 +129,7 @@ class ProjectAndConceptTests(TestCase):
         response = self.client.get(reverse("learning:mac_concept"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "O endereço usado pela Ethernet")
-        self.assertContains(response, 'aria-current="page">Conteúdos</a>', html=False)
+        self.assertContains(response, 'aria-current="page">Aprender</a>', html=False)
 
     def test_mac_area_one_builds_source_then_asks_for_destination_mac(self):
         response = self.client.get(reverse("learning:mac_concept"))
@@ -163,7 +163,7 @@ class ProjectAndConceptTests(TestCase):
         response = self.client.get(reverse("learning:frame_concept"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "O que é um Frame Ethernet?")
-        self.assertContains(response, 'aria-current="page">Conteúdos</a>', html=False)
+        self.assertContains(response, 'aria-current="page">Aprender</a>', html=False)
 
     def test_frame_keeps_arp_and_mac_available_and_links_to_both(self):
         response = self.client.get(reverse("learning:frame_concept"))
@@ -1318,7 +1318,7 @@ class SwitchConceptAndCheckpointTests(TestCase):
         route = reverse("learning:switch_concept")
         self.assertContains(self.client.get(reverse("learning:home")), route)
         self.assertEqual(self.client.get(reverse("learning:frame_concept")).status_code, 200)
-        self.assertContains(self.client.get(route), 'aria-current="page">Conteúdos</a>', html=False)
+        self.assertContains(self.client.get(route), 'aria-current="page">Aprender</a>', html=False)
 
     def test_checkpoint_has_requested_size_difficulty_and_types(self):
         self.assertEqual(len(SWITCH_ACTIVITIES), 10)

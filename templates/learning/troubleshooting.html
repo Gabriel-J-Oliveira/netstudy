@@ -1,10 +1,17 @@
 {% extends "learning/base.html" %}{% load static %}
-{% block title %}Troubleshooting · NetStudy{% endblock %}
+{% block title %}Praticar · NetStudy{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/integrated-lab.css' %}?v=dynamic-2">{% endblock %}
 {% block content %}
 <main class="troubleshooting-page">
   <span class="troubleshooting-kicker">LABORATÓRIO INTEGRADO · EXERCÍCIOS</span>
-  <h1>Troubleshooting</h1>
+  <h1>Praticar</h1>
+  <nav class="journey-links" aria-label="Modalidades de prática">
+    <a href="{% url 'learning:begin' %}">Atividades ARP</a>
+    <a href="{% url 'learning:rapid_fire_intro' %}">Rapid Fire ARP</a>
+    <a href="{% url 'learning:mac_activities' %}">Atividades MAC</a>
+    <a href="{% url 'learning:external_labs_catalog' %}">Laboratórios Práticos GNS3</a>
+  </nav>
+  <h2>Troubleshooting na bancada</h2>
   <p>Investigue uma rede com conectividade interrompida. Teste o percurso, ajuste a bancada e valide o estado final.</p>
   <p>Intermediate apresenta uma falha; Advanced apresenta duas falhas independentes. Cada seed reproduz a mesma montagem. No modo operacional, os equipamentos usam terminais de fabricantes e hosts; cabos continuam editáveis na bancada.</p>
   {% for family in exercise_families %}
@@ -22,5 +29,6 @@
   </section>
   {% endfor %}
   <p><a href="{% url 'learning:integrated_lab' %}">Abrir bancada livre</a></p>
+  <section aria-labelledby="integrator-title"><h2 id="integrator-title">Lista integradora</h2><p>Em preparação. Nenhuma atividade integradora disponível nesta etapa.</p></section>
 </main>
 {% endblock %}

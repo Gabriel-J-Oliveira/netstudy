@@ -272,6 +272,10 @@ def home(request):
     return render(request, "learning/home.html", _context(request, current_topic=None))
 
 
+def learn(request):
+    return render(request, "learning/home.html", _context(request, current_topic="LEARN", learning_catalog=True))
+
+
 def integrated_lab(request):
     return render(request, "learning/integrated_lab.html", _context(request, current_topic="LAB"))
 

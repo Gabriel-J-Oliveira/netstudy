@@ -3,6 +3,7 @@
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/external-labs.css' %}">{% endblock %}
 {% block content %}
 <div class="external-labs">
+  <p><a href="{% url 'learning:practice' %}">Voltar a Praticar</a> · <a href="{% url 'learning:integrated_lab' %}">Bancada livre</a></p>
   <header class="external-hero">
     <span class="eyebrow">PRÁTICA EM AMBIENTE EXTERNO</span>
     <h1>Laboratórios Práticos</h1>

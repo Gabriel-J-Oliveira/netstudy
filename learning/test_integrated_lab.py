@@ -89,6 +89,6 @@ class IntegratedLabPageTests(TestCase):
         response = self.client.get(reverse("learning:integrated_lab"))
         nav = response.content.decode().split('aria-label="Navegação principal"', 1)[1].split("</nav>", 1)[0]
         self.assertEqual(nav.count("<a "), 3)
-        self.assertIn('>Conteúdos</a>', nav)
+        self.assertIn('>Aprender</a>', nav)
         self.assertIn('>Laboratório</a>', nav)
-        self.assertIn('>Laboratórios Práticos</a>', nav)
+        self.assertIn('>Praticar</a>', nav)

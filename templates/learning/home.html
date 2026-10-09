@@ -1,6 +1,18 @@
 {% extends "learning/base.html" %}
 {% block title %}Estudo de Redes · NetStudy{% endblock %}
 {% block content %}
+{% if not learning_catalog %}
+<section class="journey-home" aria-labelledby="journey-title">
+  <h1 id="journey-title">NetStudy</h1>
+  <div class="journey-areas">
+    <a href="{% url 'learning:learn' %}"><h2>Aprender</h2><p>16 conteúdos, laboratórios conceituais e checkpoints.</p></a>
+    <a href="{% url 'learning:practice' %}"><h2>Praticar</h2><p>Exercícios, atividades ARP/MAC e Laboratórios Práticos GNS3.</p></a>
+    <a href="{% url 'learning:integrated_lab' %}"><h2>Laboratório</h2><p>Bancada livre, equipamentos, perfis, terminais e seus cenários.</p></a>
+  </div>
+  <p class="journey-sequence">Aprender → Checkpoint → Praticar → Laboratório contextual → Aprofundamento GNS3</p>
+  <p>Escolha seu ponto de partida. A bancada livre está sempre disponível.</p>
+</section>
+{% endif %}
 <section class="hero-space">
   <span class="eyebrow">Fundamentos · Bloco 1</span>
   <h1>Estudo de Redes</h1>

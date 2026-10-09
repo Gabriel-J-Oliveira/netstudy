@@ -1,0 +1,21 @@
+<nav class="topic-navigation" aria-label="Navegação principal">
+  <a href="{% url 'learning:learn' %}" {% if area == 'learn' %}aria-current="page"{% endif %}>Aprender</a>
+  <a href="{% url 'learning:practice' %}" {% if area == 'practice' %}aria-current="page"{% endif %}>Praticar</a>
+  <a href="{% url 'learning:integrated_lab' %}" {% if area == 'lab' %}aria-current="page"{% endif %}>Laboratório</a>
+</nav>
+{% if lesson %}
+<nav class="journey-context" aria-label="Jornada do conteúdo">
+  <strong>{{ lesson }}</strong>
+  <a href="{{ checkpoint_url }}">Checkpoint deste conteúdo</a>
+  <a href="{{ exercise_url }}">Praticar na bancada contextual</a>
+  {% if previous %}<a href="{{ previous.url }}">Anterior: {{ previous.title }}</a>{% endif %}
+  {% if next %}<a href="{{ next.url }}">Próximo: {{ next.title }}</a>{% endif %}
+  <a href="{% url 'learning:external_labs_catalog' %}">Aprofundamento GNS3</a>
+</nav>
+{% elif exercise_context %}
+<nav class="journey-context" aria-label="Contexto do exercício">
+  <a href="{{ exercise_context }}" data-exercise-context-link>Link desta montagem de exercício</a>
+  <a href="{% url 'learning:practice' %}">Voltar a Praticar</a>
+  <a href="{% url 'learning:external_labs_catalog' %}">Aprofundamento GNS3</a>
+</nav>
+{% endif %}

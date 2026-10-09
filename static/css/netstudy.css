@@ -1,4 +1,14 @@
 :root { --ink:#172033; --muted:#667085; --navy:#132a4a; --blue:#2563eb; --blue-soft:#eef4ff; --line:#dfe5ee; --green:#157347; --green-bg:#eaf7ef; --red:#b42318; --red-bg:#fff0ef; }
+.journey-context { display:grid; gap:12px; font-size:14px; overflow-wrap:anywhere; }
+.journey-context a { color:#d9e4f4; }
+.journey-home { padding-bottom:28px; border-bottom:1px solid var(--line); }
+.journey-areas { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; margin:28px 0; }
+.journey-areas > a { padding:20px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); text-decoration:none; }
+.journey-areas > a:hover,.journey-areas > a:focus-visible { border-color:var(--blue); }
+.journey-areas h2 { font-size:22px; }.journey-areas p { margin:0; }
+.journey-links { display:flex; flex-wrap:wrap; gap:16px; margin:24px 0; }
+.journey-sequence { line-height:1.8; font-weight:650; }
+@media (max-width:700px) { .journey-areas { grid-template-columns:1fr; } }
 * { box-sizing:border-box; }
 body { margin:0; color:var(--ink); background:#f8fafc; font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
 .app-shell { min-height:100vh; display:grid; grid-template-columns:260px minmax(0,1fr); }

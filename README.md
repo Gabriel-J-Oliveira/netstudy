@@ -1,6 +1,6 @@
 # NetStudy
 
-NetStudy é um aplicativo didático, em português, para estudar fundamentos de redes. Combina conceitos curtos, diagramas, interações no navegador e checkpoints com feedback. O conteúdo é escrito previamente; as simulações são determinísticas. Não há IA no produto, contas de usuário nem histórico permanente de aprendizagem.
+NetStudy é um aplicativo didático, em português, para estudar fundamentos de redes. Combina conceitos curtos, diagramas, interações no navegador e checkpoints com feedback. O conteúdo é escrito previamente; as simulações são determinísticas. Não há IA no produto nem contas de usuário. As tentativas dos exercícios da bancada persistem apenas no navegador local; isso não é uma conta nem sincronização entre dispositivos.
 
 **Este README é um mapa do código atual.** Ao assumir uma tarefa, confira também a view, o template, os partials, o CSS/JS e os testes do módulo afetado. Cada aula tem demonstrações próprias; o laboratório integrado é uma bancada independente e não compartilha o estado dessas demonstrações.
 
@@ -50,7 +50,7 @@ A página inicial (/) apresenta **16 módulos**, na ordem abaixo. Todos têm um 
 | 15 | DNS + Resolução de Nomes | /dns-resolucao-nomes/ | Consulta de nomes, laboratório e evidências. |
 | 16 | DHCP + Configuração Dinâmica | /dhcp-configuracao-dinamica/ | DORA e configuração recebida. |
 
-Além da trilha, **/laboratorio/** abre a bancada integrada editável descrita adiante. O menu lateral contém Conteúdos, Laboratório e Laboratórios Práticos; a navegação entre aulas aparece nas próprias páginas. ARP tem ainda o fluxo de atividades em learning/exercises.py e Rapid Fire de 12 itens em learning/content.py; MAC tem atividades em learning/mac_exercises.py.
+Além da trilha, **/praticar/** reúne os exercícios e **/laboratorio/** abre a bancada integrada editável descrita adiante. As três entradas principais são Aprender, Praticar e Laboratório; a navegação entre aulas aparece nas próprias páginas. ARP tem ainda o fluxo de atividades em learning/exercises.py e Rapid Fire de 12 itens em learning/content.py; MAC tem atividades em learning/mac_exercises.py.
 
 **/laboratorios-praticos/** reúne quatro missões independentes para reprodução no GNS3: VLAN/trunk, roteamento entre VLANs, rotas estáticas e diagnóstico corporativo. `learning/external_labs.py` contém definições estáticas (topologia, endereços, missão, restrições, critérios, evidências, dicas e solução). As views e templates de `external_labs_*` apenas apresentam essas definições. `static/js/external-labs.js` guarda marcações de critérios/evidências por atividade em `localStorage` (`netstudy:external-lab:v1:<slug>`); dicas e solução usam elementos `details`. O aluno valida manualmente no GNS3; o NetStudy não inspeciona o ambiente, não recebe capturas, não distribui imagens e não exporta projetos GNS3. As definições ficam separadas do simulador e podem futuramente receber variações e fabricantes sem mudar o progresso local v1. Execute `python manage.py test learning.test_external_labs` e `node static/js/external-labs.test.js` para verificar esta área.
 
@@ -81,6 +81,7 @@ A bancada em templates/learning/integrated_lab.html possui catálogo por tipo (+
 - static/js/integrated-lab-model.js: catálogo, configurações, posições, conexões e adaptação do grafo para o simulador. Também exporta a API para Node.
 - O mesmo modelo define o **Scenario Schema v1** e as APIs exportScenario/importScenario. A configuração do cenário é separada do resultado dos testes. Novos cenários usam `format: "dynamic"`, com `{type, name, position, config}` por equipamento e `nextIds`; arquivos v1 antigos continuam importáveis.
 - static/js/integrated-lab-storage.js: lista, salva, carrega e exclui cenários pessoais no localStorage; valida cada item pelo modelo e prepara importação/exportação JSON, sem DOM.
+- static/js/integrated-lab-attempts.js: contrato e persistência das tentativas de exercícios, independentes de Meus cenários, do DOM e do Scenario Schema.
 - static/js/integrated-lab-presets.js: biblioteca oficial de oito cenários Schema v1, sem localStorage. As topologias são montadas pelo modelo e seus cenários permanecem imutáveis.
 - static/js/integrated-lab-exercise-engine.js: definições, geração por seed e validação de exercícios, sem DOM ou persistência. A instância mantém regras e metadados separados do Scenario Schema v1.
 - static/js/integrated-lab-simulator.js: valida a montagem e **decide o percurso**. Calcula ARP, aprendizado/encaminhamento MAC por VLAN, passagem pelo trunk, decisão local/remoto do host e rotas conectadas/estáticas por prefixo mais longo entre roteadores. Emite eventos ordenados com IDs de evento, equipamento, interface, cabo, frame e pacote e snapshots das tabelas MAC/ARP/rotas em cada evento.
@@ -170,11 +171,19 @@ Em `/troubleshooting/`, o aluno escolhe **IPv4**, **VLAN Access**, **Trunk 802.1
 
 `generateExercise` valida a rede-base pelo simulador, aplica falhas, verifica cada falha isoladamente e confirma a interrupção e as correções parciais. Candidatos incoerentes são descartados em até 64 tentativas determinísticas derivadas da seed. IPv4 varia IPs válidos, máscaras e gateways; Access varia portas de origem/destino; Trunk varia allowed lists em uma ponta ou cabo desconectado; Routing varia gateway, IP/máscara ou conexão das interfaces físicas. Rotas estáticas usa dois roteadores e varia rota ausente ou next hop incorreto na ida ou volta. Rede externa parte do preset funcional e varia rota padrão ausente, próximo salto incorreto ou retorno ausente; em Advanced, há uma falha de ida e outra de volta. Mixed sorteia as famílias anteriores de L2/L3 básico em Intermediate e pares de famílias diferentes em Advanced. O Trunk Advanced transporta os dois segmentos de uma entrega roteada no mesmo enlace, permitindo duas restrições independentes de VLAN.
 
-As instâncias públicas contêm título, enunciado, objetivo, seed, dificuldade e cenário Schema v1. Base, falhas e invariantes ficam em um `WeakMap` privado; não são exportados para a UI nem para JSON/localStorage. `inspectExercise` existe somente no módulo CommonJS para testes Node. `validateExercise` avalia novamente o estado atual e exige preservar equipamentos, identidades, cabos essenciais, endereçamento dos hosts (IPv4 e Mixed permitem corrigir dentro das redes previstas), VLANs e a função L3 quando necessária. `presentResult` neutraliza a indicação da ponta culpada do trunk no exercício; no modo operacional também retira o destaque visual de outros eventos de falha, preservando o resultado integral do simulador na bancada livre. O feedback acompanha a etapa real da interrupção; corrigir uma falha revela a restante. Não há progresso persistente nem gravação automática em Meus cenários. Os testes existentes do engine agora também percorrem todas as famílias, seeds, bases, correções completas/parciais, atalhos rejeitados e o bundle de navegador sem metadados de resposta.
+As instâncias públicas contêm título, enunciado, objetivo, seed, dificuldade e cenário Schema v1. Base, falhas e invariantes ficam em um `WeakMap` privado; não são exportados para a UI nem para JSON/localStorage. `inspectExercise` existe somente no módulo CommonJS para testes Node. `validateExercise` avalia novamente o estado atual e exige preservar equipamentos, identidades, cabos essenciais, endereçamento dos hosts (IPv4 e Mixed permitem corrigir dentro das redes previstas), VLANs e a função L3 quando necessária. `presentResult` neutraliza a indicação da ponta culpada do trunk no exercício; no modo operacional também retira o destaque visual de outros eventos de falha, preservando o resultado integral do simulador na bancada livre. O feedback acompanha a etapa real da interrupção; corrigir uma falha revela a restante. O Attempt Engine salva progresso local separado de Meus cenários, sem mudar as regras do Exercise Engine. Os testes existentes do engine também percorrem todas as famílias, seeds, bases, correções completas/parciais, atalhos rejeitados e o bundle de navegador sem metadados de resposta.
 
-No **modo operacional**, selecionado na lista de troubleshooting, a seed também determina profiles compatíveis: Cisco + Windows, Cisco + Linux, Dell + Windows (roteador Cisco quando necessário), MikroTik + hosts ou ambiente misto. Topologias sem roteador não recebem a variante MikroTik. A bancada abre o terminal como primeira aba de cada equipamento; a GUI continua disponível para editar cabos e configurações, mas não destaca o equipamento ou a interface culpada no evento de falha. O aluno recebe evidências do percurso e dos comandos, enquanto `validateExercise` continua usando somente o estado real da rede e as invariantes. `recordCommand` e `attemptAnalysis` mantêm em memória um registro isolado dos comandos da tentativa, sem gravá-lo no Scenario Schema, no localStorage ou usá-lo como critério de aprovação. Reiniciar ou gerar outro exercício inicia outro registro.
+No **modo operacional**, selecionado na lista de troubleshooting, a seed também determina profiles compatíveis: Cisco + Windows, Cisco + Linux, Dell + Windows (roteador Cisco quando necessário), MikroTik + hosts ou ambiente misto. Topologias sem roteador não recebem a variante MikroTik. A bancada abre o terminal como primeira aba de cada equipamento; a GUI continua disponível para editar cabos e configurações, mas não destaca o equipamento ou a interface culpada no evento de falha. O aluno recebe evidências do percurso e dos comandos, enquanto `validateExercise` continua usando somente o estado real da rede e as invariantes. `recordCommand` e `attemptAnalysis` mantêm o registro em memória durante a sessão; o Attempt Engine guarda uma cópia limitada dos comandos para retomar a investigação, fora do Scenario Schema. O registro não é critério de aprovação. Reiniciar limpa o registro; gerar nova variação cria outra tentativa.
 
 Resposta esperada, correção, pistas e condição de sucesso não pertencem ao Schema v1. O terminal integrado consulta o mesmo modelo da bancada, sem manter estado de rede paralelo.
+
+### Attempt Engine v1
+
+`static/js/integrated-lab-attempts.js` é independente do DOM e usa a chave `netstudy:attempts:v1` no `localStorage`, separada de `netstudy:integrated-lab:scenarios:v1`. O **Attempt Schema v1** registra `schemaVersion`, `attemptId`, `exerciseId`, `generatorVersion`, `seed`, `difficulty`, `mode`, `status` (`not_started`, `in_progress`, `completed`), `initialScenario`, `currentScenario`, `startedAt`, `updatedAt`, `completedAt`, `progress` e `checks`. `progress` contém `stepId`, respostas e evidências resumidas para etapas futuras, comandos limitados, estado limitado dos terminais e a referência ao último percurso/evento. `checks` guarda data, categoria e feedback de cada verificação, não eventos completos ou tabelas ARP/MAC. Não há gabaritos ou metadados privados no Attempt Schema ou no Scenario Schema.
+
+Ao retomar, o módulo exige `generatorVersion` compatível, chama o Exercise Engine com a mesma família/seed/dificuldade/modo, compara o cenário inicial gerado ao salvo e valida o cenário editado pelo modelo. Se a definição mudou, a tentativa é preservada e a retomada é recusada explicitamente; ela não é regenerada em silêncio. O percurso de comunicação pode ser recalculado da configuração e o índice do evento é restaurado; resultados completos não são armazenados. Configurações alteradas por GUI ou CLI, histórico resumido de comandos e feedback de verificação são salvos automaticamente. A lista oferece continuar, nova variação independente, reiniciar com a mesma seed e descartar com confirmação. Erros de leitura, corrupção ou quota são mostrados ao aluno sem apagar os dados; se uma edição não pôde ser salva, a página avisa antes de sair.
+
+Esta persistência é **local ao navegador/perfil**: limpar os dados do navegador remove as tentativas, e não há sincronização ou recuperação em outra máquina. Checkpoints e atividades ARP/MAC continuam com seus próprios fluxos; o Attempt Engine v1 cobre apenas os exercícios da bancada. A lista integradora e o orquestrador de múltiplas etapas ainda não foram implementados.
 
 **Fora do escopo desta etapa:** protocolos de roteamento dinâmico, progresso permanente, ranking, pontuação, dicas automáticas complexas, NAT estático ou para TCP/UDP, DHCP relay, TCP/UDP completos, HTTP real, acesso à Internet real, router-on-a-stick, autoplay, autenticação e persistência no Django. Terminais e laboratórios das aulas são demonstrações independentes.
 
@@ -189,6 +198,7 @@ Resposta esperada, correção, pistas e condição de sucesso não pertencem ao 
 | Comportamento/estilo de uma aula | static/js/<tema>-concept.js, static/css/<tema>-concept.css e componente reutilizado |
 | Moldura, menu e largura geral | templates/learning/base.html, static/css/netstudy.css |
 | Bancada integrada | templates/learning/integrated_lab.html, static/js/integrated-lab-*.js, static/css/integrated-lab.css |
+| Continuidade dos exercícios | static/js/integrated-lab-attempts.js, static/js/practice-attempts.js, templates/learning/troubleshooting.html |
 | Testes Django | learning/tests.py, learning/test_integrated_lab.py |
 | Testes Node do laboratório | static/js/integrated-lab-model.test.js, static/js/integrated-lab-simulator.test.js, static/js/integrated-lab-l3-routing.test.js, static/js/integrated-lab-traceroute.test.js, static/js/integrated-lab-nat.test.js, static/js/integrated-lab-services.test.js, static/js/integrated-lab-scenario.test.js, static/js/integrated-lab-storage.test.js, static/js/integrated-lab-presets.test.js, static/js/integrated-lab-exercise-engine.test.js, static/js/integrated-lab-dynamic.test.js |
 | CI | .github/workflows/ci.yml (push e pull request para main) |
@@ -258,6 +268,8 @@ node static/js/integrated-lab-scenario.test.js
 node static/js/integrated-lab-storage.test.js
 node static/js/integrated-lab-presets.test.js
 node static/js/integrated-lab-exercise-engine.test.js
+node static/js/integrated-lab-attempts.test.js
+node static/js/practice-attempts.test.js
 node static/js/integrated-lab-operational.test.js
 node static/js/integrated-lab-dynamic.test.js
 node --check static/js/integrated-lab-model.js
@@ -273,6 +285,8 @@ node --check static/js/integrated-lab.js
 node --check static/js/integrated-lab-storage.js
 node --check static/js/integrated-lab-presets.js
 node --check static/js/integrated-lab-exercise-engine.js
+node --check static/js/integrated-lab-attempts.js
+node --check static/js/practice-attempts.js
 git diff --check
 ~~~
 

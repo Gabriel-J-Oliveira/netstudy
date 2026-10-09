@@ -40,6 +40,20 @@ class JourneyNavigationTests(TestCase):
         for route in ("begin", "rapid_fire_intro", "mac_activities", "external_labs_catalog"):
             self.assertContains(response, reverse("learning:" + route))
 
+    def test_attempt_continuity_is_available_without_changing_existing_routes(self):
+        practice = self.client.get(reverse("learning:practice"))
+        self.assertContains(practice, 'data-practice-attempts')
+        self.assertContains(practice, 'data-practice-status', count=9)
+        self.assertContains(practice, 'data-practice-continue', count=9)
+        self.assertContains(practice, 'data-practice-new', count=9)
+        self.assertContains(practice, 'data-practice-restart', count=9)
+        self.assertContains(practice, 'data-practice-discard', count=9)
+        self.assertContains(practice, 'js/practice-attempts.js')
+        lab = self.client.get(reverse("learning:integrated_lab"))
+        self.assertContains(lab, 'data-lab-attempt-state')
+        self.assertContains(lab, 'js/integrated-lab-attempts.js')
+        self.assertContains(lab, 'data-lab-return-practice')
+
     def test_context_keeps_seed_mode_and_difficulty_without_external_return_url(self):
         response = self.client.get(reverse("learning:integrated_lab"), {
             "exercise": "nat-pat", "seed": "42", "mode": "operational",

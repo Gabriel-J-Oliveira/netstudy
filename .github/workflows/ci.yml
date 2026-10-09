@@ -48,6 +48,8 @@ jobs:
           node static/js/integrated-lab-storage.test.js
           node static/js/integrated-lab-presets.test.js
           node static/js/integrated-lab-exercise-engine.test.js
+          node static/js/integrated-lab-attempts.test.js
+          node static/js/practice-attempts.test.js
           node static/js/integrated-lab-operational.test.js
           node static/js/integrated-lab-dynamic.test.js
       - name: JavaScript syntax
@@ -66,6 +68,8 @@ jobs:
           node --check static/js/integrated-lab-storage.js
           node --check static/js/integrated-lab-presets.js
           node --check static/js/integrated-lab-exercise-engine.js
+          node --check static/js/integrated-lab-attempts.js
+          node --check static/js/practice-attempts.js
       - name: Whitespace in changes
         shell: bash
         run: |

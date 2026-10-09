@@ -8,6 +8,7 @@
   const servicesEngine = window.NetStudyLabServices;
   if (!root || !simulator || !model) return;
   const storageApi = window.NetStudyLabStorage;
+  const attemptsApi = window.NetStudyLabAttempts;
   const presets = window.NetStudyLabPresets?.PRESETS || [];
   const exerciseEngine = window.NetStudyLabExerciseEngine;
 
@@ -52,12 +53,58 @@
   const exercisePanel = root.querySelector("[data-lab-exercise]");
   const exerciseFeedback = root.querySelector("[data-lab-exercise-feedback]");
   const checkSolution = root.querySelector("[data-lab-check-solution]");
-  const state = {bench: model.createEmpty(), mode: "idle", targetId: null, pendingInterface: null, activeDevice: null, hoveredDevice: null, cursor: {x: .5, y: .5}, result: null, index: -1, running: false, exercise: null};
+  const state = {bench: model.createEmpty(), mode: "idle", targetId: null, pendingInterface: null, activeDevice: null, hoveredDevice: null, cursor: {x: .5, y: .5}, result: null, index: -1, running: false, exercise: null, attempt: null};
   let pointerDrag = null, dragFrame = 0, suppressClick = false;
   let scenarios = null;
   try { scenarios = storageApi.create(window.localStorage); }
   catch (error) { scenarioFeedback.textContent = `Armazenamento local indisponível: ${error.message}`; scenarioFeedback.dataset.error = "true"; }
+  let attempts = null, attemptDirty = false;
+  try { attempts = attemptsApi.create(window.localStorage); attempts.list(); }
+  catch (error) { root.querySelector("[data-lab-attempt-state]").textContent = `Continuidade indisponível: ${error.message}`; }
   const text = (selector, value) => { root.querySelector(selector).textContent = value; };
+  function attemptMessage(message, error = false) {
+    const element = root.querySelector("[data-lab-attempt-state]");
+    element.textContent = message; element.dataset.error = String(error);
+  }
+  function snapshotProgress() {
+    const progress = structuredClone(state.attempt.progress);
+    if (state.exercise.instance.mode === "operational")
+      progress.commands = exerciseEngine.attemptAnalysis(state.exercise.instance).commands.slice(-100);
+    progress.terminals = {};
+    for (const [id, session] of terminalSessions) {
+      if (!state.bench.devices[id]) continue;
+      const synced = terminalEngine.syncSession(session, state.bench).session;
+      progress.terminals[id] = {...synced, history: synced.history.slice(-50),
+        historyIndex: Math.min(synced.historyIndex, 50),
+        output: synced.output.slice(-40).map(row => ({kind: row.kind, text: row.text.slice(0, 2000)}))};
+    }
+    return progress;
+  }
+  function persistAttempt() {
+    if (!state.attempt || !attempts) return true;
+    try {
+      const metadata = {name: state.exercise.instance.scenario.name};
+      if (sourceSelect.value && destinationSelect.value && sourceSelect.value !== destinationSelect.value &&
+          state.bench.devices[sourceSelect.value]?.position && state.bench.devices[destinationSelect.value]?.position) {
+        metadata.sourceId = sourceSelect.value; metadata.destinationId = destinationSelect.value;
+      }
+      const current = model.exportScenario(state.bench, metadata);
+      state.attempt = attempts.update(state.attempt.attemptId, current, {progress: snapshotProgress()});
+      if (state.exercise.completed && state.attempt.status !== "completed") {
+        state.exercise.completed = false; checkSolution.disabled = false;
+        exerciseFeedback.dataset.state = "";
+        exerciseFeedback.textContent = "Bancada alterada após a conclusão. Teste a solução novamente.";
+      }
+      attemptDirty = false;
+      attemptMessage(state.attempt.status === "completed" ? "Tentativa concluída e salva neste navegador." : "Tentativa salva automaticamente neste navegador.");
+      return true;
+    } catch (error) {
+      attemptDirty = true;
+      attemptMessage(`Alterações ainda não salvas: ${error.message} Não feche esta página antes de liberar o armazenamento.`, true);
+      return false;
+    }
+  }
+  window.addEventListener("beforeunload", event => { if (attemptDirty) { event.preventDefault(); event.returnValue = ""; } });
   const label = id => state.bench.devices[id]?.name || id;
   const interfaceName = id => model.interfaceName(state.bench, id);
   function eventText(message, event) {
@@ -96,12 +143,14 @@
         checkSolution.disabled = false;
         exerciseFeedback.textContent = "Bancada alterada. Teste a comunicação e depois teste sua solução.";
         exerciseFeedback.dataset.state = "";
+        if (state.attempt) { state.attempt.progress.lastRun = null; state.attempt.progress.stepId = null; }
       }
     }
     renderPair();
     renderBoard();
     renderConfig();
     announce(message);
+    persistAttempt();
     return true;
   }
   function card(id) {
@@ -435,26 +484,68 @@
       list.append(row);
     }
   }
-  function startExercise(exerciseId, seed, difficulty, mode = "bench") {
-    const instance = exerciseEngine.generateExercise(exerciseId, seed, {difficulty, mode});
-    const restored = model.importScenario(instance.scenario);
-    state.exercise = {instance, completed: false};
+  function startExercise(exerciseId, seed, difficulty, mode = "bench", attemptId = null) {
+    let loaded = null;
+    if (attemptId) {
+      if (!attempts) throw new Error("Armazenamento de tentativas indisponível; não é possível recuperar esta tentativa.");
+      loaded = attempts.resume(attemptId);
+    }
+    const instance = loaded?.instance || exerciseEngine.generateExercise(exerciseId, seed, {difficulty, mode});
+    const restored = loaded ? model.importScenario(loaded.attempt.currentScenario) : model.importScenario(instance.scenario);
+    state.attempt = null;
+    if (loaded) {
+      try { state.attempt = attempts.begin(attemptId); }
+      catch (error) { state.attempt = loaded.attempt; attemptDirty = true;
+        attemptMessage(`Tentativa recuperada somente para leitura: ${error.message}`, true); }
+    }
+    if (!loaded && attempts) {
+      try { state.attempt = attempts.begin(attempts.createAttempt(instance.exerciseId, instance.seed, instance.difficulty, instance.mode || "bench").attemptId); }
+      catch (error) { attemptMessage(`Exercício aberto sem continuidade: ${error.message}`, true); }
+    }
+    state.exercise = {instance, completed: state.attempt?.status === "completed"};
     exercisePanel.hidden = false;
     root.querySelector(".lab-presets").hidden = true;
     root.querySelector(".lab-scenarios").hidden = true;
     text("[data-lab-exercise-title]", instance.title);
     const environments = {"cisco-windows": "Cisco + Windows", "cisco-linux": "Cisco + Linux", "dell-windows": "Dell + Windows", "mikrotik-hosts": "MikroTik + hosts", mixed: "Ambiente misto"};
-    text("[data-lab-exercise-meta]", `${difficulty === "advanced" ? "Advanced" : "Intermediate"} · ${instance.mode === "operational" ? `Operacional · ${environments[instance.environment]} · ` : ""}seed ${instance.seed}`);
+    text("[data-lab-exercise-meta]", `${instance.difficulty === "advanced" ? "Advanced" : "Intermediate"} · ${instance.mode === "operational" ? `Operacional · ${environments[instance.environment]} · ` : ""}seed ${instance.seed}`);
     text("[data-lab-exercise-prompt]", instance.prompt);
     text("[data-lab-exercise-objective]", instance.objective.text);
-    checkSolution.disabled = false;
+    checkSolution.disabled = Boolean(state.exercise.completed);
     root.querySelector("[data-lab-reset]").textContent = "Reiniciar exercício";
     restoreBench(restored, "Exercício iniciado. Investigue o percurso na bancada.");
+    if (state.attempt) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("attempt", state.attempt.attemptId);
+      url.searchParams.set("exercise", instance.exerciseId);
+      url.searchParams.set("seed", instance.seed);
+      url.searchParams.set("difficulty", instance.difficulty);
+      url.searchParams.set("mode", instance.mode || "bench");
+      window.history.replaceState(null, "", url);
+      root.querySelector("[data-lab-return-practice]").href = `${root.querySelector("[data-lab-return-practice]").href.split("?")[0]}?attempt=${encodeURIComponent(state.attempt.attemptId)}`;
+      for (const entry of state.attempt.progress.commands) exerciseEngine.recordCommand(instance, entry);
+      for (const [id, session] of Object.entries(state.attempt.progress.terminals)) terminalSessions.set(id, session);
+      if (state.attempt.progress.lastRun) {
+        const prior = state.attempt.progress.lastRun;
+        try {
+          if (prior.kind === "verification") state.result = exerciseEngine.validateExercise(instance, state.bench).result;
+          else {
+            const adapted = model.adapt(state.bench, prior.sourceId, prior.destinationId);
+            if (!adapted.error) state.result = exerciseEngine.presentResult(instance, simulator.simulate(adapted.input));
+          }
+          if (state.result) { state.index = Math.min(prior.index, state.result.events.length - 1); renderEvent(); }
+        } catch (error) { attemptMessage(`Percurso anterior não pôde ser reconstituído: ${error.message}`, true); }
+      }
+      renderConfig();
+    }
     renderCommandAnalysis();
-    exerciseFeedback.dataset.state = "";
-    exerciseFeedback.textContent = instance.mode === "operational"
+    const lastCheck = state.attempt?.status === "completed" || state.attempt?.progress.lastRun?.kind === "verification"
+      ? state.attempt.checks.at(-1) : null;
+    exerciseFeedback.dataset.state = lastCheck ? lastCheck.complete ? "success" : "error" : "";
+    exerciseFeedback.textContent = lastCheck ? `${lastCheck.feedback}${lastCheck.complete ? " Exercício concluído." : ""}` : instance.mode === "operational"
       ? "Abra o terminal de um equipamento para investigar. Use o teste para observar o percurso; cabos podem ser corrigidos na bancada. Testar solução avalia o estado final."
       : "Use Testar comunicação para observar o percurso. Ajuste a bancada e depois selecione Testar solução.";
+    if (state.attempt && !attemptDirty) attemptMessage(state.attempt.status === "completed" ? "Tentativa concluída e salva neste navegador." : "Tentativa em andamento; alterações são salvas automaticamente.");
   }
   function renderConnections() {
     const list = root.querySelector("[data-lab-connections]");
@@ -642,8 +733,13 @@
     const executed = terminalEngine.execute(terminalSessions.get(id), command, {...state.bench, observation: state.result?.events[state.index] || null});
     const result = state.exercise ? exerciseEngine.presentTerminalResult(state.exercise.instance, executed) : executed;
     if (state.exercise?.instance.mode === "operational" && command.trim()) {
-      exerciseEngine.recordCommand(state.exercise.instance, {deviceId: id, profile: state.bench.devices[id].profile,
-        command, errorCode: result.error?.code || "", changedState: Boolean(result.bench)});
+      const entry = {deviceId: id, profile: state.bench.devices[id].profile,
+        command, errorCode: result.error?.code || "", changedState: Boolean(result.bench)};
+      exerciseEngine.recordCommand(state.exercise.instance, entry);
+      if (state.attempt && attempts) {
+        try { state.attempt = attempts.recordCommand(state.attempt.attemptId, entry); }
+        catch (error) { attemptDirty = true; attemptMessage(`Comando não salvo: ${error.message}`, true); }
+      }
       renderCommandAnalysis();
     }
     terminalSessions.set(id, result.session); terminalDrafts.set(id, ""); terminalInput.value = "";
@@ -659,12 +755,14 @@
     }
     renderTerminal(id);
     terminalFeedback.textContent = result.cleared ? "Saída limpa. Histórico preservado." : result.output.join(" ") || result.session.prompt;
+    persistAttempt();
     if (result.closed) root.querySelector("[data-lab-terminal-restart]").focus(); else terminalInput.focus();
   });
   root.querySelector("[data-lab-terminal-restart]").addEventListener("click", () => {
     const id = state.activeDevice; if (!id) return;
     terminalSessions.set(id, terminalEngine.createSession(state.bench.devices[id])); terminalDrafts.set(id, "");
     terminalInput.value = ""; renderTerminal(id); terminalFeedback.textContent = "Nova sessão iniciada."; terminalInput.focus();
+    persistAttempt();
   });
   catalog.forEach(button => button.addEventListener("click", () => {
     const type = button.dataset.labCatalog;
@@ -832,6 +930,7 @@
   });
   [sourceSelect, destinationSelect].forEach(select => select.addEventListener("change", () => {
     invalidate("Par de PCs alterado. Execute um novo teste.");
+    if (state.attempt) { state.attempt.progress.lastRun = null; state.attempt.progress.stepId = null; persistAttempt(); }
     text("[data-lab-arp-title]", "Associações ARP neste evento");
     announce("Origem ou destino alterado. Execute um novo teste.");
   }));
@@ -841,6 +940,13 @@
     state.result=state.exercise?exerciseEngine.presentResult(state.exercise.instance,result):result;
     state.index=state.result.events.length?0:-1;renderEvent();
     status.textContent=`${description}: ${result.message}`;
+    if (state.attempt) {
+      state.attempt.progress.lastRun = null;
+      state.attempt.progress.stepId = `service:${description}`;
+      state.attempt.progress.evidence = [...state.attempt.progress.evidence,
+        {type: "service", summary: `${description}: ${result.message}`.slice(0, 500)}].slice(-40);
+      persistAttempt();
+    }
   }
   root.querySelector("[data-lab-dhcp-renew]").addEventListener("click",()=>showServiceResult(servicesEngine.renew(state.bench,sourceSelect.value),"DHCP"));
   root.querySelector("[data-lab-dns-query]").addEventListener("click",()=>showServiceResult(servicesEngine.resolve(state.bench,sourceSelect.value,root.querySelector("[data-lab-service-target]").value),"DNS"));
@@ -858,11 +964,24 @@
       if (state.exercise) state.result = exerciseEngine.presentResult(state.exercise.instance, state.result);
       if (state.result.status === "invalid") { status.textContent = state.result.message; announce(state.result.message); return; }
       state.index = 0; renderEvent();
+      if (state.attempt) {
+        state.attempt.progress.lastRun = {kind: "communication", index: 0, sourceId: sourceSelect.value, destinationId: destinationSelect.value};
+        state.attempt.progress.stepId = "event:0";
+        state.attempt.progress.evidence = [...state.attempt.progress.evidence,
+          {type: "communication", summary: state.result.message || state.result.status}].slice(-40);
+        persistAttempt();
+      }
       announce(state.result.status === "interrupted" ? state.result.message : "Teste pronto. Use Próximo para acompanhar cada evento.");
     } finally { state.running = false; }
   });
-  root.querySelector("[data-lab-prev]").addEventListener("click", () => { if (state.index > 0) { state.index--; renderEvent(); } });
-  root.querySelector("[data-lab-next]").addEventListener("click", () => { if (state.result && state.index < state.result.events.length - 1) { state.index++; renderEvent(); } });
+  function persistEventPosition() {
+    if (!state.attempt?.progress.lastRun) return;
+    state.attempt.progress.lastRun.index = state.index;
+    state.attempt.progress.stepId = `event:${state.index}`;
+    persistAttempt();
+  }
+  root.querySelector("[data-lab-prev]").addEventListener("click", () => { if (state.index > 0) { state.index--; renderEvent(); persistEventPosition(); } });
+  root.querySelector("[data-lab-next]").addEventListener("click", () => { if (state.result && state.index < state.result.events.length - 1) { state.index++; renderEvent(); persistEventPosition(); } });
   presetList.addEventListener("click", event => {
     const button = event.target.closest("[data-lab-preset]");
     if (!button) return;
@@ -954,16 +1073,29 @@
     if (!state.exercise || state.running) return;
     state.running = true;
     try {
-      const verdict = exerciseEngine.validateExercise(state.exercise.instance, state.bench);
+      const saved = persistAttempt();
+      let checked = null;
+      if (saved && state.attempt && attempts) {
+        try { checked = attempts.verify(state.attempt.attemptId); }
+        catch (error) { attemptDirty = true; attemptMessage(`Verificação não salva: ${error.message}`, true); }
+      }
+      const verdict = checked ? checked.verdict : exerciseEngine.validateExercise(state.exercise.instance, state.bench);
+      if (checked) state.attempt = checked.attempt;
       state.result = verdict.result;
       state.index = verdict.result.events.length ? verdict.result.events.length - 1 : -1;
+      if (checked && state.index >= 0) {
+        state.attempt.progress.lastRun = {kind: "verification", index: state.index,
+          sourceId: state.exercise.instance.objective.sourceId, destinationId: state.exercise.instance.objective.destinationId};
+        state.attempt.progress.stepId = `event:${state.index}`;
+        persistAttempt();
+      }
       renderEvent();
       if (state.index < 0) status.textContent = verdict.feedback;
-      state.exercise.completed = verdict.complete;
-      checkSolution.disabled = verdict.complete;
+      state.exercise.completed = verdict.complete && (!state.attempt || Boolean(checked));
+      checkSolution.disabled = state.exercise.completed;
       exerciseFeedback.dataset.state = verdict.complete ? "success" : "error";
       exerciseFeedback.textContent = verdict.complete
-        ? `${verdict.feedback} Exercício concluído. Você pode gerar outro exercício.` : verdict.feedback;
+        ? `${verdict.feedback} ${state.exercise.completed ? "Exercício concluído. Você pode gerar outro exercício." : "Solução correta, mas a conclusão não foi salva; libere o armazenamento e verifique novamente."}` : verdict.feedback;
     } catch (error) {
       exerciseFeedback.dataset.state = "error";
       exerciseFeedback.textContent = `Não foi possível validar a bancada: ${error.message}`;
@@ -977,13 +1109,18 @@
     const url = new URL(window.location.href);
     url.searchParams.set("seed", fresh);
     window.history.replaceState(null, "", url);
-    try { startExercise(exerciseId, fresh, difficulty, mode); }
+    try {
+      const next = state.attempt && attempts ? attempts.newVariation(state.attempt.attemptId, fresh) : null;
+      startExercise(exerciseId, fresh, difficulty, mode, next?.attemptId || null);
+    }
     catch (error) { exerciseFeedback.dataset.state = "error"; exerciseFeedback.textContent = error.message; }
   });
   root.querySelector("[data-lab-reset]").addEventListener("click", () => {
     if (state.exercise) {
       const {exerciseId, seed, difficulty, mode} = state.exercise.instance;
-      startExercise(exerciseId, seed, difficulty, mode);
+      const id = state.attempt?.attemptId;
+      if (id && attempts) attempts.restart(id);
+      startExercise(exerciseId, seed, difficulty, mode, id || null);
       exerciseFeedback.textContent = "Exercício reiniciado com a mesma seed. Investigue novamente.";
       return;
     }
@@ -998,7 +1135,11 @@
   window.addEventListener("resize", () => { drawWires(state.result?.events[state.index] || null); renderConfig(); });
   renderPresets(); renderPair(); renderConfig(); renderEvent(); refreshScenarios("");
   const parameters = new URLSearchParams(window.location.search);
-  if (parameters.has("exercise")) {
+  if (parameters.has("attempt")) {
+    try { startExercise(null, null, null, "bench", parameters.get("attempt")); }
+    catch (error) { exercisePanel.hidden = false; exerciseFeedback.dataset.state = "error";
+      exerciseFeedback.textContent = `Tentativa preservada, mas não recuperada: ${error.message}`; }
+  } else if (parameters.has("exercise")) {
     try {
       const seed = parameters.get("seed") || nextExerciseSeed();
       if (!parameters.has("seed")) {

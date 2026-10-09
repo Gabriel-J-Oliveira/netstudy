@@ -34,5 +34,21 @@ Sequencia opcional: Aprender -> Checkpoint -> Praticar -> Laboratorio contextual
 A lista integradora futura tem somente uma indicacao de indisponibilidade.
 Nenhum gerador, avaliador, motor de rede, conteudo ou armazenamento de cenarios
 foi alterado. O IP local em netstudy/settings.py e dados locais nao fazem parte
-da publicacao. A continuidade de exercicios preserva os parametros da montagem,
-nao promete restaurar edicoes manuais nao salvas; cenarios seguem seu fluxo atual.
+da publicacao; cenarios seguem seu fluxo atual.
+
+## Atualizacao: Attempt Engine v1
+
+- A continuidade dos exercicios da bancada agora usa Attempt Schema v1 em
+  `netstudy:attempts:v1`, separado de Scenario Schema e Meus cenarios.
+- `/praticar/` mostra estado local por familia e permite iniciar, continuar,
+  gerar outra seed, reiniciar e descartar uma tentativa. `/laboratorio/` preserva
+  o attemptId ao retornar a lista e salva automaticamente alteracoes GUI/CLI.
+- A retomada reconstroi o problema pelo Exercise Engine, exige generatorVersion
+  compativel e confere o cenario inicial antes de restaurar a configuracao atual.
+  Feedbacks e verificacoes resumidas persistem; gabaritos, eventos completos e
+  tabelas transitorias nao sao gravados. O indice de um percurso pode ser
+  reconstituido do simulador sem armazenar seus eventos.
+- A persistencia e apenas no navegador atual, sem login, servidor ou sincronizacao.
+  Dados corrompidos/incompativeis nao sao sobrescritos automaticamente. Os
+  checkpoints individuais, GNS3 e a lista integradora futura continuam fora
+  deste contrato v1.

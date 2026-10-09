@@ -2,7 +2,7 @@
 {% block title %}Praticar · NetStudy{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/integrated-lab.css' %}?v=dynamic-2">{% endblock %}
 {% block content %}
-<main class="troubleshooting-page">
+<main class="troubleshooting-page" data-practice-attempts data-lab-url="{% url 'learning:integrated_lab' %}">
   <span class="troubleshooting-kicker">LABORATÓRIO INTEGRADO · EXERCÍCIOS</span>
   <h1>Praticar</h1>
   <nav class="journey-links" aria-label="Modalidades de prática">
@@ -14,11 +14,13 @@
   <h2>Troubleshooting na bancada</h2>
   <p>Investigue uma rede com conectividade interrompida. Teste o percurso, ajuste a bancada e valide o estado final.</p>
   <p>Intermediate apresenta uma falha; Advanced apresenta duas falhas independentes. Cada seed reproduz a mesma montagem. No modo operacional, os equipamentos usam terminais de fabricantes e hosts; cabos continuam editáveis na bancada.</p>
+  <p data-practice-storage-status role="status" aria-live="polite">As tentativas desta bancada são salvas automaticamente neste navegador.</p>
   {% for family in exercise_families %}
-  <section aria-labelledby="{{ family.id }}-exercise-title">
+  <section aria-labelledby="{{ family.id }}-exercise-title" data-practice-family="{{ family.id }}">
     <h2 id="{{ family.id }}-exercise-title">{{ family.title }}</h2>
     <p>{{ family.description }}</p>
-    <form method="get" action="{% url 'learning:integrated_lab' %}">
+    <p class="practice-attempt-status">Estado: <strong data-practice-status>Não iniciado</strong></p>
+    <form method="get" action="{% url 'learning:integrated_lab' %}" data-practice-start>
       <input type="hidden" name="exercise" value="{{ family.id }}">
       <label for="{{ family.id }}-difficulty">Dificuldade</label>
       <select id="{{ family.id }}-difficulty" name="difficulty"><option value="intermediate">Intermediate · 1 falha</option><option value="advanced">Advanced · 2 falhas</option></select>
@@ -26,9 +28,17 @@
       <select id="{{ family.id }}-mode" name="mode"><option value="bench">Bancada</option><option value="operational">Operacional · terminais</option></select>
       <button type="submit">Iniciar exercício</button>
     </form>
+    <div class="practice-attempt-actions" data-practice-actions hidden>
+      <a data-practice-continue href="{% url 'learning:integrated_lab' %}">Continuar tentativa</a>
+      <button type="button" data-practice-new>Nova variação</button>
+      <button type="button" data-practice-restart>Reiniciar</button>
+      <button type="button" data-practice-discard>Descartar tentativa</button>
+    </div>
+    <details data-practice-other-attempts hidden><summary>Outras tentativas desta família</summary></details>
   </section>
   {% endfor %}
   <p><a href="{% url 'learning:integrated_lab' %}">Abrir bancada livre</a></p>
   <section aria-labelledby="integrator-title"><h2 id="integrator-title">Lista integradora</h2><p>Em preparação. Nenhuma atividade integradora disponível nesta etapa.</p></section>
 </main>
 {% endblock %}
+{% block scripts %}<script src="{% static 'js/integrated-lab-simulator.js' %}"></script><script src="{% static 'js/integrated-lab-profiles.js' %}"></script><script src="{% static 'js/integrated-lab-model.js' %}"></script><script src="{% static 'js/integrated-lab-services.js' %}"></script><script src="{% static 'js/integrated-lab-presets.js' %}"></script><script src="{% static 'js/integrated-lab-exercise-engine.js' %}"></script><script src="{% static 'js/integrated-lab-attempts.js' %}"></script><script src="{% static 'js/practice-attempts.js' %}"></script>{% endblock %}

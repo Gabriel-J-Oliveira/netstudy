@@ -1,8 +1,25 @@
+from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 
 
 class IntegratedLabPageTests(TestCase):
+    def test_guided_presentation_keeps_free_lab_and_existing_controls(self):
+        response = self.client.get(reverse("learning:integrated_lab"))
+        self.assertContains(response, 'data-lab-context="free"')
+        self.assertContains(response, 'data-lab-exercise-brief')
+        self.assertContains(response, 'data-lab-exercise-more')
+        self.assertContains(response, 'data-lab-evidence open')
+        for marker in ('data-lab-catalog="pc"', 'data-lab-catalog="switch"',
+                       'data-lab-catalog="router"', 'data-lab-test', 'data-lab-next',
+                       'data-lab-terminal-panel', 'data-lab-view-reset'):
+            self.assertContains(response, marker)
+        script = (settings.BASE_DIR / "static/js/integrated-lab.js").read_text(encoding="utf-8")
+        self.assertIn('root.dataset.labContext = "guided"', script)
+        self.assertIn('renderExercisePresentation(true)', script)
+        self.assertIn('if (wasCompleted) renderExercisePresentation(false, true)', script)
+        self.assertIn('link.setAttribute("aria-current", "page")', script)
+
     def test_lab_has_own_page_and_existing_home_remains(self):
         self.assertEqual(self.client.get(reverse("learning:home")).status_code, 200)
         response = self.client.get(reverse("learning:integrated_lab"))
@@ -24,10 +41,18 @@ class IntegratedLabPageTests(TestCase):
         self.assertLess(html.index('js/integrated-lab-switch-cli.js'), html.index('js/integrated-lab-cisco.js'))
         self.assertLess(html.index('js/integrated-lab-dell.js'), html.index('js/integrated-lab-terminal.js'))
         self.assertContains(response, 'data-lab-canvas')
+        self.assertContains(response, 'data-lab-world')
+        self.assertContains(response, 'data-lab-view-reset')
+        self.assertContains(response, 'botão do meio')
         self.assertContains(response, 'data-lab-wires')
         self.assertContains(response, 'data-lab-connections')
         self.assertContains(response, 'data-lab-popover')
         self.assertContains(response, 'data-lab-popover-close')
+        self.assertLess(html.index('data-lab-world'), html.index('data-lab-popover'))
+        self.assertLess(html.index('data-lab-popover'), html.index('class="lab-canvas-help"'))
+        view_script = (settings.BASE_DIR / "static/js/integrated-lab.js").read_text(encoding="utf-8")
+        self.assertIn('zoomLimits = Object.freeze({min: .85, max: 1.6})', view_script)
+        self.assertIn('event.target.closest("[data-lab-popover]")', view_script)
         self.assertContains(response, 'data-lab-cable-count')
         self.assertContains(response, 'data-lab-router-inspector')
         self.assertContains(response, 'Frame de entrada')

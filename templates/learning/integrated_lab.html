@@ -1,16 +1,16 @@
 {% extends "learning/base.html" %}{% load static %}
 {% block title %}Laboratório integrado · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/integrated-lab.css' %}?v=nat-1">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/integrated-lab.css' %}?v=viewport-2">{% endblock %}
 {% block content %}
-<main class="integrated-lab" data-integrated-lab>
+<main class="integrated-lab" data-integrated-lab data-lab-context="free" data-lab-completed="false">
   <header class="lab-intro"><span>LABORATÓRIO INTEGRADO · BANCADA EDITÁVEL</span><h1>Monte, conecte e teste sua rede</h1><p>Adicione PCs, switches e roteadores à bancada, conecte interfaces e teste o percurso. <a href="{% url 'learning:troubleshooting' %}">Ver exercícios de troubleshooting</a>.</p></header>
   <section class="lab-exercise" data-lab-exercise hidden aria-labelledby="lab-exercise-title">
     <div class="lab-exercise-heading"><div><span>EXERCÍCIO EM ANDAMENTO</span><h2 id="lab-exercise-title" data-lab-exercise-title>Diagnóstico de conectividade IPv4</h2></div><p data-lab-exercise-meta></p></div>
-    <p data-lab-exercise-prompt></p><p><strong>Objetivo:</strong> <span data-lab-exercise-objective></span></p>
-    <div class="lab-exercise-actions"><button type="button" data-lab-check-solution>Testar solução</button><button type="button" data-lab-new-exercise>Gerar novo exercício</button><a href="{% url 'learning:practice' %}" data-lab-return-practice>Voltar a Praticar</a><a href="{% url 'learning:external_labs_catalog' %}">Aprofundar no GNS3</a></div>
+    <details class="lab-exercise-brief" data-lab-exercise-brief open><summary>Problema e objetivo</summary><p data-lab-exercise-prompt></p><p><strong>Objetivo:</strong> <span data-lab-exercise-objective></span></p></details>
+    <div class="lab-exercise-actions"><button type="button" data-lab-check-solution>Testar solução</button><a href="{% url 'learning:practice' %}" data-lab-return-practice>Voltar a Praticar</a></div>
     <p class="lab-attempt-state" data-lab-attempt-state role="status" aria-live="polite">Preparando continuidade da tentativa…</p>
     <p class="lab-exercise-feedback" data-lab-exercise-feedback role="status" aria-live="polite">Use a bancada para investigar a falha.</p>
-    <details class="lab-command-analysis" data-lab-command-analysis hidden><summary>Comandos executados nesta tentativa: <span data-lab-command-count>0</span></summary><ol data-lab-command-log></ol><p>Este registro ajuda a revisar a investigação; a aprovação depende apenas do estado final da rede.</p></details>
+    <details class="lab-exercise-more" data-lab-exercise-more><summary>Outras opções e detalhes</summary><div class="lab-exercise-more-actions"><button type="button" data-lab-new-exercise>Gerar novo exercício</button><a href="{% url 'learning:external_labs_catalog' %}">Aprofundar no GNS3</a></div><details class="lab-command-analysis" data-lab-command-analysis hidden><summary>Comandos executados nesta tentativa: <span data-lab-command-count>0</span></summary><ol data-lab-command-log></ol><p>Este registro ajuda a revisar a investigação; a aprovação depende apenas do estado final da rede.</p></details></details>
   </section>
   <section class="lab-presets" aria-labelledby="lab-presets-title">
     <h2 id="lab-presets-title">Cenários do NetStudy</h2>
@@ -28,7 +28,7 @@
   <section class="lab-board" aria-labelledby="lab-board-title">
     <div class="lab-board-heading">
       <div class="lab-board-copy">
-        <span>ÁREA DE TRABALHO</span><h2 id="lab-board-title">Sua bancada de rede</h2><p>Adicione um equipamento. Arraste o card para mover; clique para configurar, inclusive um PC como servidor DHCP/DNS; clique nas portas para conectar ou desconectar.</p>
+        <span>ÁREA DE TRABALHO</span><h2 id="lab-board-title">Sua bancada de rede</h2><p class="lab-board-free-copy">Adicione um equipamento. Arraste o card para mover; clique para configurar, inclusive um PC como servidor DHCP/DNS; clique nas portas para conectar ou desconectar.</p><p class="lab-board-guided-copy">Clique nos equipamentos para investigar ou configurar; use as portas para corrigir conexões.</p>
         <div class="lab-palette" aria-label="Catálogo de equipamentos funcionais">
           <div class="lab-catalog-item"><label>Profile do PC<select data-lab-catalog-profile="pc"><option value="generic">Genérico</option></select></label><button type="button" data-lab-catalog="pc">+ PC</button></div>
           <div class="lab-catalog-item"><label>Profile do Switch<select data-lab-catalog-profile="switch"><option value="generic">Genérico</option></select></label><button type="button" data-lab-catalog="switch">+ Switch</button></div>
@@ -52,35 +52,39 @@
         </section>
       </div>
     </div>
-    <div class="lab-canvas" data-lab-canvas tabindex="0" role="group" aria-label="Bancada de rede. Arraste equipamentos para mover. O botão Mover permite reposicionar com teclado.">
-      <svg class="lab-wires" data-lab-wires aria-hidden="true"></svg>
-      <div class="lab-canvas-hint" data-lab-canvas-hint>Adicione um equipamento no catálogo para começar.</div>
-      <div data-lab-nodes></div>
+    <div class="lab-canvas" data-lab-canvas tabindex="0" role="group" aria-label="Bancada de rede. Use a roda do mouse para zoom e arraste com o botão do meio para deslocar. Com foco na bancada, use mais ou menos para zoom e Shift com setas para deslocar. Arraste equipamentos para mover; o botão Mover permite reposicionar com teclado.">
+      <button type="button" class="lab-view-reset" data-lab-view-reset>Recentrar vista</button>
+      <div class="lab-world" data-lab-world>
+        <svg class="lab-wires" data-lab-wires aria-hidden="true"></svg>
+        <div class="lab-canvas-hint" data-lab-canvas-hint>Adicione um equipamento no catálogo para começar.</div>
+        <div data-lab-nodes></div>
+        <section class="lab-device-popover" data-lab-popover hidden aria-label="Detalhes do equipamento">
+          <div class="lab-popover-heading"><h3 data-lab-popover-title></h3><button type="button" data-lab-popover-close aria-label="Fechar detalhes do equipamento">×</button></div>
+          <div class="lab-popover-tabs" data-lab-popover-tabs role="tablist" aria-label="Equipamento" hidden>
+            <button type="button" id="lab-config-tab" role="tab" aria-controls="lab-config-panel" aria-selected="true" data-lab-device-tab="config">Configuração</button>
+            <button type="button" id="lab-terminal-tab" role="tab" aria-controls="lab-terminal-panel" aria-selected="false" tabindex="-1" data-lab-device-tab="terminal">Terminal</button>
+          </div>
+          <div id="lab-config-panel" data-lab-popover-content role="tabpanel" aria-labelledby="lab-config-tab"></div>
+          <div id="lab-terminal-panel" data-lab-terminal-panel role="tabpanel" aria-labelledby="lab-terminal-tab" hidden>
+            <p class="lab-terminal-note" data-lab-terminal-note>Terminal genérico v1. Use help para consultar os comandos disponíveis.</p>
+            <pre class="lab-terminal-output" data-lab-terminal-output tabindex="0" aria-label="Saída do terminal"></pre>
+            <form class="lab-terminal-form" data-lab-terminal-form>
+              <span data-lab-terminal-prompt aria-hidden="true"></span><input data-lab-terminal-input aria-label="Comando do terminal" maxlength="512" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="submit">Executar</button>
+            </form>
+            <button type="button" data-lab-terminal-restart hidden>Iniciar nova sessão</button>
+            <p class="lab-terminal-feedback" data-lab-terminal-feedback role="status" aria-live="polite"></p>
+          </div>
+        </section>
+      </div>
+      <p class="lab-canvas-help" aria-hidden="true">Roda: zoom (85%–160%) · botão do meio + arrastar: mover vista</p>
     </div>
     <p class="lab-feedback" data-lab-feedback role="status" aria-live="polite">A bancada está vazia. Selecione um equipamento no catálogo.</p>
-    <section class="lab-device-popover" data-lab-popover hidden aria-label="Detalhes do equipamento">
-      <div class="lab-popover-heading"><h3 data-lab-popover-title></h3><button type="button" data-lab-popover-close aria-label="Fechar detalhes do equipamento">×</button></div>
-      <div class="lab-popover-tabs" data-lab-popover-tabs role="tablist" aria-label="Equipamento" hidden>
-        <button type="button" id="lab-config-tab" role="tab" aria-controls="lab-config-panel" aria-selected="true" data-lab-device-tab="config">Configuração</button>
-        <button type="button" id="lab-terminal-tab" role="tab" aria-controls="lab-terminal-panel" aria-selected="false" tabindex="-1" data-lab-device-tab="terminal">Terminal</button>
-      </div>
-      <div id="lab-config-panel" data-lab-popover-content role="tabpanel" aria-labelledby="lab-config-tab"></div>
-      <div id="lab-terminal-panel" data-lab-terminal-panel role="tabpanel" aria-labelledby="lab-terminal-tab" hidden>
-        <p class="lab-terminal-note" data-lab-terminal-note>Terminal genérico v1. Use help para consultar os comandos disponíveis.</p>
-        <pre class="lab-terminal-output" data-lab-terminal-output tabindex="0" aria-label="Saída do terminal"></pre>
-        <form class="lab-terminal-form" data-lab-terminal-form>
-          <span data-lab-terminal-prompt aria-hidden="true"></span><input data-lab-terminal-input aria-label="Comando do terminal" maxlength="512" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="submit">Executar</button>
-        </form>
-        <button type="button" data-lab-terminal-restart hidden>Iniciar nova sessão</button>
-        <p class="lab-terminal-feedback" data-lab-terminal-feedback role="status" aria-live="polite"></p>
-      </div>
-    </section>
     <div class="lab-result-grid">
       <section class="lab-event" aria-label="Evento selecionado"><div class="lab-event-title"><span data-lab-event-kind>OBSERVAÇÃO</span><h3 data-lab-observation>Pronto para montar</h3></div><p data-lab-explanation>Os eventos serão calculados da configuração atual.</p><dl><div><dt>Entrada → saída</dt><dd data-lab-interfaces>—</dd></div><div><dt>Frame Ethernet</dt><dd data-lab-frame>—</dd></div><div><dt>Pacote IPv4</dt><dd data-lab-packet>—</dd></div></dl><div class="lab-router-inspector" data-lab-router-inspector hidden><article><h4>Frame de entrada</h4><p data-lab-frame-in>—</p></article><article><h4>Decisão do roteador</h4><p data-lab-route-decision>—</p></article><article><h4>Frame de saída</h4><p data-lab-frame-out>—</p></article></div></section>
-      <section class="lab-table" aria-label="Tabelas no evento"><h3>Tabelas MAC dos switches</h3><ul data-lab-mac-table><li>Sem entradas aprendidas.</li></ul><h3 data-lab-arp-title>Associações ARP neste evento</h3><ul data-lab-arp-table><li>Ainda não aprendidas.</li></ul></section>
+      <details class="lab-evidence" data-lab-evidence open><summary>Tabelas MAC e ARP neste evento</summary><section class="lab-table" aria-label="Tabelas no evento"><h3>Tabelas MAC dos switches</h3><ul data-lab-mac-table><li>Sem entradas aprendidas.</li></ul><h3 data-lab-arp-title>Associações ARP neste evento</h3><ul data-lab-arp-table><li>Ainda não aprendidas.</li></ul></section></details>
     </div>
     <details class="lab-history"><summary>Ver histórico deste teste</summary><ol data-lab-history></ol></details>
   </section>
 </main>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/integrated-lab-simulator.js' %}?v=services-1"></script><script src="{% static 'js/integrated-lab-profiles.js' %}?v=nat-1"></script><script src="{% static 'js/integrated-lab-model.js' %}?v=services-1"></script><script src="{% static 'js/integrated-lab-services.js' %}?v=services-1"></script><script src="{% static 'js/integrated-lab-switch-cli.js' %}?v=dell-1"></script><script src="{% static 'js/integrated-lab-cisco.js' %}?v=nat-1"></script><script src="{% static 'js/integrated-lab-host.js' %}?v=services-1"></script><script src="{% static 'js/integrated-lab-routeros.js' %}?v=nat-1"></script><script src="{% static 'js/integrated-lab-dell.js' %}?v=dell-1"></script><script src="{% static 'js/integrated-lab-terminal.js' %}?v=dell-1"></script><script src="{% static 'js/integrated-lab-storage.js' %}?v=scenarios-1"></script><script src="{% static 'js/integrated-lab-presets.js' %}?v=services-1"></script><script src="{% static 'js/integrated-lab-exercise-engine.js' %}?v=services-1"></script><script src="{% static 'js/integrated-lab-attempts.js' %}?v=1"></script><script src="{% static 'js/integrated-lab.js' %}?v=attempts-1"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/integrated-lab-simulator.js' %}?v=services-1"></script><script src="{% static 'js/integrated-lab-profiles.js' %}?v=nat-1"></script><script src="{% static 'js/integrated-lab-model.js' %}?v=services-1"></script><script src="{% static 'js/integrated-lab-services.js' %}?v=services-1"></script><script src="{% static 'js/integrated-lab-switch-cli.js' %}?v=dell-1"></script><script src="{% static 'js/integrated-lab-cisco.js' %}?v=nat-1"></script><script src="{% static 'js/integrated-lab-host.js' %}?v=services-1"></script><script src="{% static 'js/integrated-lab-routeros.js' %}?v=nat-1"></script><script src="{% static 'js/integrated-lab-dell.js' %}?v=dell-1"></script><script src="{% static 'js/integrated-lab-terminal.js' %}?v=dell-1"></script><script src="{% static 'js/integrated-lab-storage.js' %}?v=scenarios-1"></script><script src="{% static 'js/integrated-lab-presets.js' %}?v=services-1"></script><script src="{% static 'js/integrated-lab-exercise-engine.js' %}?v=services-1"></script><script src="{% static 'js/integrated-lab-attempts.js' %}?v=1"></script><script src="{% static 'js/integrated-lab.js' %}?v=viewport-2"></script>{% endblock %}

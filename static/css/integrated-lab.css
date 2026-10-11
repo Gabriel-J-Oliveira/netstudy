@@ -21,6 +21,10 @@
 .integrated-lab button:disabled{opacity:.5;cursor:not-allowed}
 .lab-palette button[aria-pressed=true],.lab-test-actions [data-lab-test]{background:#0f5777;color:#fff}
 .lab-canvas{height:620px;min-width:0;position:relative;overflow:hidden;isolation:isolate;border:1px solid #abc6d5;border-radius:.8rem;background-color:#e9f2f6;background-image:radial-gradient(#a5bdc9 1px,transparent 1px);background-size:24px 24px;cursor:crosshair}
+.lab-world{position:absolute;inset:0;transform-origin:0 0}
+.lab-canvas[data-panning=true]{cursor:grabbing;user-select:none}
+.lab-view-reset{position:absolute;right:.75rem;top:.75rem;z-index:4;font-size:.75rem;min-height:34px!important;padding:.3rem .55rem!important}
+.lab-canvas-help{position:absolute;left:.75rem;bottom:.5rem;z-index:4;margin:0;padding:.3rem .5rem;border-radius:.35rem;background:rgba(255,255,255,.92);color:#355775;font-size:.72rem;pointer-events:none}
 .lab-canvas-hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(90%,370px);text-align:center;color:#496779;font-weight:700}
 .lab-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
 .lab-wire{stroke:#296d7c;stroke-width:5;stroke-linecap:round}
@@ -120,7 +124,7 @@
 .lab-connections ul{position:absolute;right:0;top:100%;width:min(370px,80vw);max-height:260px;overflow:auto;display:block;padding:.65rem;margin:.35rem 0 0;border:1px solid #b9cede;border-radius:.55rem;background:#fff;box-shadow:0 6px 16px #17354d30}
 .lab-connections li{margin:.3rem 0}.lab-node{touch-action:none;cursor:grab}.lab-node:active{cursor:grabbing}
 .lab-node-interfaces button{touch-action:auto;cursor:pointer}
-.lab-device-popover{position:absolute;z-index:10;max-height:calc(100% - 16px);overflow:auto;padding:.8rem;border:1px solid #6290a4;border-radius:.7rem;background:#fff;box-shadow:0 10px 25px #15354d40;cursor:auto}
+.lab-device-popover{position:absolute;z-index:10;max-height:calc(100% - 16px);overflow:auto;overscroll-behavior:contain;padding:.8rem;border:1px solid #6290a4;border-radius:.7rem;background:#fff;box-shadow:0 10px 25px #15354d40;cursor:auto}
 .lab-popover-heading{display:flex;justify-content:space-between;align-items:center;gap:.5rem}.lab-popover-heading h3{font-size:1rem;margin:0}.lab-popover-heading button{min-height:32px;padding:.1rem .4rem}
 .lab-device-popover label{display:block;margin:.4rem 0;font-size:.8rem;font-weight:700}.lab-device-popover input:not([type=checkbox]),.lab-device-popover select{display:block;width:100%;min-height:36px;margin-top:.15rem;padding:.3rem;border:1px solid #8aa4b9;border-radius:.3rem}
 .lab-device-popover input[type=checkbox]{width:1rem;height:1rem}.lab-device-popover ul{padding-left:1.1rem;margin:.6rem 0;font-size:.78rem;overflow-wrap:anywhere}.lab-device-popover strong{display:block;margin-top:.55rem}
@@ -149,6 +153,29 @@
 @media(max-width:1050px){.lab-board-heading{flex-wrap:wrap}.lab-board-copy,.lab-board-tools{flex:1 1 100%}.lab-board-tools .lab-connections{justify-self:start}}
 @media(max-width:650px){.lab-board-tools .lab-controls{grid-template-columns:1fr}.lab-board-tools .lab-panel-heading,.lab-board-tools .lab-pair,.lab-board-tools .lab-test-actions,.lab-board-tools .lab-event-controls,.lab-board-tools .lab-status{grid-column:1;grid-row:auto}.lab-board-tools .lab-event-controls{margin-top:.3rem}}
 .lab-attempt-state{font-size:.85rem;color:#24516b;overflow-wrap:anywhere}
+.lab-board-guided-copy{display:none}
+.lab-exercise-brief{margin:.45rem 0}.lab-exercise-brief summary,.lab-exercise-more summary,.lab-evidence summary{cursor:pointer;font-weight:800;color:#17435c}
+.lab-exercise-brief[open] summary{margin-bottom:.35rem}.lab-exercise-brief p{max-width:85ch}
+.lab-exercise-more{margin-top:.4rem;font-size:.84rem}.lab-exercise-more-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem;margin:.55rem 0}
+.lab-exercise-more-actions button{font-size:.8rem;padding:.4rem .6rem;min-height:36px}.lab-exercise-more-actions a{font-weight:700}
+.lab-evidence{min-width:0;align-self:start;border:1px solid #c4d4e2;border-radius:.65rem;background:#fff;padding:.7rem 1rem}
+.lab-evidence[open] .lab-table{border:0;padding:.6rem 0 0}
+.integrated-lab[data-lab-context=guided] .lab-intro,.integrated-lab[data-lab-context=guided] .lab-palette,.integrated-lab[data-lab-context=guided] .lab-board-free-copy{display:none}
+.integrated-lab[data-lab-context=guided] .lab-board-guided-copy{display:block;font-size:.82rem}
+.integrated-lab[data-lab-context=guided] .lab-exercise{padding:.75rem 1rem;margin-bottom:.7rem}
+.integrated-lab[data-lab-context=guided] .lab-exercise-heading h2{margin:.1rem 0;font-size:1.15rem}
+.integrated-lab[data-lab-context=guided] .lab-exercise-heading [data-lab-exercise-meta]{font-size:.75rem;color:#496779}
+.integrated-lab[data-lab-context=guided] .lab-exercise-actions{margin:.5rem 0;gap:.5rem}
+.integrated-lab[data-lab-context=guided] .lab-board{padding-top:.75rem}
+.integrated-lab[data-lab-context=guided] .lab-board-heading h2{font-size:1.3rem}
+.integrated-lab[data-lab-context=guided] .lab-board-copy{flex-basis:22%}
+.integrated-lab[data-lab-context=guided] .lab-board-tools{flex-basis:74%}
+.integrated-lab[data-lab-context=guided] .lab-controls{border-color:#8db1c2}
+.integrated-lab[data-lab-context=guided] .lab-test-actions [data-lab-reset]{font-size:.75rem;padding:.4rem .55rem}
+.integrated-lab[data-lab-completed=true] .lab-exercise{border-left-color:#258056;background:#f1f9f4}
+.integrated-lab[data-lab-completed=true] [data-lab-check-solution]{display:none}
+@media(max-width:1050px){.integrated-lab[data-lab-context=guided] .lab-board-copy,.integrated-lab[data-lab-context=guided] .lab-board-tools{flex-basis:100%}}
+@media(max-width:380px){.integrated-lab[data-lab-context=guided] .lab-exercise{padding:.65rem}.lab-evidence{padding:.55rem}.lab-exercise-actions button,.lab-exercise-actions a{max-width:100%}}
 .lab-attempt-state[data-error=true]{color:#9d2c24;font-weight:700}
 .practice-attempt-status{margin:.6rem 0;color:#24516b}
 .practice-attempt-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:.65rem}

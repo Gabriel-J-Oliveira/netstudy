@@ -13,6 +13,7 @@
   const exerciseEngine = window.NetStudyLabExerciseEngine;
 
   const canvas = root.querySelector("[data-lab-canvas]");
+  const world = root.querySelector("[data-lab-world]");
   const nodes = root.querySelector("[data-lab-nodes]");
   const wires = root.querySelector("[data-lab-wires]");
   const feedback = root.querySelector("[data-lab-feedback]");
@@ -55,6 +56,9 @@
   const checkSolution = root.querySelector("[data-lab-check-solution]");
   const state = {bench: model.createEmpty(), mode: "idle", targetId: null, pendingInterface: null, activeDevice: null, hoveredDevice: null, cursor: {x: .5, y: .5}, result: null, index: -1, running: false, exercise: null, attempt: null};
   let pointerDrag = null, dragFrame = 0, suppressClick = false;
+  const viewport = {scale: 1, x: 0, y: 0};
+  const zoomLimits = Object.freeze({min: .85, max: 1.6});
+  let pointerPan = null;
   let scenarios = null;
   try { scenarios = storageApi.create(window.localStorage); }
   catch (error) { scenarioFeedback.textContent = `Armazenamento local indisponível: ${error.message}`; scenarioFeedback.dataset.error = "true"; }
@@ -65,6 +69,23 @@
   function attemptMessage(message, error = false) {
     const element = root.querySelector("[data-lab-attempt-state]");
     element.textContent = message; element.dataset.error = String(error);
+  }
+  function renderExercisePresentation(initial = false, completionChanged = false) {
+    if (!state.exercise) return;
+    root.dataset.labContext = "guided";
+    root.dataset.labCompleted = String(state.exercise.completed);
+    const brief = root.querySelector("[data-lab-exercise-brief]");
+    if (initial || completionChanged) brief.open = !state.exercise.completed;
+    if (initial) {
+      root.querySelector("[data-lab-exercise-more]").open = false;
+      root.querySelector("[data-lab-evidence]").open = false;
+    }
+    const navigation = document.querySelector('.topic-navigation[aria-label="Navegação principal"]');
+    const practicePath = new URL(root.querySelector("[data-lab-return-practice]").href).pathname;
+    navigation?.querySelectorAll("a").forEach(link => {
+      if (new URL(link.href).pathname === practicePath) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
   }
   function snapshotProgress() {
     const progress = structuredClone(state.attempt.progress);
@@ -94,6 +115,7 @@
         state.exercise.completed = false; checkSolution.disabled = false;
         exerciseFeedback.dataset.state = "";
         exerciseFeedback.textContent = "Bancada alterada após a conclusão. Teste a solução novamente.";
+        renderExercisePresentation(false, true);
       }
       attemptDirty = false;
       attemptMessage(state.attempt.status === "completed" ? "Tentativa concluída e salva neste navegador." : "Tentativa salva automaticamente neste navegador.");
@@ -139,11 +161,13 @@
     if (invalidateResult) {
       invalidate();
       if (state.exercise) {
+        const wasCompleted = state.exercise.completed;
         state.exercise.completed = false;
         checkSolution.disabled = false;
         exerciseFeedback.textContent = "Bancada alterada. Teste a comunicação e depois teste sua solução.";
         exerciseFeedback.dataset.state = "";
         if (state.attempt) { state.attempt.progress.lastRun = null; state.attempt.progress.stepId = null; }
+        if (wasCompleted) renderExercisePresentation(false, true);
       }
     }
     renderPair();
@@ -183,13 +207,35 @@
   const cursor = document.createElement("span");
   cursor.className = "lab-cursor";
   cursor.setAttribute("aria-hidden", "true");
-  canvas.append(cursor);
+  world.append(cursor);
 
-  function canvasPoint(clientX, clientY) {
+  function worldPoint(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
-    const xMargin = Math.min(.46, 100 / rect.width);
-    const yMargin = Math.min(.46, 85 / rect.height);
-    return {x: Math.max(xMargin, Math.min(1 - xMargin, (clientX - rect.left) / rect.width)), y: Math.max(yMargin, Math.min(1 - yMargin, (clientY - rect.top) / rect.height))};
+    return {x: (clientX - rect.left - canvas.clientLeft - viewport.x) / viewport.scale,
+      y: (clientY - rect.top - canvas.clientTop - viewport.y) / viewport.scale};
+  }
+  function setViewport() {
+    world.style.transform = `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale})`;
+    canvas.style.backgroundSize = `${24 * viewport.scale}px ${24 * viewport.scale}px`;
+    canvas.style.backgroundPosition = `${viewport.x}px ${viewport.y}px`;
+    positionPopover();
+  }
+  function zoomAt(nextScale, clientX, clientY) {
+    const scale = Math.max(zoomLimits.min, Math.min(zoomLimits.max, nextScale));
+    if (scale === viewport.scale) return;
+    const point = worldPoint(clientX, clientY);
+    const rect = canvas.getBoundingClientRect();
+    viewport.scale = scale;
+    viewport.x = clientX - rect.left - canvas.clientLeft - point.x * scale;
+    viewport.y = clientY - rect.top - canvas.clientTop - point.y * scale;
+    setViewport();
+  }
+  function canvasPoint(clientX, clientY) {
+    const point = worldPoint(clientX, clientY);
+    const xMargin = Math.min(.46, 100 / canvas.clientWidth);
+    const yMargin = Math.min(.46, 85 / canvas.clientHeight);
+    return {x: Math.max(xMargin, Math.min(1 - xMargin, point.x / canvas.clientWidth)),
+      y: Math.max(yMargin, Math.min(1 - yMargin, point.y / canvas.clientHeight))};
   }
   function setMode(mode, id = null) {
     state.mode = mode;
@@ -385,14 +431,27 @@
       popoverContent.append(natTable);
       if(!natRows.length){const empty=document.createElement("p");empty.textContent="Ainda nenhuma tradução aprendida.";popoverContent.append(empty);}
     }
-    const node = nodes.querySelector(`[data-lab-node="${id}"]`);
-    if (node) {
-      const canvasRect = canvas.getBoundingClientRect(), nodeRect = node.getBoundingClientRect();
-      const width = Math.min(360, canvasRect.width - 16);
-      const right = nodeRect.right - canvasRect.left + 8;
+    positionPopover();
+  }
+  function positionPopover() {
+    const id = state.activeDevice || state.hoveredDevice;
+    const node = id && nodes.querySelector(`[data-lab-node="${id}"]`);
+    if (node && !popover.hidden) {
+      const nodeRect = node.getBoundingClientRect();
+      const scale = viewport.scale, margin = 8 / scale;
+      const visibleLeft = -viewport.x / scale, visibleTop = -viewport.y / scale;
+      const visibleRight = visibleLeft + canvas.clientWidth / scale;
+      const visibleBottom = visibleTop + canvas.clientHeight / scale;
+      const width = Math.min(360, (canvas.clientWidth - 16) / scale);
+      const nodeLeft = worldPoint(nodeRect.left, nodeRect.top).x;
+      const nodeRight = worldPoint(nodeRect.right, nodeRect.top).x;
+      const nodeTop = worldPoint(nodeRect.left, nodeRect.top).y;
+      const right = nodeRight + margin;
       popover.style.width = `${width}px`;
-      popover.style.left = `${Math.max(8, Math.min(canvasRect.width - width - 8, right + width > canvasRect.width ? nodeRect.left - canvasRect.left - width - 8 : right))}px`;
-      popover.style.top = `${Math.max(8, Math.min(canvasRect.height - 300, nodeRect.top - canvasRect.top))}px`;
+      popover.style.maxHeight = `${(canvas.clientHeight - 16) / scale}px`;
+      const left = right + width > visibleRight - margin ? nodeLeft - width - margin : right;
+      popover.style.left = `${Math.max(visibleLeft + margin, Math.min(visibleRight - width - margin, left))}px`;
+      popover.style.top = `${Math.max(visibleTop + margin, Math.min(visibleBottom - popover.offsetHeight - margin, nodeTop))}px`;
     }
   }
   function renderPair() {
@@ -504,8 +563,6 @@
     }
     state.exercise = {instance, completed: state.attempt?.status === "completed"};
     exercisePanel.hidden = false;
-    root.querySelector(".lab-presets").hidden = true;
-    root.querySelector(".lab-scenarios").hidden = true;
     text("[data-lab-exercise-title]", instance.title);
     const environments = {"cisco-windows": "Cisco + Windows", "cisco-linux": "Cisco + Linux", "dell-windows": "Dell + Windows", "mikrotik-hosts": "MikroTik + hosts", mixed: "Ambiente misto"};
     text("[data-lab-exercise-meta]", `${instance.difficulty === "advanced" ? "Advanced" : "Intermediate"} · ${instance.mode === "operational" ? `Operacional · ${environments[instance.environment]} · ` : ""}seed ${instance.seed}`);
@@ -514,6 +571,8 @@
     checkSolution.disabled = Boolean(state.exercise.completed);
     root.querySelector("[data-lab-reset]").textContent = "Reiniciar exercício";
     restoreBench(restored, "Exercício iniciado. Investigue o percurso na bancada.");
+    root.querySelector(".lab-presets").hidden = true;
+    root.querySelector(".lab-scenarios").hidden = true;
     if (state.attempt) {
       const url = new URL(window.location.href);
       url.searchParams.set("attempt", state.attempt.attemptId);
@@ -546,6 +605,7 @@
       ? "Abra o terminal de um equipamento para investigar. Use o teste para observar o percurso; cabos podem ser corrigidos na bancada. Testar solução avalia o estado final."
       : "Use Testar comunicação para observar o percurso. Ajuste a bancada e depois selecione Testar solução.";
     if (state.attempt && !attemptDirty) attemptMessage(state.attempt.status === "completed" ? "Tentativa concluída e salva neste navegador." : "Tentativa em andamento; alterações são salvas automaticamente.");
+    renderExercisePresentation(true);
   }
   function renderConnections() {
     const list = root.querySelector("[data-lab-connections]");
@@ -565,14 +625,13 @@
     });
   }
   function drawWires(event) {
-    const rect = canvas.getBoundingClientRect();
-    wires.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
+    wires.setAttribute("viewBox", `0 0 ${canvas.clientWidth} ${canvas.clientHeight}`);
     wires.replaceChildren();
     const targets = model.eventTargets(event);
     for (const link of state.bench.connections) {
       const ends = [link.a, link.b].map(id => nodes.querySelector(`[data-lab-interface="${id}"]`)?.getBoundingClientRect());
       if (ends.some(end => !end)) continue;
-      const [a, b] = ends.map(r => ({x: r.left + r.width / 2 - rect.left, y: r.top + r.height / 2 - rect.top}));
+      const [a, b] = ends.map(r => worldPoint(r.left + r.width / 2, r.top + r.height / 2));
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
       line.dataset.connectionId = link.id;
       for (const [key, value] of Object.entries({x1: a.x, y1: a.y, x2: b.x, y2: b.y})) line.setAttribute(key, value);
@@ -592,8 +651,8 @@
         badge.setAttribute("class", `lab-wire-label ${event.frame.kind}`);
         const from = state.bench.devices[event.fromId]?.position;
         const to = state.bench.devices[event.toId]?.position;
-        const dx = from && to ? (to.x - from.x) * rect.width : 0;
-        const dy = from && to ? (to.y - from.y) * rect.height : 0;
+        const dx = from && to ? (to.x - from.x) * canvas.clientWidth : 0;
+        const dy = from && to ? (to.y - from.y) * canvas.clientHeight : 0;
         const direction = !from || !to ? "•" : Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? "→" : "←") : (dy >= 0 ? "↓" : "↑");
         badge.textContent = `${direction} ${event.frame.label}`;
         badge.dataset.connectionLabel = link.id;
@@ -602,11 +661,10 @@
     }
   }
   function updateDragWires(deviceId) {
-    const rect = canvas.getBoundingClientRect();
     for (const link of state.bench.connections) {
       if (![link.a, link.b].some(interfaceId => state.bench.interfaces[interfaceId].deviceId === deviceId)) continue;
       const ends = [link.a, link.b].map(interfaceId => nodes.querySelector(`[data-lab-interface="${interfaceId}"]`).getBoundingClientRect());
-      const [a, b] = ends.map(end => ({x: end.left + end.width / 2 - rect.left, y: end.top + end.height / 2 - rect.top}));
+      const [a, b] = ends.map(end => worldPoint(end.left + end.width / 2, end.top + end.height / 2));
       const line = [...wires.querySelectorAll("line")].find(item => item.dataset.connectionId === link.id);
       if (!line) continue;
       for (const [key, value] of Object.entries({x1: a.x, y1: a.y, x2: b.x, y2: b.y})) line.setAttribute(key, value);
@@ -777,6 +835,7 @@
   }));
   canvas.addEventListener("click", event => {
     if (suppressClick) { suppressClick = false; return; }
+    if (event.target.closest("[data-lab-view-reset]")) return;
     if (event.target.closest("[data-lab-popover]")) return;
     const interfaceButton = event.target.closest("[data-lab-interface]");
     if (interfaceButton) { selectInterface(interfaceButton.dataset.labInterface); return; }
@@ -789,6 +848,17 @@
   });
   canvas.addEventListener("keydown", event => {
     if (event.target.closest("[data-lab-popover]")) return;
+    if (event.target === canvas && state.mode === "idle") {
+      const rect = canvas.getBoundingClientRect();
+      if (["+", "=", "-"].includes(event.key)) {
+        event.preventDefault();
+        zoomAt(viewport.scale * (event.key === "-" ? 1 / 1.2 : 1.2), rect.left + rect.width / 2, rect.top + rect.height / 2);
+        announce(`Zoom da bancada: ${Math.round(viewport.scale * 100)}%.`);
+        return;
+      }
+      const pan = event.shiftKey && {ArrowLeft: [-40, 0], ArrowRight: [40, 0], ArrowUp: [0, -40], ArrowDown: [0, 40]}[event.key];
+      if (pan) { event.preventDefault(); viewport.x += pan[0]; viewport.y += pan[1]; setViewport(); return; }
+    }
     if (!["place", "move"].includes(state.mode)) return;
     const delta = {ArrowLeft: [-.04, 0], ArrowRight: [.04, 0], ArrowUp: [0, -.06], ArrowDown: [0, .06]}[event.key];
     if (delta) {
@@ -800,6 +870,40 @@
     } else if (event.key === "Enter") { event.preventDefault(); placeAt(state.cursor); }
     else if (event.key === "Escape") { event.preventDefault(); setMode("idle"); announce("Movimento cancelado."); }
   });
+  canvas.addEventListener("wheel", event => {
+    if (event.target.closest("[data-lab-popover]")) return;
+    event.preventDefault();
+    const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? canvas.clientHeight : 1);
+    zoomAt(viewport.scale * Math.exp(-delta * .001), event.clientX, event.clientY);
+  }, {passive: false});
+  root.querySelector("[data-lab-view-reset]").addEventListener("click", () => {
+    viewport.scale = 1; viewport.x = 0; viewport.y = 0;
+    setViewport();
+    announce("Vista da bancada recentrada, com zoom de 100%.");
+  });
+  canvas.addEventListener("pointerdown", event => {
+    if (event.button !== 1) return;
+    event.preventDefault();
+    pointerPan = {id: event.pointerId, x: event.clientX, y: event.clientY};
+    canvas.setPointerCapture(event.pointerId);
+    canvas.dataset.panning = "true";
+  });
+  canvas.addEventListener("pointermove", event => {
+    if (!pointerPan || event.pointerId !== pointerPan.id) return;
+    viewport.x += event.clientX - pointerPan.x;
+    viewport.y += event.clientY - pointerPan.y;
+    pointerPan.x = event.clientX; pointerPan.y = event.clientY;
+    setViewport();
+  });
+  function stopPan(event) {
+    if (!pointerPan || event.pointerId !== pointerPan.id) return;
+    pointerPan = null;
+    delete canvas.dataset.panning;
+    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+  }
+  canvas.addEventListener("pointerup", stopPan);
+  canvas.addEventListener("pointercancel", stopPan);
+  canvas.addEventListener("auxclick", event => { if (event.button === 1) event.preventDefault(); });
   canvas.addEventListener("pointerdown", event => {
     if (event.target.closest("[data-lab-interface], [data-lab-popover]")) return;
     const node = event.target.closest("[data-lab-node]");
@@ -847,6 +951,8 @@
     state.activeDevice = null; state.hoveredDevice = null; renderConfig(); renderBoard();
   });
   document.addEventListener("pointerdown", event => {
+    if (event.button !== 0) return;
+    if (event.target.closest("[data-lab-view-reset]")) return;
     if (state.activeDevice && !event.target.closest("[data-lab-node], [data-lab-popover]")) { state.activeDevice = null; renderConfig(); renderBoard(); }
   });
   document.addEventListener("keydown", event => {
@@ -1096,6 +1202,7 @@
       exerciseFeedback.dataset.state = verdict.complete ? "success" : "error";
       exerciseFeedback.textContent = verdict.complete
         ? `${verdict.feedback} ${state.exercise.completed ? "Exercício concluído. Você pode gerar outro exercício." : "Solução correta, mas a conclusão não foi salva; libere o armazenamento e verifique novamente."}` : verdict.feedback;
+      renderExercisePresentation(false, state.exercise.completed);
     } catch (error) {
       exerciseFeedback.dataset.state = "error";
       exerciseFeedback.textContent = `Não foi possível validar a bancada: ${error.message}`;

@@ -4,6 +4,34 @@ NetStudy é um aplicativo didático, em português, para estudar fundamentos de 
 
 **Este README é um mapa do código atual.** Ao assumir uma tarefa, confira também a view, o template, os partials, o CSS/JS e os testes do módulo afetado. Cada aula tem demonstrações próprias; o laboratório integrado é uma bancada independente e não compartilha o estado dessas demonstrações.
 
+## Contexto para planejamento em outro chat
+
+Este arquivo foi preparado para ser compartilhado isoladamente com um assistente de planejamento. Ele descreve a base avançada da branch `feature/guided-lab-ux`, **não** a `main` antiga. A sequência incorporada nesta branch é `recovery/netstudy-advanced` → `feature/jornada-integrada` → `feature/attempt-engine-v1` → `feature/guided-lab-ux`. Não conclua que uma funcionalidade está ausente apenas porque não aparece em `main`; confirme sempre a branch e o código atual antes de propor implementação.
+
+**Propósito:** ensinar fundamentos de redes por uma jornada de leitura curta, manipulação visual, previsão, teste e interpretação de evidências. O produto é pessoal, em português, sem IA integrada, login, pagamentos ou API pública. Usa Django/SQLite para as páginas e checkpoints; a bancada e seus motores determinísticos são JavaScript local. Não há comunicação real com redes, Internet ou GNS3 durante as simulações.
+
+| Entrada do aluno | O que já funciona | Limite importante |
+|---|---|---|
+| **Aprender** (`/aprender/`) | 16 módulos em sequência, demonstrações próprias e checkpoints de 10 situações por módulo. | Estado de checkpoint na sessão Django; não é histórico permanente de domínio. |
+| **Praticar** (`/praticar/`) | Nove famílias gerativas da bancada, atividades ARP/MAC, Rapid Fire ARP, troubleshooting e acesso a quatro missões GNS3. | A lista integradora multidisciplinar e o orquestrador de várias etapas ainda não existem. |
+| **Laboratório** (`/laboratorio/`) | Bancada livre, presets, cenários pessoais, equipamentos/perfis, terminais e simulações; exercícios guiados usam a **mesma** bancada. | O simulador é didático e finito, não uma emulação completa de Packet Tracer/GNS3 ou de fabricantes. |
+
+**Jornada sugerida:** conteúdo → checkpoint → exercício contextual em Praticar → investigar/configurar/testar na bancada → voltar à lista → aprofundamento manual no GNS3. Esses passos são sugestões de navegação, não bloqueios de progresso. O exercício guiado apresenta problema e objetivo compactos, mantém a topologia em destaque e recolhe detalhes avançados; a bancada livre preserva o catálogo. A vista aceita zoom de 85% a 160%, deslocamento com o botão do meio e alternativa por teclado. O painel do equipamento acompanha a vista; sua rolagem interna não aciona o zoom.
+
+**Contratos e responsabilidades que devem ser preservados:**
+
+- O **Exercise Engine** (`static/js/integrated-lab-exercise-engine.js`) gera por família/seed/dificuldade e avalia objetivos e invariantes. A interface não decide a solução. As nove famílias são `ipv4`, `vlan-access`, `trunk-8021q`, `routing`, `static-routing`, `external-routing`, `nat-pat`, `services` e `mixed`; há modos bancada e operacional.
+- O **Scenario Schema v1** e o modelo (`static/js/integrated-lab-model.js`) representam equipamentos, posições, interfaces, cabos e configurações. Cenários não carregam gabaritos, eventos completos ou tabelas transitórias.
+- O **simulador** (`static/js/integrated-lab-simulator.js`) calcula percursos e emite eventos; a UI (`static/js/integrated-lab.js`) os representa. GUI e CLI alteram o mesmo modelo. O teste é invalidado quando a montagem muda.
+- O **Attempt Engine v1** (`static/js/integrated-lab-attempts.js`) persiste tentativas guiadas em `localStorage` versionado, separadas de Meus cenários. Guarda `attemptId`, família, seed, versão do gerador, cenário inicial/editado, progresso, verificações e feedback resumidos. Retomar exige compatibilidade; não regenera silenciosamente outra variação.
+- **Device Profiles e Terminal Engine** oferecem subconjuntos didáticos de Cisco IOS, MikroTik RouterOS, Dell OS10 e hosts Windows/Linux. Consultas e configurações devem refletir a bancada real, sem estados de rede paralelos. Laboratórios GNS3 são instruções para execução externa e validação manual por evidências.
+
+**Persistência não é uniforme:** checkpoints usam sessão Django; cenários pessoais e tentativas guiadas usam chaves distintas do `localStorage` do navegador; presets são definições de código; a marcação de critérios GNS3 é local ao navegador. Não há conta nem sincronização entre dispositivos. Não invente progresso persistente para aulas ou checkpoints.
+
+**Próximos passos propostos, não implementados:** lista integradora com atividades gerativas que misturem conteúdos, orquestração de etapas textuais/evidências/intervenções na bancada e continuidade de uma tentativa multidisciplinar. Reutilizar Exercise Engine, Scenario Schema, simulador, CLI, feedback e Attempt Engine; não criar outro simulador ou um segundo motor de exercícios. Qualquer plano deve distinguir claramente o que já funciona, o que é lacuna comprovada e o que é proposta, com critérios de aceite e risco de regressão. `JOURNEY_AUDIT.md` registra a reconciliação da base avançada com a jornada.
+
+**Ao planejar uma mudança:** confira `git status`, branch e HEAD; leia os arquivos responsáveis e testes; preserve URLs e dados locais; proponha etapas pequenas. Para UI, verifique desktop, teclado, foco, `aria-live`, movimento reduzido e 360 px. Para lógica, preserve determinismo, limites de simulação e isolamento entre Scenario Schema, Attempt Schema e dados privados do gerador. Não trate um teste automatizado como substituto de validação visual no navegador.
+
 ## Executar localmente
 
 Requisitos: Python 3.11 ou posterior, pip e navegador moderno. Node.js é usado nos testes do simulador. A dependência Python direta é Django 5.2.17 em requirements.txt; SQLite vem com Python. A interface usa Django Templates, CSS/JavaScript próprios e Bootstrap 5.3.3 por CDN.
@@ -29,7 +57,7 @@ O script aplica as migrations, define DJANGO_ALLOWED_HOSTS para esse IP enquanto
 
 ## Mapa do produto
 
-A página inicial (/) apresenta **16 módulos**, na ordem abaixo. Todos têm um checkpoint de **10 situações**, definido em learning/<tema>_checkpoint.py. O conteúdo, o laboratório da aula e o checkpoint são partes distintas.
+A página inicial (`/`) apresenta Aprender, Praticar e Laboratório; `/aprender/` apresenta os **16 módulos**, na ordem abaixo. Todos têm um checkpoint de **10 situações**, definido em `learning/<tema>_checkpoint.py`. O conteúdo, o laboratório da aula e o checkpoint são partes distintas.
 
 | # | Módulo | URL | Interação ou foco |
 |---|---|---|---|
@@ -82,7 +110,7 @@ A bancada em templates/learning/integrated_lab.html possui catálogo por tipo (+
 - O mesmo modelo define o **Scenario Schema v1** e as APIs exportScenario/importScenario. A configuração do cenário é separada do resultado dos testes. Novos cenários usam `format: "dynamic"`, com `{type, name, position, config}` por equipamento e `nextIds`; arquivos v1 antigos continuam importáveis.
 - static/js/integrated-lab-storage.js: lista, salva, carrega e exclui cenários pessoais no localStorage; valida cada item pelo modelo e prepara importação/exportação JSON, sem DOM.
 - static/js/integrated-lab-attempts.js: contrato e persistência das tentativas de exercícios, independentes de Meus cenários, do DOM e do Scenario Schema.
-- static/js/integrated-lab-presets.js: biblioteca oficial de oito cenários Schema v1, sem localStorage. As topologias são montadas pelo modelo e seus cenários permanecem imutáveis.
+- static/js/integrated-lab-presets.js: biblioteca oficial de dez cenários Schema v1, sem localStorage. As topologias são montadas pelo modelo e seus cenários permanecem imutáveis.
 - static/js/integrated-lab-exercise-engine.js: definições, geração por seed e validação de exercícios, sem DOM ou persistência. A instância mantém regras e metadados separados do Scenario Schema v1.
 - static/js/integrated-lab-simulator.js: valida a montagem e **decide o percurso**. Calcula ARP, aprendizado/encaminhamento MAC por VLAN, passagem pelo trunk, decisão local/remoto do host e rotas conectadas/estáticas por prefixo mais longo entre roteadores. Emite eventos ordenados com IDs de evento, equipamento, interface, cabo, frame e pacote e snapshots das tabelas MAC/ARP/rotas em cada evento.
 - static/js/integrated-lab.js: liga controles ao modelo e **representa os eventos**. A lógica de encaminhamento não deve ser duplicada na camada visual.
@@ -209,7 +237,7 @@ Antes de editar uma página, leia o template, os partials incluídos, os CSS/JS 
 
 `static/js/integrated-lab-terminal.js` é independente do DOM. `createSession(device, profile)` cria uma sessão; `execute(session, command, labState)` consulta o equipamento e o profile atuais na bancada. O registry separa comandos por tipo/profile e modo, com fallback genérico. Contextos guardam apenas IDs de equipamento/interface, sem cópias de IP, VLAN, ARP, MAC ou rotas.
 
-O popover persistente tem abas Configuração e Terminal. Nos profiles genéricos estão disponíveis `help`, `clear` e `exit`; Enter executa e ↑/↓ percorrem o histórico. Cada equipamento mantém sua própria sessão em memória ao fechar/reabrir o popover. Carregar ou reiniciar a bancada limpa as sessões; elas não fazem parte do Scenario Schema nem do localStorage. `exit` encerra a sessão e permite iniciar outra sem alterar a rede. Limites: 512 caracteres por comando, 100 entradas de histórico e 200 linhas de saída.
+O popover persistente tem abas Configuração e Terminal. Nos profiles genéricos estão disponíveis `help`, `clear` e `exit`; Enter executa e ↑/↓ percorrem o histórico. Cada equipamento mantém sua própria sessão em memória ao fechar/reabrir o popover. Carregar ou reiniciar a bancada livre limpa as sessões; elas não fazem parte do Scenario Schema nem de Meus cenários. Em um exercício guiado, o Attempt Engine pode guardar um resumo limitado da sessão para retomada no mesmo navegador. `exit` encerra a sessão e permite iniciar outra sem alterar a rede. Limites: 512 caracteres por comando, 100 entradas de histórico e 200 linhas de saída.
 
 ### Cisco IOS-like v1
 

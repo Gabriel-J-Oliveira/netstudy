@@ -1,6 +1,6 @@
 # Auditoria da jornada integrada
 
-Base avancada: recovery/netstudy-advanced, c4325a17.
+Base avançada recuperada em `recovery/netstudy-advanced` (`c4325a1`). Estado descrito aqui: linha de desenvolvimento `feature/lista-1-l2-02`, descendente de `feature/activity-orchestrator-v1` (`f22a607`). A `main` permanece na base antiga (`684d738`); consulte a tabela de branches e commits no README antes de comparar funcionalidades.
 
 ## Inventario real preservado
 
@@ -18,7 +18,8 @@ Base avancada: recovery/netstudy-advanced, c4325a17.
 - /: tres entradas e sequencia recomendada, sem gates novos; catalogo mantido.
 - /aprender/: os 16 conteudos originais. Sidebar contextual liga checkpoint,
   aula anterior/proxima, familia de exercicio relacionada e catalogo GNS3.
-- /praticar/: nove familias do engine, ARP/MAC, troubleshooting e GNS3.
+- /praticar/: nove familias do engine, ARP/MAC, L2-02 da Lista 1,
+  troubleshooting e GNS3.
   /troubleshooting/ permanece compativel e apresenta o mesmo catalogo.
 - /laboratorio/: bancada livre acessivel diretamente. Parametros exercise,
   difficulty, mode e seed continuam sendo tratados pelo engine existente.
@@ -29,12 +30,16 @@ Base avancada: recovery/netstudy-advanced, c4325a17.
 Sequencia opcional: Aprender -> Checkpoint -> Praticar -> Laboratorio contextual
 -> Aprofundamento GNS3. Nenhum progresso ficticio ou motor novo foi criado.
 
-## Limites desta entrega
+## Limites da consolidação original da navegação
 
-A lista integradora futura tem somente uma indicacao de indisponibilidade.
-Nenhum gerador, avaliador, motor de rede, conteudo ou armazenamento de cenarios
-foi alterado. O IP local em netstudy/settings.py e dados locais nao fazem parte
-da publicacao; cenarios seguem seu fluxo atual.
+A lista integradora multidisciplinar futura ainda tem somente uma indicação
+de indisponibilidade. A Lista 1 começou separadamente com L2-02; abrir
+práticas relacionadas de VLAN/Trunk não marca essas práticas como concluídas.
+Na entrega original de navegação, nenhum gerador, avaliador, motor de rede,
+conteúdo ou armazenamento de cenários foi alterado. L2-02 acrescentou depois
+um avaliador curto e isolado, descrito abaixo. O IP local em
+`netstudy/settings.py` e dados locais não fazem parte da publicação; cenários
+seguem seu fluxo atual.
 
 ## Atualizacao: Attempt Engine v1
 
@@ -50,5 +55,32 @@ da publicacao; cenarios seguem seu fluxo atual.
   reconstituido do simulador sem armazenar seus eventos.
 - A persistencia e apenas no navegador atual, sem login, servidor ou sincronizacao.
   Dados corrompidos/incompativeis nao sao sobrescritos automaticamente. Os
-  checkpoints individuais, GNS3 e a lista integradora futura continuam fora
-  deste contrato v1.
+  checkpoints individuais, GNS3, L2-02 e a lista integradora futura continuam
+  fora deste contrato v1.
+
+## Atualização: Activity Orchestrator v1
+
+- O commit `f22a607` acrescentou `static/js/activity-orchestrator.js`, seus
+  testes Node e `docs/ACTIVITY_ORCHESTRATOR_V1.md`, sem modificar os motores
+  de exercício, simulação ou persistência. O núcleo puro define atividades
+  versionadas com etapas dependentes, estados, evidências de referência,
+  vereditos externos e invalidação transitiva.
+- Não há tela, adaptador de Exercise Engine, gravação em Attempt Schema v2 ou
+  piloto multidisciplinar em execução. Navegar eventos da bancada não satisfaz
+  etapas pedagógicas; o núcleo não avalia respostas nem decide conectividade.
+
+## Atualização: Lista 1 — L2-02
+
+- O commit de implementação `a6b3da1`, em `feature/lista-1-l2-02`, acrescentou
+  `/praticar/camada-2/uma-saida-ou-varias/`. Três cenários fixos distinguem
+  unicast conhecido, unicast desconhecido com flooding e broadcast. O aluno
+  prevê classificação, consulta à tabela, ação do switch, portas de saída,
+  hosts que recebem e hosts que aceitam; erros permitem revisão com feedback
+  específico. A avaliação fica em `learning/l2_practice.py`, não no simulador.
+- A sessão Django usa a chave isolada `netstudy_l2_02_v1` para versão e IDs
+  verificados. Ela não grava gabaritos e não equivale a conclusão da Lista 1,
+  histórico permanente ou tentativa da bancada. Não há variação por seed nem
+  integração desta atividade com o núcleo do Orchestrator nesta versão.
+- Checkpoints, nove famílias do Exercise Engine, Attempt Engine v1 e bancada
+  livre permanecem com seus contratos próprios. O próximo trabalho pedagógico
+  pode adaptar L2-01; as demais atividades e listas ainda não estão prontas.

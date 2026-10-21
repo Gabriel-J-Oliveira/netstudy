@@ -6,15 +6,29 @@ NetStudy é um aplicativo didático, em português, para estudar fundamentos de 
 
 ## Contexto para planejamento em outro chat
 
-Este arquivo foi preparado para ser compartilhado isoladamente com um assistente de planejamento. Ele descreve a base avançada da branch `feature/guided-lab-ux`, **não** a `main` antiga. A sequência incorporada nesta branch é `recovery/netstudy-advanced` → `feature/jornada-integrada` → `feature/attempt-engine-v1` → `feature/guided-lab-ux`. Não conclua que uma funcionalidade está ausente apenas porque não aparece em `main`; confirme sempre a branch e o código atual antes de propor implementação.
+Este arquivo foi preparado para ser compartilhado isoladamente com um assistente de planejamento. Ele descreve a base avançada da branch `feature/lista-1-l2-02`, **não** a `main` antiga. As branches abaixo formam uma linha de desenvolvimento; uma branch publicada não significa que seu trabalho já foi integrado à `main`. Confirme sempre a branch, o commit e o código atual antes de propor implementação.
+
+| Branch | Commit(s) introduzido(s) nessa etapa | Escopo |
+|---|---|---|
+| `main` | `684d738` | Base antiga; não contém toda a bancada e a jornada avançadas. |
+| `recovery/netstudy-advanced` | `c4325a1` | Recuperação das funcionalidades avançadas. |
+| `feature/jornada-integrada` | `4088207` | Navegação Aprender → Praticar → Laboratório. |
+| `feature/attempt-engine-v1` | `9e06a14` | Continuidade das tentativas da bancada. |
+| `feature/guided-lab-ux` | `68b5cd7` (interface), `02ed129` (contexto no README) | Apresentação guiada da bancada, zoom e deslocamento; documentação separada. |
+| `feature/activity-orchestrator-v1` | `f22a607` | Núcleo puro de etapas pedagógicas e testes, ainda sem integração à interface. |
+| `feature/lista-1-l2-02` | `a6b3da1` (atividade), `9b05fb6` (testes no CI); documentação em commit separado nesta branch | Primeiro exercício curto da Lista 1, independente da bancada. |
+
+A ancestralidade é `main` → `recovery/netstudy-advanced` → `feature/jornada-integrada` → `feature/attempt-engine-v1` → `feature/guided-lab-ux` → `feature/activity-orchestrator-v1` → `feature/lista-1-l2-02`. A branch de L2-02 preserva todos os commits anteriores; não houve merge para `main` nesta linha de trabalho.
 
 **Propósito:** ensinar fundamentos de redes por uma jornada de leitura curta, manipulação visual, previsão, teste e interpretação de evidências. O produto é pessoal, em português, sem IA integrada, login, pagamentos ou API pública. Usa Django/SQLite para as páginas e checkpoints; a bancada e seus motores determinísticos são JavaScript local. Não há comunicação real com redes, Internet ou GNS3 durante as simulações.
 
 | Entrada do aluno | O que já funciona | Limite importante |
 |---|---|---|
 | **Aprender** (`/aprender/`) | 16 módulos em sequência, demonstrações próprias e checkpoints de 10 situações por módulo. | Estado de checkpoint na sessão Django; não é histórico permanente de domínio. |
-| **Praticar** (`/praticar/`) | Nove famílias gerativas da bancada, atividades ARP/MAC, Rapid Fire ARP, troubleshooting e acesso a quatro missões GNS3. | A lista integradora multidisciplinar e o orquestrador de várias etapas ainda não existem. |
+| **Praticar** (`/praticar/`) | Nove famílias gerativas da bancada, atividades ARP/MAC, Rapid Fire ARP, L2-02 da Lista 1 e acesso a quatro missões GNS3. | As demais atividades das listas e a experiência multidisciplinar ainda não estão implementadas. |
 | **Laboratório** (`/laboratorio/`) | Bancada livre, presets, cenários pessoais, equipamentos/perfis, terminais e simulações; exercícios guiados usam a **mesma** bancada. | O simulador é didático e finito, não uma emulação completa de Packet Tracer/GNS3 ou de fabricantes. |
+
+**Lista 1, primeiro incremento:** `/praticar/camada-2/uma-saida-ou-varias/` oferece L2-02, três previsões curtas sobre Destination MAC, tabela MAC, portas de saída e aceitação pelos hosts. `learning/l2_practice.py` calcula e avalia as respostas sem depender da bancada ou das sessões dos checkpoints. O contrato de resposta v1 contém `classification`, `lookup`, `action`, `egress[]`, `received[]` e `accepted[]`. A chave de sessão Django `netstudy_l2_02_v1` guarda apenas `schema_version: 1` e IDs dos cenários verificados corretamente; não guarda gabaritos nem estados do simulador. É progresso desta atividade na sessão, não conclusão da lista, nem histórico permanente ou sincronizado. Os três cenários são fixos nesta versão; não há gerador de variações. Uma lista futura ou Attempt v2 poderá referenciar esse resultado verificado por `activityId`/versão, sem adaptar respostas curtas ao Attempt Schema v1 da bancada.
 
 **Jornada sugerida:** conteúdo → checkpoint → exercício contextual em Praticar → investigar/configurar/testar na bancada → voltar à lista → aprofundamento manual no GNS3. Esses passos são sugestões de navegação, não bloqueios de progresso. O exercício guiado apresenta problema e objetivo compactos, mantém a topologia em destaque e recolhe detalhes avançados; a bancada livre preserva o catálogo. A vista aceita zoom de 85% a 160%, deslocamento com o botão do meio e alternativa por teclado. O painel do equipamento acompanha a vista; sua rolagem interna não aciona o zoom.
 
@@ -28,7 +42,9 @@ Este arquivo foi preparado para ser compartilhado isoladamente com um assistente
 
 **Persistência não é uniforme:** checkpoints usam sessão Django; cenários pessoais e tentativas guiadas usam chaves distintas do `localStorage` do navegador; presets são definições de código; a marcação de critérios GNS3 é local ao navegador. Não há conta nem sincronização entre dispositivos. Não invente progresso persistente para aulas ou checkpoints.
 
-**Próximos passos propostos, não implementados:** lista integradora com atividades gerativas que misturem conteúdos, orquestração de etapas textuais/evidências/intervenções na bancada e continuidade de uma tentativa multidisciplinar. Reutilizar Exercise Engine, Scenario Schema, simulador, CLI, feedback e Attempt Engine; não criar outro simulador ou um segundo motor de exercícios. Qualquer plano deve distinguir claramente o que já funciona, o que é lacuna comprovada e o que é proposta, com critérios de aceite e risco de regressão. `JOURNEY_AUDIT.md` registra a reconciliação da base avançada com a jornada.
+**Activity Orchestrator v1:** `static/js/activity-orchestrator.js` já define e valida atividades com etapas dependentes (`reflection`, `evidence`, `external`) e progresso pedagógico; `docs/ACTIVITY_ORCHESTRATOR_V1.md` documenta o contrato. É um núcleo puro, sem DOM, persistência, integração com Exercise Engine/Attempt Engine ou atividade multidisciplinar acessível ao aluno. L2-02 também não usa esse núcleo: sua avaliação curta fica no backend. Não confunda a existência do contrato com a entrega da experiência completa.
+
+**Próximos passos propostos, não implementados:** outras atividades das quatro listas, geradores contextualizados quando necessários e integração do Orchestrator a uma tentativa multidisciplinar com respostas, evidências e intervenções na bancada. Reutilizar Exercise Engine, Scenario Schema, simulador, CLI, feedback e Attempt Engine; não criar outro simulador ou um segundo motor de exercícios. Qualquer plano deve distinguir claramente o que já funciona, o que é lacuna comprovada e o que é proposta, com critérios de aceite e risco de regressão. `JOURNEY_AUDIT.md` registra a reconciliação da base avançada com a jornada.
 
 **Ao planejar uma mudança:** confira `git status`, branch e HEAD; leia os arquivos responsáveis e testes; preserve URLs e dados locais; proponha etapas pequenas. Para UI, verifique desktop, teclado, foco, `aria-live`, movimento reduzido e 360 px. Para lógica, preserve determinismo, limites de simulação e isolamento entre Scenario Schema, Attempt Schema e dados privados do gerador. Não trate um teste automatizado como substituto de validação visual no navegador.
 
@@ -82,7 +98,7 @@ Além da trilha, **/praticar/** reúne os exercícios e **/laboratorio/** abre a
 
 **/laboratorios-praticos/** reúne quatro missões independentes para reprodução no GNS3: VLAN/trunk, roteamento entre VLANs, rotas estáticas e diagnóstico corporativo. `learning/external_labs.py` contém definições estáticas (topologia, endereços, missão, restrições, critérios, evidências, dicas e solução). As views e templates de `external_labs_*` apenas apresentam essas definições. `static/js/external-labs.js` guarda marcações de critérios/evidências por atividade em `localStorage` (`netstudy:external-lab:v1:<slug>`); dicas e solução usam elementos `details`. O aluno valida manualmente no GNS3; o NetStudy não inspeciona o ambiente, não recebe capturas, não distribui imagens e não exporta projetos GNS3. As definições ficam separadas do simulador e podem futuramente receber variações e fabricantes sem mudar o progresso local v1. Execute `python manage.py test learning.test_external_labs` e `node static/js/external-labs.test.js` para verificar esta área.
 
-**/troubleshooting/** lista exercícios da bancada. A primeira família, Diagnóstico de conectividade IPv4, abre o mesmo laboratório em modo exercício nas dificuldades Intermediate e Advanced.
+**/praticar/** reúne as famílias de exercícios da bancada e a entrada L2-02. `/troubleshooting/` permanece como rota compatível para a mesma página. A família IPv4 abre o laboratório em modo exercício nas dificuldades Intermediate e Advanced.
 
 ### Padrão pedagógico das aulas
 
@@ -195,7 +211,7 @@ Scenario Schema v1 aceita o campo opcional `profile` por equipamento, fora de `c
 
 ### Exercise Engine v1
 
-Em `/troubleshooting/`, o aluno escolhe **IPv4**, **VLAN Access**, **Trunk 802.1Q**, **Routing**, **Rotas estáticas**, **Rede externa**, **NAT/PAT**, **DHCP, DNS e serviços** ou **Diagnóstico misto**, em Intermediate (uma falha) ou Advanced (duas falhas independentes). A família de serviços parte de L2/L3 funcional e varia servidor ou opções DHCP, DNS do cliente, registro A e porta/estado da aplicação; Advanced combina uma falha de aquisição ou nome com uma falha de serviço. A família Rotas estáticas usa dois roteadores; Rede externa usa o caminho funcional do preset ISP como base e introduz rota padrão ausente, next hop incorreto ou rota de retorno ausente. NAT/PAT parte de uma rede externa funcional, mas sem rota de retorno para a LAN privada, e varia ausência de NAT, papéis inside/outside, rede de origem da política ou caminho de volta ao IPv4 público. A seed reproduz exatamente a instância na mesma família/dificuldade. O identificador antigo `ipv4-connectivity` continua compatível com links anteriores.
+Em `/praticar/` (também acessível pela rota legada `/troubleshooting/`), o aluno escolhe **IPv4**, **VLAN Access**, **Trunk 802.1Q**, **Routing**, **Rotas estáticas**, **Rede externa**, **NAT/PAT**, **DHCP, DNS e serviços** ou **Diagnóstico misto**, em Intermediate (uma falha) ou Advanced (duas falhas independentes). A família de serviços parte de L2/L3 funcional e varia servidor ou opções DHCP, DNS do cliente, registro A e porta/estado da aplicação; Advanced combina uma falha de aquisição ou nome com uma falha de serviço. A família Rotas estáticas usa dois roteadores; Rede externa usa o caminho funcional do preset ISP como base e introduz rota padrão ausente, next hop incorreto ou rota de retorno ausente. NAT/PAT parte de uma rede externa funcional, mas sem rota de retorno para a LAN privada, e varia ausência de NAT, papéis inside/outside, rede de origem da política ou caminho de volta ao IPv4 público. A seed reproduz exatamente a instância na mesma família/dificuldade. O identificador antigo `ipv4-connectivity` continua compatível com links anteriores.
 
 `generateExercise` valida a rede-base pelo simulador, aplica falhas, verifica cada falha isoladamente e confirma a interrupção e as correções parciais. Candidatos incoerentes são descartados em até 64 tentativas determinísticas derivadas da seed. IPv4 varia IPs válidos, máscaras e gateways; Access varia portas de origem/destino; Trunk varia allowed lists em uma ponta ou cabo desconectado; Routing varia gateway, IP/máscara ou conexão das interfaces físicas. Rotas estáticas usa dois roteadores e varia rota ausente ou next hop incorreto na ida ou volta. Rede externa parte do preset funcional e varia rota padrão ausente, próximo salto incorreto ou retorno ausente; em Advanced, há uma falha de ida e outra de volta. Mixed sorteia as famílias anteriores de L2/L3 básico em Intermediate e pares de famílias diferentes em Advanced. O Trunk Advanced transporta os dois segmentos de uma entrega roteada no mesmo enlace, permitindo duas restrições independentes de VLAN.
 
@@ -211,7 +227,7 @@ Resposta esperada, correção, pistas e condição de sucesso não pertencem ao 
 
 Ao retomar, o módulo exige `generatorVersion` compatível, chama o Exercise Engine com a mesma família/seed/dificuldade/modo, compara o cenário inicial gerado ao salvo e valida o cenário editado pelo modelo. Se a definição mudou, a tentativa é preservada e a retomada é recusada explicitamente; ela não é regenerada em silêncio. O percurso de comunicação pode ser recalculado da configuração e o índice do evento é restaurado; resultados completos não são armazenados. Configurações alteradas por GUI ou CLI, histórico resumido de comandos e feedback de verificação são salvos automaticamente. A lista oferece continuar, nova variação independente, reiniciar com a mesma seed e descartar com confirmação. Erros de leitura, corrupção ou quota são mostrados ao aluno sem apagar os dados; se uma edição não pôde ser salva, a página avisa antes de sair.
 
-Esta persistência é **local ao navegador/perfil**: limpar os dados do navegador remove as tentativas, e não há sincronização ou recuperação em outra máquina. Checkpoints e atividades ARP/MAC continuam com seus próprios fluxos; o Attempt Engine v1 cobre apenas os exercícios da bancada. A lista integradora e o orquestrador de múltiplas etapas ainda não foram implementados.
+Esta persistência é **local ao navegador/perfil**: limpar os dados do navegador remove as tentativas, e não há sincronização ou recuperação em outra máquina. Checkpoints, atividades ARP/MAC e L2-02 continuam com seus próprios fluxos; o Attempt Engine v1 cobre apenas os exercícios da bancada. O núcleo do Orchestrator existe, mas ainda não foi conectado a uma experiência multidisciplinar nem ao Attempt Engine.
 
 **Fora do escopo desta etapa:** protocolos de roteamento dinâmico, progresso permanente, ranking, pontuação, dicas automáticas complexas, NAT estático ou para TCP/UDP, DHCP relay, TCP/UDP completos, HTTP real, acesso à Internet real, router-on-a-stick, autoplay, autenticação e persistência no Django. Terminais e laboratórios das aulas são demonstrações independentes.
 
@@ -227,7 +243,9 @@ Esta persistência é **local ao navegador/perfil**: limpar os dados do navegado
 | Moldura, menu e largura geral | templates/learning/base.html, static/css/netstudy.css |
 | Bancada integrada | templates/learning/integrated_lab.html, static/js/integrated-lab-*.js, static/css/integrated-lab.css |
 | Continuidade dos exercícios | static/js/integrated-lab-attempts.js, static/js/practice-attempts.js, templates/learning/troubleshooting.html |
-| Testes Django | learning/tests.py, learning/test_integrated_lab.py |
+| Núcleo de etapas pedagógicas (sem UI) | static/js/activity-orchestrator.js, docs/ACTIVITY_ORCHESTRATOR_V1.md |
+| Lista 1, L2-02 | learning/l2_practice.py, learning/views.py, templates/learning/l2_02_practice.html, static/js/l2-practice.js, static/css/l2-practice.css |
+| Testes Django | learning/tests.py, learning/test_integrated_lab.py, learning/test_l2_practice.py |
 | Testes Node do laboratório | static/js/integrated-lab-model.test.js, static/js/integrated-lab-simulator.test.js, static/js/integrated-lab-l3-routing.test.js, static/js/integrated-lab-traceroute.test.js, static/js/integrated-lab-nat.test.js, static/js/integrated-lab-services.test.js, static/js/integrated-lab-scenario.test.js, static/js/integrated-lab-storage.test.js, static/js/integrated-lab-presets.test.js, static/js/integrated-lab-exercise-engine.test.js, static/js/integrated-lab-dynamic.test.js |
 | CI | .github/workflows/ci.yml (push e pull request para main) |
 
@@ -279,6 +297,7 @@ No Windows com .venv preparado:
 ~~~powershell
 .\.venv\Scripts\python.exe manage.py check
 .\.venv\Scripts\python.exe manage.py test
+node static/js/activity-orchestrator.test.js
 node static/js/integrated-lab-model.test.js
 node static/js/integrated-lab-profiles.test.js
 node static/js/integrated-lab-terminal.test.js
@@ -300,6 +319,8 @@ node static/js/integrated-lab-attempts.test.js
 node static/js/practice-attempts.test.js
 node static/js/integrated-lab-operational.test.js
 node static/js/integrated-lab-dynamic.test.js
+node --check static/js/activity-orchestrator.js
+node --check static/js/l2-practice.js
 node --check static/js/integrated-lab-model.js
 node --check static/js/integrated-lab-profiles.js
 node --check static/js/integrated-lab-terminal.js
@@ -318,4 +339,4 @@ node --check static/js/practice-attempts.js
 git diff --check
 ~~~
 
-Os testes Django cobrem páginas, endpoints e checkpoints. Os testes Node cobrem o modelo, o simulador e o round-trip/isolamento/rejeições do Scenario Schema v1. O CI repete esses comandos em Linux com Python 3.11 e Node 22. Para mudanças visuais ou de interação, confira também a página no navegador em desktop e largura móvel (360 px é uma referência usada no projeto). Este mapa não substitui a inspeção do código nem a validação do comportamento alterado.
+Os testes Django cobrem páginas, endpoints, checkpoints e L2-02. Os testes Node cobrem o contrato do Orchestrator, o modelo, o simulador e o round-trip/isolamento/rejeições do Scenario Schema v1. O CI executa um conjunto explícito dessas verificações em Linux com Python 3.11 e Node 22; o commit `9b05fb6` acrescenta o teste do Orchestrator e a sintaxe dos scripts novos. Para mudanças visuais ou de interação, confira também a página no navegador em desktop e largura móvel (360 px é uma referência usada no projeto). Este mapa não substitui a inspeção do código nem a validação do comportamento alterado.

@@ -1,0 +1,49 @@
+{% extends "learning/base.html" %}{% load static %}
+{% block title %}Uma saída ou várias? · NetStudy{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/l2-practice.css' %}">{% endblock %}
+{% block content %}
+<main class="l2-practice" data-l2-practice>
+  <a href="{% url 'learning:practice' %}">← Voltar a Praticar</a>
+  <p class="eyebrow mt-4">Lista 1 — Comunicação na Camada 2 · L2-02</p>
+  <h1>Uma saída ou várias?</h1>
+  <p>Um frame entra no switch pela Gi0/1. Leia o Destination MAC e a tabela; depois, separe a decisão do switch da aceitação feita pelos hosts. Todos os links mostrados estão conectados na mesma VLAN.</p>
+  <div class="l2-topology" aria-label="PC-A entra pela Gi0/1 no switch; PC-C está na Gi0/2, PC-B na Gi0/4 e PC-D na Gi0/6">
+    <span>PC-A <small>AA · Gi0/1</small></span><b aria-hidden="true">→</b><span>Switch</span><b aria-hidden="true">→</b>
+    <div><span>PC-C <small>CC · Gi0/2</small></span><span>PC-B <small>BB · Gi0/4</small></span><span>PC-D <small>DD · Gi0/6</small></span></div>
+  </div>
+  <p class="l2-note">Receber uma cópia do frame não significa aceitá-la. O switch decide as portas; cada host interpreta o Destination MAC.</p>
+  {% if progress_error %}<p class="l2-error" role="alert">{{ progress_error }} {% if "incompatível" in progress_error %}Use “Recomeçar” para iniciar apenas esta atividade.{% endif %}</p>{% endif %}
+  <p class="l2-progress" data-l2-progress role="status" aria-live="polite">{{ completed_count }} de 3 cenários verificados corretamente{% if completed %} · Atividade L2-02 concluída{% endif %}</p>
+  <nav class="l2-case-nav" aria-label="Cenários da atividade">
+    {% for scenario in scenarios %}<button type="button" data-l2-select="{{ scenario.id }}" aria-pressed="false">Cenário {{ scenario.number }} <span data-l2-badge="{{ scenario.id }}">{% if scenario.verified %}✓ Verificado{% else %}Pendente{% endif %}</span></button>{% endfor %}
+  </nav>
+  {% for scenario in scenarios %}
+  <section class="l2-case" data-l2-case="{{ scenario.id }}" aria-labelledby="l2-case-{{ scenario.id }}">
+    <h2 id="l2-case-{{ scenario.id }}">Cenário {{ scenario.number }}</h2>
+    <div class="l2-evidence">
+      <p><strong>Porta de entrada:</strong> Gi0/1 (PC-A)<br><strong>Destination MAC:</strong> <code>{{ scenario.destination }}</code></p>
+      <div><strong>Extrato da tabela MAC</strong><table><thead><tr><th>MAC</th><th>Porta</th></tr></thead><tbody>{% for mac, port in scenario.mac_table %}<tr><td><code>{{ mac }}</code></td><td>{{ port|upper }}</td></tr>{% endfor %}</tbody></table></div>
+    </div>
+    <form method="post" action="{% url 'learning:l2_02_practice' %}" data-l2-form>
+      {% csrf_token %}<input type="hidden" name="scenario_id" value="{{ scenario.id }}">
+      <div class="l2-decisions">
+        <label>Classificação do frame<select name="classification" required><option value="">Escolha</option><option value="unicast">Unicast</option><option value="broadcast">Broadcast</option></select></label>
+        <label>Destination na tabela<select name="lookup" required><option value="">Escolha</option><option value="known">Encontrado</option><option value="unknown">Não encontrado</option><option value="not_needed">Consulta individual não necessária</option></select></label>
+        <label>Ação do switch<select name="switch_action" required><option value="">Escolha</option><option value="single">Encaminhar por uma porta</option><option value="replicate">Replicar pelas portas aplicáveis</option></select></label>
+      </div>
+      <div class="l2-sets">
+        <fieldset><legend>Por quais portas o switch envia?</legend>{% for port, host in port_hosts %}{% if forloop.first %}<label><input type="checkbox" name="egress" value="gi0/1"> Gi0/1 · entrada</label>{% endif %}<label><input type="checkbox" name="egress" value="{{ port }}"> {{ port|upper }} · {{ host|upper }}</label>{% endfor %}</fieldset>
+        <fieldset><legend>Quais hosts recebem uma cópia?</legend><label><input type="checkbox" name="received" value="pc-c"> PC-C</label><label><input type="checkbox" name="received" value="pc-b"> PC-B</label><label><input type="checkbox" name="received" value="pc-d"> PC-D</label></fieldset>
+        <fieldset><legend>Quais hosts aceitam o frame?</legend><label><input type="checkbox" name="accepted" value="pc-c"> PC-C</label><label><input type="checkbox" name="accepted" value="pc-b"> PC-B</label><label><input type="checkbox" name="accepted" value="pc-d"> PC-D</label></fieldset>
+      </div>
+      <button class="btn btn-primary mt-3" type="submit">Verificar previsão</button>
+    </form>
+    <div class="l2-feedback{% if result and active_id == scenario.id %} {% if result.correct %}is-correct{% else %}is-incorrect{% endif %}{% endif %}" data-l2-feedback tabindex="-1" aria-live="polite" aria-atomic="true">
+      {% if result and active_id == scenario.id %}<strong>{% if result.correct %}Correto{% else %}Ainda não{% endif %}</strong><p>{{ result.summary }}</p>{% for item in result.feedback %}<p>{{ item.message }}</p>{% endfor %}{% endif %}
+    </div>
+  </section>
+  {% endfor %}
+  <form method="post" action="{% url 'learning:l2_02_practice' %}" data-l2-reset class="l2-reset">{% csrf_token %}<input type="hidden" name="action" value="reset"><button class="btn btn-outline-secondary" type="submit">Recomeçar os três cenários</button></form>
+</main>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/l2-practice.js' %}" defer></script>{% endblock %}

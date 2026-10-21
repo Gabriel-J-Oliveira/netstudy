@@ -11,6 +11,13 @@
     <a href="{% url 'learning:mac_activities' %}">Atividades MAC</a>
     <a href="{% url 'learning:external_labs_catalog' %}">Laboratórios Práticos GNS3</a>
   </nav>
+  <section class="practice-list-intro" aria-labelledby="l2-list-title">
+    <h2 id="l2-list-title">Lista 1 — Comunicação na Camada 2</h2>
+    <p>Preveja a entrega de frames a partir do Destination MAC e da tabela do switch. A atividade curta pode ser feita sem abrir a bancada.</p>
+    <a class="btn btn-primary" href="{% url 'learning:l2_02_practice' %}">L2-02 · Uma saída ou várias?</a>
+    <p class="mt-3 mb-1">Práticas relacionadas na bancada:</p>
+    <div class="journey-links my-2"><a href="#vlan-access-exercise-title">VLAN Access</a><a href="#trunk-8021q-exercise-title">Trunk 802.1Q</a></div>
+  </section>
   <h2>Troubleshooting na bancada</h2>
   <p>Investigue uma rede com conectividade interrompida. Teste o percurso, ajuste a bancada e valide o estado final.</p>
   <p>Intermediate apresenta uma falha; Advanced apresenta duas falhas independentes. Cada seed reproduz a mesma montagem. No modo operacional, os equipamentos usam terminais de fabricantes e hosts; cabos continuam editáveis na bancada.</p>

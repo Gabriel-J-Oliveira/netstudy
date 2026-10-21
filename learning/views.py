@@ -295,6 +295,78 @@ def troubleshooting(request):
     return render(request, "learning/troubleshooting.html", _context(request, current_topic="LAB", exercise_families=families))
 
 
+def l2_02_practice(request):
+    """Atividade curta de Camada 2, isolada das tentativas da bancada."""
+    from . import l2_practice
+
+    session_key = "netstudy_l2_02_v1"
+    ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    progress_error = ""
+    try:
+        progress = l2_practice.validate_progress(request.session.get(session_key, l2_practice.empty_progress()))
+    except ValueError as exc:
+        progress = l2_practice.empty_progress()
+        progress_error = str(exc)
+
+    result = None
+    active_id = None
+    status = 200
+    if request.method == "POST":
+        if request.POST.get("action") == "reset":
+            progress = l2_practice.empty_progress()
+            request.session[session_key] = progress
+            progress_error = ""
+            if not ajax:
+                return redirect("learning:l2_02_practice")
+        elif progress_error:
+            status = 409
+        else:
+            active_id = request.POST.get("scenario_id")
+            answer = {
+                "classification": request.POST.get("classification"),
+                "lookup": request.POST.get("lookup"),
+                "action": request.POST.get("switch_action"),
+                "egress": request.POST.getlist("egress"),
+                "received": request.POST.getlist("received"),
+                "accepted": request.POST.getlist("accepted"),
+            }
+            try:
+                result = l2_practice.evaluate(active_id, answer)
+            except ValueError as exc:
+                progress_error = str(exc)
+                status = 400
+            else:
+                verified = set(progress["verified"])
+                if result["correct"]:
+                    verified.add(active_id)
+                else:
+                    verified.discard(active_id)
+                progress["verified"] = [scenario.id for scenario in l2_practice.SCENARIOS if scenario.id in verified]
+                request.session[session_key] = progress
+
+    completed = len(progress["verified"]) == len(l2_practice.SCENARIOS)
+    if ajax:
+        return JsonResponse({
+            "scenario_id": active_id,
+            "result": result,
+            "verified": progress["verified"],
+            "completed_count": len(progress["verified"]),
+            "completed": completed,
+            "error": progress_error,
+        }, status=status)
+
+    scenarios = [
+        {"id": scenario.id, "number": index, "destination": scenario.destination,
+         "mac_table": scenario.mac_table, "verified": scenario.id in progress["verified"]}
+        for index, scenario in enumerate(l2_practice.SCENARIOS, start=1)
+    ]
+    context = _context(request, current_topic="LAB", scenarios=scenarios,
+                       port_hosts=l2_practice.PORT_HOSTS.items(),
+                       completed_count=len(progress["verified"]), completed=completed,
+                       result=result, active_id=active_id, progress_error=progress_error)
+    return render(request, "learning/l2_02_practice.html", context, status=status)
+
+
 def external_labs_catalog(request):
     from .external_labs import LABS
 

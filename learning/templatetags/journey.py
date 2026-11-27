@@ -3,81 +3,108 @@ from urllib.parse import urlencode
 from django import template
 from django.urls import reverse
 
+from learning.curriculum import LESSONS, LESSONS_BY_KEY
+
 register = template.Library()
 
-# Presentation links only: exercise generation and validation remain in the engine.
-LESSONS = (
-    ("OSI", "osi_concept", "Modelo OSI e TCP/IP", "ipv4", "osi-checkpoint"),
-    ("ARP", "concept", "ARP", "ipv4", "arp-checkpoint"),
-    ("MAC", "mac_concept", "MAC Address", "vlan-access", "mac-checkpoint"),
-    ("FRAME", "frame_concept", "Frame Ethernet", "vlan-access", "frame-checkpoint"),
-    ("SWITCH", "switch_concept", "Switch Ethernet", "vlan-access", "switch-checkpoint"),
-    ("DELIVERY", "delivery_concept", "Unicast e Broadcast", "vlan-access", "delivery-checkpoint"),
-    ("VLAN", "vlan_concept", "VLAN", "vlan-access", "vlan-checkpoint"),
-    ("TRUNK", "trunk_concept", "Trunk 802.1Q", "trunk-8021q", "trunk-checkpoint"),
-    ("IPV4", "ipv4_concept", "IPv4 e Sub-rede", "ipv4", "ipv4-checkpoint"),
-    ("GATEWAY", "gateway_concept", "Default Gateway", "routing", "gateway-checkpoint"),
-    ("ROUTES", "route_concept", "Tabela de Rotas", "static-routing", "route-checkpoint"),
-    ("INTERVLAN", "inter_vlan_concept", "Inter-VLAN Routing", "routing", "inter-vlan-checkpoint"),
-    ("ICMP", "icmp_concept", "ICMP, Ping e Traceroute", "external-routing", "icmp-checkpoint"),
-    ("TRANSPORT", "transport_concept", "TCP e UDP", "services", "transport-checkpoint"),
-    ("PORTS", "ports_concept", "Portas e Cliente/Servidor", "services", "ports-checkpoint"),
-    ("DNS", "dns_concept", "DNS", "services", "dns-checkpoint"),
-    ("DHCP", "dhcp_concept", "DHCP", "services", "dhcp-checkpoint"),
-)
 
-CATEGORIES = (
-    ("Fundamentos de redes", LESSONS[:1]),
-    ("Comunicação e switching", LESSONS[1:8]),
-    ("Endereçamento e roteamento", LESSONS[8:13]),
-    ("Transporte", LESSONS[13:15]),
-    ("Protocolos e serviços", LESSONS[15:]),
-)
+def lesson_link(lesson):
+    return {
+        "key": lesson.key,
+        "number": f"{LESSONS.index(lesson) + 1:02}",
+        "title": lesson.title,
+        "url": reverse("learning:" + lesson.route),
+        "objective": lesson.objective,
+    }
 
 
-@register.inclusion_tag("learning/partials/lesson_categories.html", takes_context=True)
-def lesson_categories(context, catalog=False):
-    topic = context.get("current_topic")
-    groups = []
-    for title, lessons in CATEGORIES:
-        links = []
-        for key, route, label, _, _ in lessons:
-            destination = "start" if catalog and key == "ARP" else route
-            links.append({"url": reverse("learning:" + destination), "label": label, "active": key == topic})
-        groups.append({"title": title, "open": any(link["active"] for link in links), "links": links})
-    return {"groups": groups, "catalog": catalog}
+def checkpoint_progress(request, lesson):
+    # Inter-VLAN predates the convention of deriving the key from the anchor.
+    key = "iv_checkpoint" if lesson.key == "INTERVLAN" else lesson.checkpoint.replace("-", "_")
+    state = request.session.get(key)
+    if state and state.get("complete"):
+        return "Checkpoint concluído"
+    if state:
+        return "Checkpoint em andamento"
+    return ""
+
+
+def neighbors(lesson):
+    index = LESSONS.index(lesson)
+    return {
+        "previous": lesson_link(LESSONS[index - 1]) if index else None,
+        "next": lesson_link(LESSONS[index + 1]) if index + 1 < len(LESSONS) else None,
+    }
+
+
+def trail(request, active=None):
+    entries = [dict(lesson_link(lesson), active=lesson == active,
+                    progress=checkpoint_progress(request, lesson)) for lesson in LESSONS]
+    if active:
+        recommendation = neighbors(active)["next"]
+    else:
+        recommendation = next((entry for entry in entries if entry["progress"] != "Checkpoint concluído"), None)
+    for entry in entries:
+        entry["recommended"] = bool(recommendation and entry["key"] == recommendation["key"])
+    return {"entries": entries, "recommendation": recommendation}
+
+
+def current_lesson(context):
+    lesson = LESSONS_BY_KEY.get(context.get("current_topic"))
+    name = context["request"].resolver_match.url_name
+    return lesson if lesson and lesson.route == name else None
+
+
+@register.inclusion_tag("learning/partials/lesson_trail.html", takes_context=True)
+def lesson_trail(context):
+    return trail(context["request"])
+
+
+@register.inclusion_tag("learning/partials/lesson_intro.html", takes_context=True)
+def lesson_intro(context):
+    lesson = current_lesson(context)
+    if not lesson:
+        return {}
+    return {
+        "lesson": lesson_link(lesson),
+        "total": len(LESSONS),
+        "introduction": lesson.introduction,
+        "prerequisites": [lesson_link(LESSONS_BY_KEY[key]) for key in lesson.prerequisites],
+    }
+
+
+@register.inclusion_tag("learning/partials/lesson_transition.html", takes_context=True)
+def lesson_transition(context, key=None, shortcut=False):
+    lesson = LESSONS_BY_KEY[key] if key else current_lesson(context)
+    return {"bridge": lesson.bridge, "shortcut": shortcut, **neighbors(lesson)} if lesson else {}
 
 
 @register.inclusion_tag("learning/partials/journey_navigation.html", takes_context=True)
 def journey_navigation(context):
     request = context["request"]
-    topic = context.get("current_topic")
     name = request.resolver_match.url_name
+    lesson = current_lesson(context)
     area = "learn"
     if name == "home":
         area = "home"
     elif name in (
-        "practice", "troubleshooting", "external_labs_catalog", "external_lab_detail",
+        "practice", "troubleshooting", "external_labs_catalog", "external_lab_detail", "l2_02_practice",
         "activity", "completion", "mac_activity", "mac_completion", "mac_activities",
         "rapid_fire_intro", "rapid_fire_item", "rapid_fire_completion",
     ):
         area = "practice"
     elif name == "integrated_lab":
         area = "practice" if request.GET.get("exercise") else "lab"
-    result = {"area": area, "current_topic": topic}
-    for index, lesson in enumerate(LESSONS):
-        if lesson[0] != topic:
-            continue
-        result["lesson"] = lesson[2]
-        result["checkpoint_url"] = reverse("learning:" + lesson[1]) + "#" + lesson[4]
+    result = {"area": area}
+    if area == "learn":
+        result.update(trail(request, lesson))
+    if lesson:
+        result.update(neighbors(lesson))
+        result["lesson"] = lesson.title
+        result["checkpoint_url"] = reverse("learning:" + lesson.route) + "#" + lesson.checkpoint
         result["exercise_url"] = reverse("learning:integrated_lab") + "?" + urlencode({
-            "exercise": lesson[3], "difficulty": "intermediate", "mode": "bench",
+            "exercise": lesson.exercise, "difficulty": "intermediate", "mode": "bench",
         })
-        for key, offset in (("previous", -1), ("next", 1)):
-            if 0 <= index + offset < len(LESSONS):
-                neighbor = LESSONS[index + offset]
-                result[key] = {"url": reverse("learning:" + neighbor[1]), "title": neighbor[2]}
-        break
     if name == "integrated_lab" and request.GET.get("exercise"):
         result["exercise_context"] = reverse("learning:integrated_lab") + "?" + urlencode({
             key: request.GET[key] for key in ("exercise", "difficulty", "mode", "seed") if key in request.GET

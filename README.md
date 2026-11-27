@@ -24,7 +24,7 @@ A ancestralidade é `main` → `recovery/netstudy-advanced` → `feature/jornada
 
 | Entrada do aluno | O que já funciona | Limite importante |
 |---|---|---|
-| **Aprender** (`/aprender/`) | 16 módulos em sequência, demonstrações próprias e checkpoints de 10 situações por módulo. | Estado de checkpoint na sessão Django; não é histórico permanente de domínio. |
+| **Aprender** (`/aprender/`) | 17 módulos em uma trilha numerada, demonstrações e checkpoints de 10 situações por módulo. | O progresso exibido vem do checkpoint da sessão atual. |
 | **Praticar** (`/praticar/`) | Nove famílias gerativas da bancada, atividades ARP/MAC, Rapid Fire ARP, L2-02 da Lista 1 e acesso a quatro missões GNS3. | As demais atividades das listas e a experiência multidisciplinar ainda não estão implementadas. |
 | **Laboratório** (`/laboratorio/`) | Bancada livre, presets, cenários pessoais, equipamentos/perfis, terminais e simulações; exercícios guiados usam a **mesma** bancada. | O simulador é didático e finito, não uma emulação completa de Packet Tracer/GNS3 ou de fabricantes. |
 
@@ -73,26 +73,9 @@ O script aplica as migrations, define DJANGO_ALLOWED_HOSTS para esse IP enquanto
 
 ## Mapa do produto
 
-A página inicial (`/`) apresenta Aprender, Praticar e Laboratório; `/aprender/` apresenta os **16 módulos**, na ordem abaixo. Todos têm um checkpoint de **10 situações**, definido em `learning/<tema>_checkpoint.py`. O conteúdo, o laboratório da aula e o checkpoint são partes distintas.
+A página inicial e `/aprender/` mostram a mesma trilha de 17 aulas, desde Modelo OSI e TCP/IP até DNS. `learning/curriculum.py` define a ordem, o identificador, as rotas, os objetivos e os pré-requisitos. Home, barra lateral e transições calculam a posição e as aulas vizinhas a partir desse catálogo. A recomendação no catálogo usa o primeiro checkpoint ainda não concluído na sessão. Todas as aulas estão acessíveis diretamente.
 
-| # | Módulo | URL | Interação ou foco |
-|---|---|---|---|
-| 1 | ARP | /arp/conceito/ | Request/Reply, cache e terminal; há atividades tradicionais e Rapid Fire à parte. |
-| 2 | MAC Address | /mac/ | Endereço MAC, exercícios e checkpoint. |
-| 3 | Frame Ethernet | /frame/ | Campos, montagem e inspeção do frame; integração com ARP. |
-| 4 | Switch Ethernet | /switch/ | Aprendizado MAC, tabela MAC e encaminhamento. |
-| 5 | Unicast × Broadcast | /unicast-broadcast/ | Unicast conhecido, broadcast e unknown unicast. |
-| 6 | VLAN | /vlan/ | Separação lógica, portas Access e limite do broadcast. |
-| 7 | Trunk + 802.1Q | /trunk-8021q/ | VLANs no mesmo enlace, percurso do frame e Allowed VLANs. |
-| 8 | IPv4 + Sub-rede | /ipv4-subnet/ | Máscara, prefixo e decisão local/remoto. |
-| 9 | Default Gateway + Next Hop | /default-gateway/ | Primeira entrega local e ARP do próximo salto. |
-| 10 | Tabela de Rotas + Escolha de Caminho | /tabela-de-rotas/ | Correspondência de prefixos e escolha manual da rota mais específica. |
-| 11 | Inter-VLAN Routing | /inter-vlan-routing/ | Dois frames ligados por uma função de Camada 3. |
-| 12 | ICMP + Ping + Traceroute | /icmp-ping-traceroute/ | Echo Request/Reply e sondas com TTL crescente. |
-| 13 | TCP × UDP | /tcp-udp/ | Comparação dos serviços de transporte. |
-| 14 | Portas + Cliente/Servidor | /portas-cliente-servidor/ | Entrega ao endpoint e resposta do servidor. |
-| 15 | DNS + Resolução de Nomes | /dns-resolucao-nomes/ | Consulta de nomes, laboratório e evidências. |
-| 16 | DHCP + Configuração Dinâmica | /dhcp-configuracao-dinamica/ | DORA e configuração recebida. |
+Cada módulo mantém seu checkpoint de 10 situações em `learning/<tema>_checkpoint.py` (OSI em `learning/osi_content.py`). MAC e Frame apresentam a descoberta do MAC como prévia opcional. Os exercícios que usam termos posteriores trazem a regra necessária no enunciado ou no painel. IPv4 ensina primeiro a decisão local/remoto e a aula de ARP retoma os exemplos de MAC, frame, broadcast e IPv4.
 
 Além da trilha, **/praticar/** reúne os exercícios e **/laboratorio/** abre a bancada integrada editável descrita adiante. As três entradas principais são Aprender, Praticar e Laboratório; a navegação entre aulas aparece nas próprias páginas. ARP tem ainda o fluxo de atividades em learning/exercises.py e Rapid Fire de 12 itens em learning/content.py; MAC tem atividades em learning/mac_exercises.py.
 

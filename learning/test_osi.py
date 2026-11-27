@@ -1,21 +1,7 @@
-from html.parser import HTMLParser
-
 from django.test import TestCase
 from django.urls import reverse
 
 from .osi_content import ACTIVITIES
-
-
-class CategoryParser(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.groups = []
-
-    def handle_starttag(self, tag, attrs):
-        if tag == "details":
-            self.groups.append(["open" in dict(attrs), []])
-        elif tag == "a" and self.groups:
-            self.groups[-1][1].append(dict(attrs))
 
 
 class OsiLessonTests(TestCase):
@@ -34,18 +20,15 @@ class OsiLessonTests(TestCase):
         self.assertContains(page, "data-osi-layer ", count=11)
         self.assertContains(page, "data-osi-step=", count=9)
         self.assertContains(page, "Por IP funciona, por nome falha")
-        self.assertContains(page, reverse("learning:concept"))
+        self.assertContains(page, reverse("learning:mac_concept"))
         self.assertContains(page, reverse("learning:transport_concept"))
 
-    def test_active_category_and_lesson(self):
+    def test_active_lesson_is_highlighted_in_continuous_sidebar(self):
         page = self.client.get(reverse("learning:vlan_concept")).content.decode()
-        navigation = page.split('aria-label="Categorias de Aprender">', 1)[1].split("</nav>", 1)[0]
-        parser = CategoryParser()
-        parser.feed(navigation)
-        self.assertEqual([len(links) for _, links in parser.groups], [1, 7, 5, 2, 2])
-        self.assertEqual([opened for opened, _ in parser.groups], [False, True, False, False, False])
-        active = [link["href"] for _, links in parser.groups for link in links if link.get("aria-current") == "page"]
-        self.assertEqual(active, [reverse("learning:vlan_concept")])
+        navigation = page.split('class="lesson-trail lesson-trail-sidebar"', 1)[1].split("</ol>", 1)[0]
+        self.assertNotIn("<details", navigation)
+        self.assertEqual(navigation.count('aria-current="page"'), 1)
+        self.assertIn(f'href="{reverse("learning:vlan_concept")}" aria-current="page"', navigation)
 
     def test_checkpoint_feedback_hint_and_session(self):
         self.assertContains(self.post("iniciar"), "1 / 10")

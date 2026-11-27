@@ -57,7 +57,6 @@
     </section>
 
     <section class="vlan-summary"><span>SÍNTESE</span><p>VLAN separa contextos de Camada 2; Access associa hosts a esses contextos; broadcasts e flooding ficam limitados à VLAN de entrada.</p></section>
-    <nav class="concept-sequence" aria-label="Sequência do bloco"><a href="{% url 'learning:delivery_concept' %}">← Unicast × Broadcast</a><a href="{% url 'learning:trunk_concept' %}">Próximo: Trunk + 802.1Q →</a></nav>
     <form method="post" action="{% url 'learning:vlan_checkpoint_start' %}" data-vlan-checkpoint-start>{% csrf_token %}<button class="btn btn-primary btn-lg">Começar checkpoint</button></form>
   </main>
   {% include "learning/partials/vlan_checkpoint.html" %}

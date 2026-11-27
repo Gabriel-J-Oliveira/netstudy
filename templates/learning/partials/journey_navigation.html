@@ -1,9 +1,8 @@
-{% load journey %}
-<nav aria-label="Navegação principal">
-  <ul class="topic-navigation">
+<nav class="topic-navigation" aria-label="Navegação principal">
+  <ul class="topic-navigation-list">
     <li>
       <a href="{% url 'learning:learn' %}" {% if area == 'learn' %}aria-current="page"{% endif %}>Aprender</a>
-      {% if area == 'learn' %}{% lesson_categories %}{% endif %}
+      {% if area == 'learn' %}{% include "learning/partials/lesson_trail.html" with sidebar=True %}{% endif %}
     </li>
     <li><a href="{% url 'learning:practice' %}" {% if area == 'practice' %}aria-current="page"{% endif %}>Praticar</a></li>
     <li><a href="{% url 'learning:integrated_lab' %}" {% if area == 'lab' %}aria-current="page"{% endif %}>Laboratório</a></li>

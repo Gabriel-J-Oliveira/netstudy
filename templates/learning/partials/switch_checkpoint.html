@@ -1,3 +1,4 @@
+{% load journey %}
 <section id="switch-checkpoint" class="frame-checkpoint switch-checkpoint" aria-labelledby="switch-checkpoint-title">
 {% if not switch_checkpoint_started %}
   <div class="checkpoint-locked"><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="switch-checkpoint-title">Checkpoint — Switch Ethernet</h2><p>Dez situações de aprendizagem, encaminhamento, CLI e diagnóstico serão abertas aqui.</p></div>
@@ -6,12 +7,12 @@
     <div class="checkpoint-outcomes"><article><strong>{{ switch_checkpoint_immediate }}</strong><span>Acertos imediatos</span></article><article><strong>{{ switch_checkpoint_guided }}</strong><span>Resolvidos após orientação</span></article></div>
     <div class="checkpoint-capabilities"><h3>Capacidades treinadas</h3>{% for capability in switch_checkpoint_capabilities %}<span>✓ {{ capability }}</span>{% endfor %}</div>
     {% if switch_checkpoint_misconceptions %}<aside class="checkpoint-review"><h3>Pontos para revisar</h3>{% for label in switch_checkpoint_misconceptions %}<span>{{ label }}</span>{% endfor %}</aside>{% endif %}
-    <div class="checkpoint-next-concept"><span>PRÓXIMO CONCEITO</span><h3>Unicast × Broadcast</h3><p>Observe como o Destination MAC define a intenção e como a tabela do switch altera o alcance observado.</p><a class="btn btn-primary" href="{% url 'learning:delivery_concept' %}">Estudar Unicast × Broadcast →</a></div>
-    <form method="post" action="{% url 'learning:switch_checkpoint_restart' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
+    {% lesson_transition "SWITCH" True %}<form method="post" action="{% url 'learning:switch_checkpoint_restart' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
   </div>
 {% else %}
   <header class="checkpoint-header"><div><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="switch-checkpoint-title">Checkpoint — Switch Ethernet</h2><p>10 situações. Aprenda pela origem; decida pelo destino.</p></div><strong>ATIVIDADE {{ switch_checkpoint_activity.number }} DE {{ switch_checkpoint_total }}</strong></header>
   <div class="checkpoint-progress"><span style="width:{% widthratio switch_checkpoint_activity.number switch_checkpoint_total 100 %}%"></span></div>
+    <p class="lesson-scaffold">A tabela MAC do switch associa MAC a porta. Se aparecer <code>arp -a</code>, leia a saída como uma lista IPv4 → MAC no host. Uma VLAN é um grupo lógico de portas que limita o alcance local do switch.</p>
   <article class="checkpoint-activity type-{{ switch_checkpoint_activity.type }}">
     <div class="checkpoint-meta"><span class="concept-primary">{{ switch_checkpoint_activity.primary }}</span>{% for concept in switch_checkpoint_activity.related %}<span class="concept-related">{{ concept }}</span>{% endfor %}<span class="difficulty-badge">{{ switch_checkpoint_activity.category|upper }} · NÍVEL {{ switch_checkpoint_activity.difficulty_level }}</span></div>
     <h3>{{ switch_checkpoint_activity.title }}</h3>{% if switch_checkpoint_activity.question %}<p class="checkpoint-question">{{ switch_checkpoint_activity.question }}</p>{% endif %}

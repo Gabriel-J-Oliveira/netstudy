@@ -17,7 +17,7 @@
         <div class="delivery-flow-row delivery-flow-broadcast"><strong>Broadcast · FF:FF:FF:FF:FF:FF</strong><span>PC-A → SW1</span><span class="delivery-flow-targets"><b>↗ PC-B recebe · ↘ PC-C recebe</b><small>Host da VLAN 20 não recebe</small></span></div>
         <div class="delivery-flow-row delivery-flow-unknown"><strong>Unknown unicast · MAC de PC-C</strong><span>PC-A → SW1</span><span class="delivery-flow-targets"><b>↗ PC-B descarta · ↘ PC-C aceita</b><small>Flooding na VLAN 10 · outra VLAN não recebe</small></span></div>
       </div>
-      <p id="delivery-overview-caption">PC-A, PC-B e PC-C estão na VLAN 10. Cada linha mostra um envio independente; nenhuma saída retorna pela porta de entrada. Múltiplas saídas no unknown unicast não o transformam em broadcast.</p>
+      <p id="delivery-overview-caption">PC-A, PC-B e PC-C estão na VLAN 10, um grupo lógico que delimita a entrega local. Cada linha mostra um envio independente. O switch exclui a porta de entrada das saídas. Múltiplas saídas continuam sendo flooding de um unicast quando o endereço indica um destinatário específico.</p>
     </figure>
   </section>
 
@@ -52,6 +52,7 @@
 
     <section class="arp-integration" data-arp-demo aria-labelledby="arp-title" hidden>
       <div><span>APLICAÇÃO PRÁTICA · ARP</span><h2 id="arp-title">Request broadcast, Reply unicast</h2><p><strong>PC-A · 192.168.10.10</strong> procura o MAC de <strong>PC-B · 192.168.10.20</strong>.</p></div>
+      <p>Prévia da aula de ARP. Neste exemplo, o Request pergunta em broadcast qual host tem o IPv4 procurado. O dono do endereço responde ao solicitante.</p>
       <p data-arp-step-copy>PC-A ainda não conhece o MAC de PC-B. Prepare o ARP Request para alcançar o domínio local.</p>
       <div class="arp-actions"><button type="button" class="btn btn-primary" data-arp-action>Enviar ARP Request</button><button type="button" class="btn btn-link" data-arp-reset>Reiniciar demonstração ARP</button></div>
       <p class="builder-feedback" data-arp-feedback aria-live="polite">O Request está pronto. Envie-o quando quiser observar a entrega.</p>
@@ -65,7 +66,6 @@
       <button type="button" class="btn btn-outline-primary" data-delivery-reference-button>CONFERIR RESPOSTA DE REFERÊNCIA</button>
       <div class="reference-answer" data-delivery-reference hidden><h3>Resposta de referência</h3><p>Não. É necessário observar o Destination MAC. Um broadcast utiliza FF:FF:FF:FF:FF:FF. Um frame unicast com um Destination MAC específico também pode ser enviado por várias portas quando o switch ainda não sabe onde esse MAC está, situação chamada de unknown unicast flooding.</p><small>Compare as ideias, não as palavras. Esta explicação não recebe pontuação.</small></div>
     </section>
-    <nav class="concept-sequence" aria-label="Sequência do bloco"><a href="{% url 'learning:switch_concept' %}">← Switch Ethernet</a><a href="{% url 'learning:vlan_concept' %}"><span class="visually-hidden">Próximo: VLAN</span><span aria-hidden="true">VLAN →</span></a></nav>
     <form method="post" action="{% url 'learning:delivery_checkpoint_start' %}" data-delivery-checkpoint-start>{% csrf_token %}<button class="btn btn-primary btn-lg">COMEÇAR CHECKPOINT</button></form>
   </section>
   {% include "learning/partials/delivery_checkpoint.html" %}

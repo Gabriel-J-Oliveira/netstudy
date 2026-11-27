@@ -1,3 +1,4 @@
+{% load journey %}
 <section id="vlan-checkpoint" class="frame-checkpoint switch-checkpoint vlan-checkpoint" aria-labelledby="vlan-checkpoint-title">
 {% if not vlan_checkpoint_started %}
   <div class="checkpoint-locked"><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="vlan-checkpoint-title">Checkpoint — VLAN</h2><p>Dez situações sobre portas Access, alcance, tabela MAC e diagnóstico.</p></div>
@@ -7,8 +8,7 @@
     <div class="checkpoint-capabilities"><h3>Capacidades treinadas</h3>{% for capability in vlan_checkpoint_capabilities %}<span>✓ {{ capability }}</span>{% endfor %}</div>
     {% if vlan_checkpoint_misconceptions %}<aside class="checkpoint-review"><h3>Pontos para revisar</h3>{% for label in vlan_checkpoint_misconceptions %}<span>{{ label }}</span>{% endfor %}</aside>{% endif %}
     <p class="completion-statement">Você separou uma infraestrutura Ethernet física em contextos lógicos e usou VLAN como parte explícita do raciocínio.</p>
-    <div class="checkpoint-next-concept"><span>PRÓXIMO CONCEITO</span><h3>Trunk + 802.1Q</h3><p>Veja como mais de uma VLAN atravessa um enlace entre switches mantendo a separação lógica.</p><a class="btn btn-primary" href="{% url 'learning:trunk_concept' %}">Estudar Trunk + 802.1Q →</a></div>
-    <form method="post" action="{% url 'learning:vlan_checkpoint_restart' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
+    {% lesson_transition "VLAN" True %}<form method="post" action="{% url 'learning:vlan_checkpoint_restart' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
   </div>
 {% else %}
   <header class="checkpoint-header"><div><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="vlan-checkpoint-title">Checkpoint — VLAN</h2><p>10 situações. Inspecione o contexto lógico antes de concluir.</p></div><strong>ATIVIDADE {{ vlan_checkpoint_activity.number }} DE {{ vlan_checkpoint_total }}</strong></header>

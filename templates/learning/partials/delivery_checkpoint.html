@@ -1,3 +1,4 @@
+{% load journey %}
 <section id="delivery-checkpoint" class="frame-checkpoint switch-checkpoint delivery-checkpoint" aria-labelledby="delivery-checkpoint-title">
 {% if not delivery_checkpoint_started %}
   <div class="checkpoint-locked"><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="delivery-checkpoint-title">Checkpoint — Unicast × Broadcast</h2><p>Dez situações sobre intenção do frame, conhecimento do switch e alcance da entrega.</p></div>
@@ -7,13 +8,12 @@
     <div class="checkpoint-capabilities"><h3>Capacidades treinadas</h3>{% for capability in delivery_checkpoint_capabilities %}<span>✓ {{ capability }}</span>{% endfor %}</div>
     {% if delivery_checkpoint_misconceptions %}<aside class="checkpoint-review"><h3>Pontos para revisar</h3>{% for label in delivery_checkpoint_misconceptions %}<span>{{ label }}</span>{% endfor %}</aside>{% endif %}
     <div class="self-explanation"><h3>Explique antes de comparar</h3><p>Por que Broadcast e Unknown Unicast podem produzir múltiplas portas de saída mesmo sendo situações conceitualmente diferentes?</p><textarea rows="4" aria-label="Sua autoexplicação"></textarea><details><summary>Conferir resposta de referência</summary><blockquote>No broadcast, o próprio Destination MAC indica uma entrega para todos naquele domínio, como FF:FF:FF:FF:FF:FF. No unknown unicast, existe um Destination MAC específico, mas o switch ainda não possui uma associação para ele na MAC Address Table. Por isso também pode ocorrer flooding, embora a intenção original do frame seja unicast.</blockquote></details></div>
-    <div class="checkpoint-next-concept"><span>PRÓXIMO CONCEITO</span><h3>VLAN</h3><p>Agora sabemos como frames podem ser entregues a um destino específico ou espalhados dentro de um domínio de broadcast. O próximo passo será entender como VLANs podem dividir logicamente esse domínio dentro da mesma infraestrutura de switches.</p><b>Próximo conteúdo</b></div>
-    <div class="checkpoint-next-concept"><span>PRÓXIMO CONCEITO</span><h3>VLAN</h3><p>Separe o mesmo switch físico em contextos lógicos e observe como isso altera o alcance Ethernet.</p><a class="btn btn-primary" href="{% url 'learning:vlan_concept' %}">Estudar VLAN →</a></div>
-    <form method="post" action="{% url 'learning:delivery_checkpoint_restart' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
+    {% lesson_transition "DELIVERY" True %}<form method="post" action="{% url 'learning:delivery_checkpoint_restart' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
   </div>
 {% else %}
   <header class="checkpoint-header"><div><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="delivery-checkpoint-title">Checkpoint — Unicast × Broadcast</h2><p>10 situações. Primeiro o frame; depois o estado do switch.</p></div><strong>ATIVIDADE {{ delivery_checkpoint_activity.number }} DE {{ delivery_checkpoint_total }}</strong></header>
   <div class="checkpoint-progress"><span style="width:{% widthratio delivery_checkpoint_activity.number delivery_checkpoint_total 100 %}%"></span></div>
+    <p class="lesson-scaffold">Uma VLAN é um grupo lógico que delimita a entrega local. Neste cenário, um ARP Request pergunta em broadcast por um IPv4. Apenas o host que tem o endereço procurado responde, normalmente em unicast ao solicitante. Use os MACs de destino observados para classificar cada frame.</p>
   <article class="checkpoint-activity type-{{ delivery_checkpoint_activity.type }}">
     <div class="checkpoint-meta"><span class="concept-primary">{{ delivery_checkpoint_activity.primary }}</span>{% for concept in delivery_checkpoint_activity.related %}<span class="concept-related">{{ concept }}</span>{% endfor %}<span class="difficulty-badge">{{ delivery_checkpoint_activity.category|upper }} · NÍVEL {{ delivery_checkpoint_activity.difficulty_level }}</span></div>
     <h3>{{ delivery_checkpoint_activity.title }}</h3><p class="checkpoint-question">{{ delivery_checkpoint_activity.symptom }}</p>

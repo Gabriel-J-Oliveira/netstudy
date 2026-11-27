@@ -42,10 +42,9 @@
     <article class="prediction-item"><p>Se a aplicação envia <code>ABC</code> e depois <code>DEF</code> por TCP, esses limites são preservados?</p><button type="button" data-prediction-toggle aria-expanded="false">Conferir previsão</button><p data-prediction-answer hidden>Não. TCP entrega um fluxo contínuo de bytes. Os limites dos envios não definem as leituras da aplicação; uma leitura não precisa receber <code>ABCDEF</code> de uma só vez.</p></article>
   </section>
 
-  <details class="transport-connection"><summary>Conexão TCP, em breve</summary><p>O laboratório mostra apenas estabelecer estado → trocar dados → encerrar. O handshake detalhado será estudado em “TCP por dentro”.</p></details>
+  <details class="transport-connection"><summary>Visão geral de uma conexão TCP</summary><p>O laboratório mostra apenas estabelecer estado → trocar dados → encerrar. O handshake detalhado fica para um aprofundamento futuro.</p></details>
 
   <section id="transport-checkpoint" class="transport-checkpoint-shell" aria-live="polite" aria-label="Checkpoint TCP e UDP">{% include "learning/partials/transport_checkpoint.html" %}</section>
-  <nav class="concept-sequence" aria-label="Navegação do conteúdo"><a href="{% url 'learning:icmp_concept' %}">← ICMP + Ping + Traceroute</a><a href="{% url 'learning:ports_concept' %}">Próximo: Portas + Cliente/Servidor →</a></nav>
 </main>
 {% endblock %}
 {% block scripts %}<script src="{% static 'js/context-glossary.js' %}"></script><script src="{% static 'js/transport-concept.js' %}?v=transport-lab-2"></script>{% endblock %}

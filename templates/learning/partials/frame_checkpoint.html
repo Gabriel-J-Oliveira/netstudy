@@ -1,13 +1,13 @@
+{% load journey %}
 <section id="frame-checkpoint" class="frame-checkpoint" aria-labelledby="checkpoint-title">
   {% if not checkpoint_started %}
     <div class="checkpoint-locked"><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="checkpoint-title">Checkpoint — Frame Ethernet</h2><p>As 10 situações serão abertas aqui, na mesma página, quando você usar o botão acima.</p></div>
   {% elif checkpoint_complete %}
     <div class="checkpoint-complete"><span class="action-label label-checkpoint">CHECKPOINT CONCLUÍDO</span><h2 id="checkpoint-title">10 situações resolvidas</h2><div class="checkpoint-outcomes"><article><strong>{{ checkpoint_immediate }}</strong><span>Acertos imediatos</span></article><article><strong>{{ checkpoint_guided }}</strong><span>Resolvidos após orientação</span></article></div>
-      <div class="checkpoint-concepts"><article><strong>FRAME</strong><span>conceito principal</span></article><article><strong>MAC</strong><span>conceito relacionado</span></article><article><strong>ARP</strong><span>conceito relacionado</span></article></div><p>As atividades já começam a assumir que conceitos anteriores fazem parte do seu repertório.</p>
+      <div class="checkpoint-concepts"><article><strong>FRAME</strong><span>conceito principal</span></article><article><strong>MAC</strong><span>conceito relacionado</span></article><article><strong>ARP</strong><span>conceito relacionado</span></article></div>
       <div class="checkpoint-capabilities"><h3>Capacidades treinadas</h3>{% for capability in checkpoint_capabilities %}<span>✓ {{ capability }}</span>{% endfor %}</div>
       {% if checkpoint_misconceptions %}<aside class="checkpoint-review"><h3>Pontos que apareceram</h3>{% for label in checkpoint_misconceptions %}<span>{{ label }}</span>{% endfor %}</aside>{% endif %}
-      <div class="checkpoint-next-concept"><span>PRÓXIMO CONCEITO</span><h3>Switch</h3><p>Agora que sabemos o que chega ao switch, o próximo passo é entender o que ele faz quando recebe um frame.</p><a class="btn btn-primary" href="{% url 'learning:switch_concept' %}">Estudar Switch →</a></div>
-      <form method="post" action="{% url 'learning:frame_checkpoint_restart' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
+      {% lesson_transition "FRAME" True %}<form method="post" action="{% url 'learning:frame_checkpoint_restart' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
     </div>
   {% else %}
     <header class="checkpoint-header"><div><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="checkpoint-title">Checkpoint — Frame Ethernet</h2><p>10 situações. Menos explicação, mais raciocínio.</p></div><strong>ATIVIDADE {{ checkpoint_activity.number }} DE {{ checkpoint_total }}</strong></header>
@@ -15,6 +15,7 @@
     <article class="checkpoint-activity type-{{ checkpoint_activity.type }}">
       <div class="checkpoint-meta"><span class="concept-primary">{{ checkpoint_activity.primary }}</span>{% for concept in checkpoint_activity.related %}<span class="concept-related">{{ concept }}</span>{% endfor %}<span class="difficulty-badge">{{ checkpoint_activity.category|upper }} · NÍVEL {{ checkpoint_activity.difficulty_level }}</span></div>
       <h3>{{ checkpoint_activity.title }}</h3>{% if checkpoint_activity.question %}<p class="checkpoint-question">{{ checkpoint_activity.question }}</p>{% endif %}{% if checkpoint_activity.situation %}<p>{{ checkpoint_activity.situation }}</p>{% endif %}
+      {% if checkpoint_activity.id != '1' and checkpoint_activity.id != '2' %}<p class="lesson-scaffold">Consulte a associação IPv4 → MAC já conhecida, se houver. Quando falta uma associação local, um ARP Request pergunta pelo IPv4 e um ARP Reply informa seu MAC. O MAC aprendido pode preencher Destination MAC. Para uma rede remota, o gateway indicado no cenário recebe o primeiro frame.</p>{% endif %}
       {% if checkpoint_activity.context_lines %}<div class="checkpoint-context">{% for line in checkpoint_activity.context_lines %}<code>{{ line }}</code>{% endfor %}</div>{% endif %}
       {% if checkpoint_activity.outputs %}<div class="checkpoint-outputs">{% for output in checkpoint_activity.outputs %}<section><h4>C:\&gt; {{ output.title }}</h4><pre>{{ output.text }}</pre></section>{% endfor %}</div>{% endif %}
       {% if checkpoint_activity.capture %}<pre class="checkpoint-capture">{{ checkpoint_activity.capture }}</pre>{% endif %}

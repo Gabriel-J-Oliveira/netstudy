@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from . import osi_content
 from .content import RAPID_FIRE
 from .exercises import ACTIVITIES, ACTIVITY_MAP, CAPABILITIES, MISCONCEPTION_LABELS, STAGES
 from .mac_exercises import (
@@ -1985,6 +1986,7 @@ def ports_checkpoint_reset(request):
 
 
 _NETWORK_MODULES = {
+    "osi": (osi_content.ACTIVITIES, osi_content.ACTIVITY_MAP, osi_content.CAPABILITIES, osi_content.MISCONCEPTION_LABELS),
     "dns": (DNS_ACTIVITIES, DNS_ACTIVITY_MAP, DNS_CAPABILITIES, DNS_MISCONCEPTION_LABELS),
     "dhcp": (DHCP_ACTIVITIES, DHCP_ACTIVITY_MAP, DHCP_CAPABILITIES, DHCP_MISCONCEPTION_LABELS),
 }
@@ -2038,6 +2040,26 @@ def dns_concept(request):
     return render(request, "learning/dns_concept.html", _context(request, current_topic="DNS", **_network_context(request, "dns")))
 
 
+def osi_concept(request):
+    return render(request, "learning/osi_concept.html", _context(
+        request, current_topic="OSI", groups=osi_content.MODELS, steps=osi_content.STEPS,
+        evidence=osi_content.EVIDENCE, **_network_context(request, "osi"),
+    ))
+
+
+@require_POST
+def osi_checkpoint(request, action):
+    if action == "responder":
+        return _network_answer(request, "osi", {"conclusao": request.POST.get("conclusao", "")})
+    handlers = {
+        "iniciar": _network_start, "avancar": _network_next,
+        "pista": _network_hint, "rever": _network_reset, "refazer": _network_start,
+    }
+    if action not in handlers:
+        raise Http404
+    return handlers[action](request, "osi")
+
+
 def dhcp_concept(request):
     return render(request, "learning/dhcp_concept.html", _context(request, current_topic="DHCP", **_network_context(request, "dhcp")))
 
@@ -2047,7 +2069,7 @@ def _network_start(request, kind):
     return _network_response(request, kind)
 
 
-def _network_answer(request, kind):
+def _network_answer(request, kind, decoded=None):
     checkpoint = request.session.get(f"{kind}_checkpoint")
     if not checkpoint or checkpoint.get("complete"):
         return _network_response(request, kind)
@@ -2055,13 +2077,15 @@ def _network_answer(request, kind):
     stored = checkpoint["answers"].get(item["id"])
     if not (stored and stored.get("complete")):
         stored = stored or _initial_answer()
-        decoded = _decode_payload(request.POST.get("answer_payload"), dict)
+        if decoded is None:
+            decoded = _decode_payload(request.POST.get("answer_payload"), dict)
         raw = json.dumps({key: value.strip().lower() if isinstance(value, str) else value for key, value in decoded.items()}) if decoded else None
         stored, error = _submit_mapping(item, stored, raw)
         if error:
             stored["ui_error"] = error
         if not stored.get("complete") and stored.get("attempt_count", 0) >= 2:
-            stored["last_feedback"] = item["wrong_feedback"]
+            if kind != "osi":
+                stored["last_feedback"] = item["wrong_feedback"]
             stored["hint_level"] = max(1, stored.get("hint_level", 0))
         if stored.get("complete"):
             stored.pop("ui_error", None)

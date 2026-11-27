@@ -10,7 +10,8 @@ from .templatetags.journey import LESSONS
 
 
 class JourneyNavigationTests(TestCase):
-    def test_home_and_learning_catalog_preserve_all_sixteen_lessons(self):
+    def test_home_and_learning_catalog_link_all_seventeen_lessons(self):
+        self.assertEqual(len(LESSONS), 17)
         for route in ("home", "learn"):
             response = self.client.get(reverse("learning:" + route))
             self.assertEqual(response.status_code, 200)

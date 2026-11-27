@@ -1,0 +1,35 @@
+.osi-lesson { max-width: 880px; }
+.osi-lead { max-width: 66ch; font-size: 1.08rem; }
+.osi-lesson > section { margin-block: 2.75rem; scroll-margin-top: 1rem; }
+.osi-model-head, .osi-model-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(.5rem, 3vw, 1.5rem); }
+.osi-model-head { margin-bottom: .6rem; color: var(--navy); }
+.osi-model { display: grid; gap: .6rem; }
+.osi-application { --layer-accent: #7041a8; --layer-tint: #f4edff; }
+.osi-transport { --layer-accent: #186a72; --layer-tint: #eaf7f7; }
+.osi-internet { --layer-accent: #205ab2; --layer-tint: #edf4ff; }
+.osi-link { --layer-accent: #805519; --layer-tint: #fff4df; }
+.osi-stack { display: grid; gap: .3rem; }
+.osi-model-row button { position: relative; min-width: 0; min-height: 44px; padding: .5rem .65rem; border: 1px solid var(--line); border-left: 4px solid var(--layer-accent); border-radius: .4rem; color: var(--ink); background: white; text-align: left; font-weight: 650; }
+.osi-model-row > button::before { position: absolute; content: ""; inset-inline-end: 100%; top: 50%; width: clamp(.5rem, 3vw, 1.5rem); border-top: 2px solid var(--layer-accent); pointer-events: none; }
+.osi-model-row button.is-related, .osi-model-row button[aria-pressed="true"] { background: var(--layer-tint); }
+.osi-model-row button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--layer-accent); }
+.osi-lesson :is(a, button, summary, input):focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.osi-layer-panel, .osi-checkpoint-panel { margin-top: .85rem; padding: clamp(.85rem, 3vw, 1.35rem); background: white; border: 1px solid var(--line); border-radius: .65rem; }
+.osi-layer-panel { min-height: 9rem; }
+.osi-layer-panel p { margin: 0 0 .5rem; }
+.osi-layer-panel p:last-child { margin-bottom: 0; }
+.osi-note { padding: .65rem .85rem; margin-top: .85rem; border-left: 3px solid var(--blue); background: var(--blue-soft); }
+.osi-path-rail { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .35rem; padding: 0; }
+.osi-path-rail li { min-width: 0; border-bottom: 3px solid var(--line); padding: .45rem; font-weight: 750; }
+.osi-path-rail li[aria-current="step"] { border-color: var(--blue); background: var(--blue-soft); }
+.osi-path-rail small { display: block; font-weight: 400; }
+.osi-observation { padding: .5rem .65rem; border-left: 3px solid var(--layer-accent); background: var(--layer-tint); font-weight: 650; }
+.osi-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .8rem; }
+.osi-evidence details { border-bottom: 1px solid var(--line); padding: .6rem 0; }
+.osi-evidence summary { cursor: pointer; font-weight: 700; }
+.osi-evidence p { margin: .55rem 0 .25rem; }
+.osi-checkpoint-panel legend { font-size: 1.06rem; font-weight: 650; }
+.osi-answer { display: flex; align-items: center; gap: .65rem; min-height: 44px; padding: .45rem .65rem; margin-bottom: .45rem; border: 1px solid var(--line); border-radius: .4rem; cursor: pointer; }
+.osi-answer:has(:checked) { background: var(--blue-soft); border-color: var(--blue); }
+.osi-feedback { margin-top: .85rem; padding: .65rem; background: var(--green-bg); color: var(--green); }
+.osi-feedback.is-error { background: var(--red-bg); color: var(--red); }

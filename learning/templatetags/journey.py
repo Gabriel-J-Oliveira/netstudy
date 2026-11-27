@@ -7,6 +7,7 @@ register = template.Library()
 
 # Presentation links only: exercise generation and validation remain in the engine.
 LESSONS = (
+    ("OSI", "osi_concept", "Modelo OSI e TCP/IP", "ipv4", "osi-checkpoint"),
     ("ARP", "concept", "ARP", "ipv4", "arp-checkpoint"),
     ("MAC", "mac_concept", "MAC Address", "vlan-access", "mac-checkpoint"),
     ("FRAME", "frame_concept", "Frame Ethernet", "vlan-access", "frame-checkpoint"),
@@ -25,6 +26,27 @@ LESSONS = (
     ("DHCP", "dhcp_concept", "DHCP", "services", "dhcp-checkpoint"),
 )
 
+CATEGORIES = (
+    ("Fundamentos de redes", LESSONS[:1]),
+    ("Comunicação e switching", LESSONS[1:8]),
+    ("Endereçamento e roteamento", LESSONS[8:13]),
+    ("Transporte", LESSONS[13:15]),
+    ("Protocolos e serviços", LESSONS[15:]),
+)
+
+
+@register.inclusion_tag("learning/partials/lesson_categories.html", takes_context=True)
+def lesson_categories(context, catalog=False):
+    topic = context.get("current_topic")
+    groups = []
+    for title, lessons in CATEGORIES:
+        links = []
+        for key, route, label, _, _ in lessons:
+            destination = "start" if catalog and key == "ARP" else route
+            links.append({"url": reverse("learning:" + destination), "label": label, "active": key == topic})
+        groups.append({"title": title, "open": any(link["active"] for link in links), "links": links})
+    return {"groups": groups, "catalog": catalog}
+
 
 @register.inclusion_tag("learning/partials/journey_navigation.html", takes_context=True)
 def journey_navigation(context):
@@ -42,7 +64,7 @@ def journey_navigation(context):
         area = "practice"
     elif name == "integrated_lab":
         area = "practice" if request.GET.get("exercise") else "lab"
-    result = {"area": area}
+    result = {"area": area, "current_topic": topic}
     for index, lesson in enumerate(LESSONS):
         if lesson[0] != topic:
             continue

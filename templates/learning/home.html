@@ -1,11 +1,12 @@
 {% extends "learning/base.html" %}
+{% load journey %}
 {% block title %}Estudo de Redes · NetStudy{% endblock %}
 {% block content %}
 {% if not learning_catalog %}
 <section class="journey-home" aria-labelledby="journey-title">
   <h1 id="journey-title">NetStudy</h1>
   <div class="journey-areas">
-    <a href="{% url 'learning:learn' %}"><h2>Aprender</h2><p>16 conteúdos, laboratórios conceituais e checkpoints.</p></a>
+    <a href="{% url 'learning:learn' %}"><h2>Aprender</h2><p>17 conteúdos, laboratórios conceituais e checkpoints.</p></a>
     <a href="{% url 'learning:practice' %}"><h2>Praticar</h2><p>Exercícios, atividades ARP/MAC e Laboratórios Práticos GNS3.</p></a>
     <a href="{% url 'learning:integrated_lab' %}"><h2>Laboratório</h2><p>Bancada livre, equipamentos, perfis, terminais e seus cenários.</p></a>
   </div>
@@ -18,7 +19,11 @@
   <h1>Estudo de Redes</h1>
   <p class="lead text-secondary">Aprenda conceitos, diferencie tecnologias e pratique raciocínio técnico.</p>
 </section>
+{% if learning_catalog %}
+{% lesson_categories True %}
+{% else %}
 <div class="topic-list">
+<section class="topic-panel"><div><h2>Modelo OSI e TCP/IP</h2><p>Acompanhe uma comunicação e compare as responsabilidades das camadas.</p></div><a href="{% url 'learning:osi_concept' %}" class="btn btn-primary btn-lg">Estudar OSI e TCP/IP</a></section>
 <section class="topic-panel">
   <div>
     <span class="topic-number">01</span>
@@ -72,4 +77,5 @@
 <section class="topic-panel"><div><span class="topic-number">15</span><span class="eyebrow">Fundamentos · Serviços de rede</span><h2>DNS + Resolução de Nomes</h2><p>Associe nomes a endereços IPv4 e diferencie a resposta DNS do funcionamento do serviço.</p></div><a href="{% url 'learning:dns_concept' %}" class="btn btn-primary btn-lg">Estudar DNS <span aria-hidden="true">→</span></a></section>
 <section class="topic-panel"><div><span class="topic-number">16</span><span class="eyebrow">Fundamentos · Serviços de rede</span><h2>DHCP + Configuração Dinâmica</h2><p>Acompanhe DORA e interprete a configuração recebida antes da comunicação.</p></div><a href="{% url 'learning:dhcp_concept' %}" class="btn btn-primary btn-lg">Estudar DHCP <span aria-hidden="true">→</span></a></section>
 </div>
+{% endif %}
 {% endblock %}

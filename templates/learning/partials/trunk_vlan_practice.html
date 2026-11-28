@@ -1,0 +1,73 @@
+<div class="trunk-tag-practice">
+  <section data-tag-association aria-labelledby="trunk-tag-association-title">
+    <h3 id="trunk-tag-association-title">Associe o termo à sua função</h3>
+    <div class="trunk-tag-matches">
+      <div data-tag-match="ingress" data-feedback="O PVID classifica na entrada o frame sem tag que a porta admite.">
+        <label for="trunk-match-ingress">PVID</label>
+        <select id="trunk-match-ingress" aria-describedby="trunk-match-feedback-ingress">
+          <option value="">Escolha uma função</option>
+          <option value="native">Contexto sem tag no trunk tradicional</option>
+          <option value="tag">Frame com identificação 802.1Q</option>
+          <option value="ingress">Classificação padrão na entrada sem tag</option>
+          <option value="no-tag">Frame sem tag explícita</option>
+        </select>
+        <p id="trunk-match-feedback-ingress" data-tag-feedback role="status"></p>
+      </div>
+      <div data-tag-match="tag" data-feedback="Tagged indica que o frame carrega uma tag 802.1Q.">
+        <label for="trunk-match-tag">Tagged</label>
+        <select id="trunk-match-tag" aria-describedby="trunk-match-feedback-tag">
+          <option value="">Escolha uma função</option>
+          <option value="native">Contexto sem tag no trunk tradicional</option>
+          <option value="tag">Frame com identificação 802.1Q</option>
+          <option value="ingress">Classificação padrão na entrada sem tag</option>
+          <option value="no-tag">Frame sem tag explícita</option>
+        </select>
+        <p id="trunk-match-feedback-tag" data-tag-feedback role="status"></p>
+      </div>
+      <div data-tag-match="no-tag" data-feedback="Untagged indica que o frame circula sem tag 802.1Q explícita.">
+        <label for="trunk-match-no-tag">Untagged</label>
+        <select id="trunk-match-no-tag" aria-describedby="trunk-match-feedback-no-tag">
+          <option value="">Escolha uma função</option>
+          <option value="native">Contexto sem tag no trunk tradicional</option>
+          <option value="tag">Frame com identificação 802.1Q</option>
+          <option value="ingress">Classificação padrão na entrada sem tag</option>
+          <option value="no-tag">Frame sem tag explícita</option>
+        </select>
+        <p id="trunk-match-feedback-no-tag" data-tag-feedback role="status"></p>
+      </div>
+      <div data-tag-match="native" data-feedback="Em um trunk tradicional, é o contexto associado ao tráfego sem tag.">
+        <label for="trunk-match-native">Native VLAN</label>
+        <select id="trunk-match-native" aria-describedby="trunk-match-feedback-native">
+          <option value="">Escolha uma função</option>
+          <option value="native">Contexto sem tag no trunk tradicional</option>
+          <option value="tag">Frame com identificação 802.1Q</option>
+          <option value="ingress">Classificação padrão na entrada sem tag</option>
+          <option value="no-tag">Frame sem tag explícita</option>
+        </select>
+        <p id="trunk-match-feedback-native" data-tag-feedback role="status"></p>
+      </div>
+    </div>
+    <button type="button" class="btn btn-outline-secondary" data-tag-reset>Refazer associação</button>
+  </section>
+  <section data-tag-rapid aria-labelledby="trunk-tag-rapid-title">
+    <h3 id="trunk-tag-rapid-title">Rapid Fire · Preveja a marcação</h3>
+    <fieldset>
+      <legend>O SW1 classificou um frame sem tag na VLAN 10. Qual ajuste faz o frame sair com VLAN ID 10 no enlace?</legend>
+      <div class="trunk-tag-quick-options" aria-describedby="trunk-tag-rapid-feedback-1">
+        <button type="button" class="btn btn-outline-primary" data-tag-answer data-correct="true" data-feedback="A política de saída acrescenta a tag e mantém o contexto VLAN 10." aria-pressed="false">Configurar a saída da VLAN 10 como Tagged</button>
+        <button type="button" class="btn btn-outline-primary" data-tag-answer data-correct="false" data-feedback="O PVID mudaria a classificação de entrada desse frame, não a marcação de saída." aria-pressed="false">Trocar o PVID para 20</button>
+        <button type="button" class="btn btn-outline-primary" data-tag-answer data-correct="false" data-feedback="Permitir a VLAN autoriza o tráfego. A política de marcação ainda precisa ser conferida." aria-pressed="false">Apenas permitir VLAN 10</button>
+      </div>
+      <p id="trunk-tag-rapid-feedback-1" data-tag-feedback role="status"></p>
+    </fieldset>
+    <fieldset>
+      <legend>SW1 envia um frame da VLAN 20 com tag. SW2 admite a VLAN 20 e tem PVID 10. Em qual VLAN o SW2 classifica o frame?</legend>
+      <div class="trunk-tag-quick-options" aria-describedby="trunk-tag-rapid-feedback-2">
+        <button type="button" class="btn btn-outline-primary" data-tag-answer data-correct="false" data-feedback="O PVID 10 seria usado para um frame sem tag admitido." aria-pressed="false">VLAN 10</button>
+        <button type="button" class="btn btn-outline-primary" data-tag-answer data-correct="true" data-feedback="O SW2 lê o VLAN ID 20 na tag admitida. O PVID não substitui esse valor." aria-pressed="false">VLAN 20</button>
+      </div>
+      <p id="trunk-tag-rapid-feedback-2" data-tag-feedback role="status"></p>
+    </fieldset>
+    <button type="button" class="btn btn-outline-secondary" data-tag-reset>Refazer Rapid Fire</button>
+  </section>
+</div>

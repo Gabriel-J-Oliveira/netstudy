@@ -14,16 +14,21 @@ class Lesson:
     objective: str
     prerequisites: tuple[str, ...]
     bridge: str
+    section: str = ""
 
 
 LESSONS = (
     Lesson("OSI", "osi_concept", "Modelo OSI e TCP/IP", "ipv4", "osi-checkpoint",
            "Comece com uma ação familiar: abrir uma página. O pedido passa por várias funções até chegar ao servidor.",
            "Relacionar as camadas dos dois modelos às responsabilidades de uma comunicação.", (),
-           "A entrega local começa entre interfaces. Em seguida, veja como a Ethernet usa um endereço para identificá-las."),
+           "Agora que você conhece o papel de cada camada, acompanhe as informações que elas acrescentam e interpretam numa entrega.", "Fundamentos de redes"),
+    Lesson("ENCAPSULATION", "encapsulation_concept", "Encapsulamento e Desencapsulamento de Dados", "routing", "encapsulation-checkpoint",
+           "No modelo em camadas, cada parte tem uma responsabilidade. Siga um pedido para ver como essas responsabilidades aparecem nas informações que acompanham os dados.",
+           "Montar e interpretar unidades de dados e distinguir o que muda no roteador.", ("OSI",),
+           "Os endereços do frame mudam de um enlace para outro. Na próxima aula, veja como a Ethernet usa endereços MAC para identificar as interfaces em cada entrega local.", "Fundamentos de redes"),
     Lesson("MAC", "mac_concept", "MAC Address", "vlan-access", "mac-checkpoint",
            "No modelo em camadas, o enlace faz a entrega local. A Ethernet usa endereços MAC para indicar quais interfaces participam dessa entrega.",
-           "Identificar o MAC de origem e o de destino em uma entrega Ethernet.", ("OSI",),
+           "Identificar o MAC de origem e o de destino em uma entrega Ethernet.", ("OSI", "ENCAPSULATION"),
            "Com os dois endereços em mãos, veja onde colocá-los na estrutura enviada pela Ethernet."),
     Lesson("FRAME", "frame_concept", "Frame Ethernet", "vlan-access", "frame-checkpoint",
            "Você já conhece os endereços MAC. Agora veja como eles viajam junto aos dados em um frame, a unidade de entrega da Ethernet.",
@@ -53,6 +58,14 @@ LESSONS = (
            "VLANs separam domínios de broadcast. No enlace entre switches, a identificação 802.1Q ajuda a manter essa separação.",
            "Seguir frames de várias VLANs por um trunk e interpretar as VLANs permitidas.", ("FRAME", "VLAN"),
            "O trunk estende a entrega de uma VLAN. Quando o destino IP está em outra rede, o host precisa escolher um primeiro salto local."),
+    Lesson("LOOPS", "loops_concept", "Loops de Rede e Broadcast Storm", "vlan-access", "loops-checkpoint",
+           "Enlaces redundantes criam alternativas, mas podem formar caminhos circulares em Camada 2. Observe como cópias repetidas podem afetar a rede.",
+           "Distinguir loop de camada 2 de Broadcast Storm e interpretar evidências de circulação, flooding e instabilidade.", ("SWITCH", "DELIVERY", "VLAN", "TRUNK"),
+           "Enlaces redundantes podem continuar disponíveis sem todos encaminharem ao mesmo tempo. Na próxima aula, acompanhe como o Spanning Tree organiza esses caminhos."),
+    Lesson("SPANNING_TREE", "spanning_tree_concept", "Spanning Tree — STP, RSTP e MSTP", "vlan-access", "spanning-tree-checkpoint",
+           "A aula anterior mostrou como um caminho circular pode manter frames em circulação. Agora veja como protocolos de spanning tree organizam a redundância.",
+           "Comparar STP, RSTP e MSTP e prever os efeitos de falhas e mecanismos de proteção em topologias redundantes.", ("LOOPS", "TRUNK"),
+           "Com a topologia de Camada 2 organizada, o próximo passo é escolher o primeiro salto para redes remotas."),
     Lesson("GATEWAY", "gateway_concept", "Default Gateway", "routing", "gateway-checkpoint",
            "A máscara permite reconhecer um destino remoto. Para o primeiro frame, o host usa ARP para descobrir o MAC do próximo salto local.",
            "Distinguir o destino IPv4 final do MAC usado para alcançar o gateway.", ("IPV4", "ARP"),

@@ -9,6 +9,7 @@
 .trail-objective, .trail-status { display:block; font-size:.875em; }
 .trail-objective { color:var(--muted); }
 .trail-status { color:#174786; margin-top:.15rem; }
+.trail-section { display:block; margin:.45rem 0 .25rem; font-size:.8rem; font-weight:750; }
 .lesson-trail-sidebar { gap:.05rem; margin:.4rem 0 .55rem .6rem; padding:0 0 0 .4rem; border-left:1px solid #536e91; }
 .lesson-trail-sidebar .trail-link { padding:.35rem .4rem; gap:.45rem; background:none; color:#d9e4f4; border-color:transparent; font-size:.82rem; }
 .lesson-trail-sidebar .trail-link:hover { background:#1d3a61; }

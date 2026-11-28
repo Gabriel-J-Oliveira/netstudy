@@ -20,7 +20,7 @@ class OsiLessonTests(TestCase):
         self.assertContains(page, "data-osi-layer ", count=11)
         self.assertContains(page, "data-osi-step=", count=9)
         self.assertContains(page, "Por IP funciona, por nome falha")
-        self.assertContains(page, reverse("learning:mac_concept"))
+        self.assertContains(page, f'data-trail-next href="{reverse("learning:encapsulation_concept")}"')
         self.assertContains(page, reverse("learning:transport_concept"))
 
     def test_active_lesson_is_highlighted_in_continuous_sidebar(self):

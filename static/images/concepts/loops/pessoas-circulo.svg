@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" role="img" aria-labelledby="title desc">
+  <title id="title">Mensagem repassada em círculo</title>
+  <desc id="desc">As mesmas três pessoas, com roupas azul, verde e laranja, formam um círculo. Setas circulares mostram a mensagem retornando ao início.</desc>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#bd6636"/></marker></defs>
+  <path d="M188 91Q300 25 412 91M463 143Q467 220 355 238M245 238Q132 220 137 143" fill="none" stroke="#bd6636" stroke-width="8" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <g stroke="#17364b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(72 72)"><circle cx="50" cy="40" r="28" fill="#f2c9a2"/><path d="M22 38q4-37 31-31 26 4 26 31" fill="#263e52"/><path d="M20 145q3-64 30-64t32 64" fill="#74a6cf"/><path d="m32 113-18 31m49-31 19 31" fill="none"/><path d="M43 42h4m17 0h4" fill="none"/></g>
+    <g transform="translate(428 72)"><circle cx="50" cy="40" r="28" fill="#f2c9a2"/><path d="M22 38q4-37 31-31 26 4 26 31" fill="#4c382a"/><path d="M20 145q3-64 30-64t32 64" fill="#70ad8b"/><path d="m32 113-18 31m49-31 19 31" fill="none"/><path d="M43 42h4m17 0h4" fill="none"/></g>
+    <g transform="translate(250 140)"><circle cx="50" cy="40" r="28" fill="#f2c9a2"/><path d="M22 38q4-37 31-31 26 4 26 31" fill="#725238"/><path d="M20 145q3-64 30-64t32 64" fill="#e5a05b"/><path d="m32 113-18 31m49-31 19 31" fill="none"/><path d="M43 42h4m17 0h4" fill="none"/></g>
+  </g>
+  <rect x="273" y="42" width="54" height="38" rx="7" fill="#fff1c4" stroke="#9a6a10" stroke-width="4"/><path d="M286 54h28m-28 9h21" stroke="#735214" stroke-width="3" stroke-linecap="round"/>
+</svg>

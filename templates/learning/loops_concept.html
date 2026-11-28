@@ -1,0 +1,164 @@
+{% extends "learning/base.html" %}
+{% load static %}
+{% block title %}Loops de Rede e Broadcast Storm · NetStudy{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/context-glossary.css' %}">
+<link rel="stylesheet" href="{% static 'css/loops-concept.css' %}">
+{% endblock %}
+{% block content %}
+<main class="loops-lesson" data-loops>
+  <header class="loops-hero">
+    <p class="eyebrow">CAMADA 2 · SWITCHING</p>
+    <h1>Loops de Rede e Broadcast Storm</h1>
+    <p>Enlaces redundantes oferecem caminhos alternativos quando algo falha. Sem controle, esses caminhos podem fechar um ciclo.</p>
+  </header>
+
+  <section aria-labelledby="loops-analogy-title">
+    <p class="loop-index">01 · ENXERGAR</p>
+    <h2 id="loops-analogy-title">Uma mensagem que encontra o caminho de volta</h2>
+    <p>Sem círculo, cada pessoa repassa a mensagem adiante. Quando as três formam um círculo, ela pode retornar e continuar circulando.</p>
+    <div class="loop-analogy">
+      <figure>
+        <img src="{% static 'images/concepts/loops/pessoas-linha.svg' %}" alt="Três pessoas repassam uma mensagem em linha até o destino, sem formar um caminho circular.">
+        <figcaption><strong>Sem ciclo:</strong> a mensagem percorre o caminho disponível e termina no destino.</figcaption>
+      </figure>
+      <figure>
+        <img src="{% static 'images/concepts/loops/pessoas-circulo.svg' %}" alt="As mesmas três pessoas estão em círculo, com setas mostrando a mensagem voltando ao início.">
+        <figcaption><strong>Com ciclo:</strong> a mensagem pode voltar a quem já a repassou.</figcaption>
+      </figure>
+    </div>
+    <p class="loop-network-link"><strong>Na rede:</strong> switches fazem flooding de broadcasts pelas portas elegíveis. Se houver um caminho circular, cópias podem retornar por outra porta e ser replicadas outra vez.</p>
+  </section>
+
+  <section aria-labelledby="loop-lab-title">
+    <p class="loop-index">02 · OBSERVAR E INTERVIR</p>
+    <h2 id="loop-lab-title">Um cabo altera o percurso</h2>
+    <p>Observe primeiro a rede saudável. Envie um broadcast, conecte o enlace redundante e acompanhe as consequências etapa por etapa.</p>
+    <div class="loop-lab stage-1" data-loop-lab data-stage="1">
+      <div class="loop-controls" aria-label="Controles da demonstração">
+        <button type="button" data-send>Enviar broadcast</button>
+        <button type="button" data-redundant>Conectar cabo redundante</button>
+        <button type="button" data-step>Avançar uma etapa</button>
+        <button type="button" data-play>Reproduzir</button>
+        <button type="button" data-pause aria-pressed="false" disabled>Pausar</button>
+        <button type="button" data-reset>Reiniciar</button>
+        <label for="loop-speed">Velocidade</label>
+        <select id="loop-speed" data-speed aria-label="Velocidade da reprodução"><option value="1500">1×</option><option value="850">2×</option></select>
+      </div>
+      <p class="loop-safety">A linha do tempo tem seis estados. Reproduzir inicia um avanço controlado e finito; avance manualmente para inspecionar cada etapa. Movimento reduzido desativa a reprodução automática.</p>
+      <ol class="loop-stage-strip" aria-label="Etapas da demonstração">
+        <li data-stage-marker="1" aria-current="step">1 · Saudável</li><li data-stage-marker="2">2 · Loop</li><li data-stage-marker="3">3 · Replicação</li><li data-stage-marker="4">4 · Storm</li><li data-stage-marker="5">5 · Impacto</li><li data-stage-marker="6">6 · Recuperação</li>
+      </ol>
+      <p class="loop-interface-key"><strong>Interfaces:</strong> PC-A Eth0—SW1 Gi0/1; SW1 Gi0/2—SW2 Gi0/1; SW1 Gi0/3—SW3 Gi0/1; SW2 Gi0/2—SW3 Gi0/2 (redundante); SW2 Gi0/3—PC-B Eth0; SW3 Gi0/3—PC-C Eth0; SW2 Gi0/4—R1 Gi0/0 (gateway).</p>
+      <div class="loop-topology-scroll" tabindex="0" role="region" aria-label="Topologia da rede. Em telas estreitas, role horizontalmente para inspecionar os equipamentos e enlaces.">
+      <svg class="loop-topology" data-topology viewBox="0 0 1000 480" role="img" aria-labelledby="loop-topology-title loop-topology-desc">
+        <title id="loop-topology-title">Rede saudável, loop de camada 2 e recuperação</title>
+        <desc id="loop-topology-desc">PC-A conecta-se ao SW1, SW1 aos switches SW2 e SW3, e estes a PC-B e PC-C. SW2 Gi0/2 e SW3 Gi0/2 formam o enlace redundante. SW2 também liga ao gateway R1. O percurso é ilustrativo e não encaminha broadcasts para outras redes.</desc>
+        <defs>
+          <path id="loop-cycle-route" d="M340 215 L470 145 L535 165 L535 315 L470 335 L340 265 Z"/>
+          <path id="normal-route-b" d="M130 240 L245 240 L340 215 L470 145 L535 125 L740 85"/>
+          <path id="normal-route-c" d="M130 240 L245 240 L340 265 L470 335 L535 355 L740 400"/>
+          <path id="normal-route-gateway" d="M130 240 L245 240 L340 215 L470 145 L535 125 L690 215 L790 240"/>
+          <marker id="loop-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 9 4.5 0 9Z" fill="#d64d36"/></marker>
+        </defs>
+        <path class="cable pc-cable" d="M130 240 245 240" data-link="pc-a"/>
+        <path class="cable" d="M340 215 470 145" data-path="sw1-sw2" data-path-step="0" data-link="sw1-sw2"/>
+        <path class="cable" d="M340 265 470 335" data-path="sw3-sw1" data-path-step="2" data-link="sw1-sw3"/>
+        <path class="cable redundant-cable" d="M535 180 535 300" pathLength="1" data-loop-link data-path="sw2-sw3" data-path-step="1" data-link="sw2-sw3"/>
+        <path class="cable pc-cable" d="M590 125 740 85" data-link="pc-b"/>
+        <path class="cable pc-cable" d="M590 355 740 400" data-link="pc-c"/>
+        <path class="cable gateway-cable" d="M590 145 790 240" data-link="gateway"/>
+        <path class="loop-circuit" d="M340 215 470 145 535 180 535 300 470 335 340 265Z" marker-mid="url(#loop-arrow)" data-circuit/>
+        <path class="motion-guide" d="M340 215 470 145 535 180 535 300 470 335 340 265Z"/>
+        <path class="motion-guide" d="M340 215 470 145 535 180 535 300 470 335 340 265Z"/>
+        <path class="motion-guide" d="M340 215 470 145 535 180 535 300 470 335 340 265Z"/>
+        <text class="port-label" x="405" y="155" data-path-label="0">Gi0/2 ↔ Gi0/1</text>
+        <text class="port-label" x="405" y="305" data-path-label="2">Gi0/3 ↔ Gi0/1</text>
+        <text class="port-label" x="550" y="245" data-path-label="1">Gi0/2 ↔ Gi0/2</text>
+        <g class="device switch" data-device="sw1"><rect x="245" y="195" width="95" height="90" rx="13"/><text x="292" y="238">SW1</text><text class="device-subtitle" x="292" y="260">switch</text><circle class="device-led" cx="260" cy="207" r="5"/><circle class="device-led" cx="275" cy="207" r="5"/><circle class="device-led" cx="290" cy="207" r="5"/><text data-device-note x="292" y="300">Aprendizado estável</text></g>
+        <g class="device switch" data-device="sw2"><rect x="470" y="100" width="120" height="90" rx="13"/><text x="530" y="143">SW2</text><text class="device-subtitle" x="530" y="165">switch</text><circle class="device-led" cx="485" cy="112" r="5"/><circle class="device-led" cx="500" cy="112" r="5"/><circle class="device-led" cx="515" cy="112" r="5"/><text data-device-note x="530" y="204">Flooding normal</text></g>
+        <g class="device switch" data-device="sw3"><rect x="470" y="290" width="120" height="90" rx="13"/><text x="530" y="333">SW3</text><text class="device-subtitle" x="530" y="355">switch</text><circle class="device-led" cx="485" cy="302" r="5"/><circle class="device-led" cx="500" cy="302" r="5"/><circle class="device-led" cx="515" cy="302" r="5"/><text data-device-note x="530" y="394">Flooding normal</text></g>
+        <g class="device pc" data-device="pc-a"><rect x="35" y="205" width="95" height="70" rx="10"/><text x="82" y="238">PC-A</text><text class="device-subtitle" x="82" y="258">origem</text><g class="message-bubble"><rect x="20" y="284" width="130" height="28" rx="7"/><text class="device-note" data-host-note x="85" y="302">Envia broadcast</text></g><text class="alert-mark" data-alert x="112" y="202">?</text></g>
+        <g class="device pc" data-device="pc-b"><rect x="740" y="50" width="110" height="70" rx="10"/><text x="795" y="83">PC-B</text><text class="device-subtitle" x="795" y="103">host</text><g class="message-bubble"><rect x="720" y="130" width="150" height="28" rx="7"/><text class="device-note" data-host-note x="795" y="148">Recebe uma cópia</text></g><text class="alert-mark" data-alert x="832" y="48">!</text></g>
+        <g class="device pc" data-device="pc-c"><rect x="740" y="365" width="110" height="70" rx="10"/><text x="795" y="398">PC-C</text><text class="device-subtitle" x="795" y="418">host</text><g class="message-bubble"><rect x="720" y="443" width="150" height="28" rx="7"/><text class="device-note" data-host-note x="795" y="461">Recebe uma cópia</text></g><text class="alert-mark" data-alert x="832" y="363">!</text></g>
+        <g class="device router" data-device="gateway"><path d="M790 215 815 240 790 265 765 240Z"/><text x="790" y="245">R1</text><text class="device-subtitle" x="790" y="280">gateway</text><g class="message-bubble"><rect x="720" y="298" width="140" height="28" rx="7"/><text class="device-note" data-gateway-note x="790" y="316">Respondendo</text></g></g>
+        <g class="frame-particles" aria-hidden="true">
+          <circle class="frame-particle normal-particle" data-normal-particle r="8" cx="0" cy="0"><animateMotion dur="5s" repeatCount="indefinite" begin="0s"><mpath href="#normal-route-b"/></animateMotion></circle>
+          <circle class="frame-particle normal-particle" data-normal-particle r="8" cx="0" cy="0"><animateMotion dur="5s" repeatCount="indefinite" begin="1.6s"><mpath href="#normal-route-c"/></animateMotion></circle>
+          <circle class="frame-particle normal-particle" data-normal-particle r="8" cx="0" cy="0"><animateMotion dur="5s" repeatCount="indefinite" begin="3.2s"><mpath href="#normal-route-gateway"/></animateMotion></circle>
+          <circle class="frame-particle storm-particle" data-storm-particle r="8" cx="0" cy="0"><animateMotion dur="4s" repeatCount="indefinite" begin="0s"><mpath href="#loop-cycle-route"/></animateMotion></circle>
+          <circle class="frame-particle storm-particle" data-storm-particle r="8" cx="0" cy="0"><animateMotion dur="4s" repeatCount="indefinite" begin=".5s"><mpath href="#loop-cycle-route"/></animateMotion></circle>
+          <circle class="frame-particle storm-particle" data-storm-particle r="8" cx="0" cy="0"><animateMotion dur="4s" repeatCount="indefinite" begin="1s"><mpath href="#loop-cycle-route"/></animateMotion></circle>
+          <circle class="frame-particle storm-particle" data-storm-particle r="8" cx="0" cy="0"><animateMotion dur="4s" repeatCount="indefinite" begin="1.5s"><mpath href="#loop-cycle-route"/></animateMotion></circle>
+          <circle class="frame-particle storm-particle" data-storm-particle r="8" cx="0" cy="0"><animateMotion dur="4s" repeatCount="indefinite" begin="2s"><mpath href="#loop-cycle-route"/></animateMotion></circle>
+          <circle class="frame-particle storm-particle" data-storm-particle r="8" cx="0" cy="0"><animateMotion dur="4s" repeatCount="indefinite" begin="2.5s"><mpath href="#loop-cycle-route"/></animateMotion></circle>
+          <circle class="frame-particle storm-particle" data-storm-particle r="8" cx="0" cy="0"><animateMotion dur="4s" repeatCount="indefinite" begin="3s"><mpath href="#loop-cycle-route"/></animateMotion></circle>
+          <circle class="frame-particle storm-particle" data-storm-particle r="8" cx="0" cy="0"><animateMotion dur="4s" repeatCount="indefinite" begin="3.5s"><mpath href="#loop-cycle-route"/></animateMotion></circle>
+        </g>
+        <g class="manual-frames" aria-hidden="true">
+          <circle class="frame-particle manual-normal" data-normal-manual cx="625" cy="130" r="8"/>
+          <circle class="frame-particle manual-normal" data-normal-manual cx="625" cy="370" r="8"/>
+          <circle class="frame-particle manual-normal" data-normal-manual cx="665" cy="205" r="8"/>
+          <circle class="frame-particle manual-storm" data-storm-manual cx="340" cy="215" r="8"/>
+          <circle class="frame-particle manual-storm" data-storm-manual cx="470" cy="145" r="8"/>
+          <circle class="frame-particle manual-storm" data-storm-manual cx="535" cy="180" r="8"/>
+          <circle class="frame-particle manual-storm" data-storm-manual cx="535" cy="300" r="8"/>
+          <circle class="frame-particle manual-storm" data-storm-manual cx="470" cy="335" r="8"/>
+          <circle class="frame-particle manual-storm" data-storm-manual cx="340" cy="265" r="8"/>
+          <circle class="frame-particle manual-storm" data-storm-manual cx="460" cy="180" r="8"/>
+          <circle class="frame-particle manual-storm" data-storm-manual cx="500" cy="320" r="8"/>
+        </g>
+      </svg></div>
+      <div class="loop-legend"><span><i class="legend-dot"></i> frame (amostra visual)</span><span><i class="legend-line"></i> enlace em estado normal</span><span><i class="legend-line legend-loop"></i> enlace redundante / circuito</span></div>
+      <div class="loop-event" aria-atomic="true"><p class="loop-event-kicker" data-event-stage>ETAPA 1 · REDE SAUDÁVEL</p><h3 data-event-title>Comunicação normal</h3><p data-event-observation>O broadcast percorre as saídas elegíveis. Os enlaces têm baixa utilização e o gateway responde às comunicações legítimas.</p><p data-event-explanation>Os indicadores formam uma referência para comparar o que muda quando o circuito é fechado.</p></div>
+      <p data-loop-status role="status" aria-live="polite">Rede saudável: baixa utilização, switches estáveis e gateway respondendo. Envie um broadcast para iniciar a observação.</p>
+      <div class="loop-metrics" aria-label="Indicadores ilustrativos da demonstração">
+        <p>Frames no modelo <strong data-copies>0</strong></p><p>Utilização dos enlaces <strong data-util>8%</strong><span class="meter" aria-hidden="true"><i data-util-bar></i></span></p><p>Fila / descartes <strong data-queue>0 / 0 frames</strong><span class="meter queue-meter" aria-hidden="true"><i data-queue-bar></i></span></p><p>Tabela MAC · SW1 <strong data-mac>Gi0/1 · estável</strong></p><p>Gateway R1 <strong data-gateway-state>Respondendo</strong></p>
+      </div>
+      <p class="model-state" data-model-state>Antes · rede saudável</p>
+      <svg class="traffic-chart" viewBox="0 0 400 100" role="img" aria-label="Gráfico ilustrativo da utilização dos enlaces durante as seis etapas"><text x="8" y="18">UTILIZAÇÃO DIDÁTICA</text><path d="M24 80H390M24 22V80"/><polyline data-traffic-line points="24,75 95,75 166,75 237,75 308,75 390,75"/><text x="24" y="96">saudável</text><text x="326" y="96">recuperado</text></svg>
+      <p class="loop-impact-note">Modelo didático determinístico. Os valores representam uma sequência ilustrativa, não medições reais, nem uma multiplicação exponencial obrigatória em toda topologia.</p>
+    </div>
+    <p>Em cada recepção, o switch exclui do flooding a interface por onde aquele frame entrou. Isso não impede uma cópia de voltar por <em>outra</em> interface mais tarde. Frames Ethernet não têm TTL para encerrar esse ciclo; TTL é um campo IPv4. O gateway recebe broadcast no cenário local, mas não encaminha o broadcast Ethernet para outras redes.</p>
+  </section>
+
+  <section aria-labelledby="loop-storm-title">
+    <p class="loop-index">03 · INTERPRETAR</p>
+    <h2 id="loop-storm-title">Loop e Broadcast Storm são conceitos relacionados</h2>
+    <p><strong>Loop de camada 2</strong> descreve um caminho circular. <strong>Broadcast Storm</strong> descreve broadcasts excessivos que ocupam enlaces e recursos. Um loop pode favorecer a tempestade, mas os termos não são sinônimos.</p>
+    <ul class="loop-effects"><li>cópias podem se multiplicar;</li><li>o tráfego pode saturar enlaces;</li><li>comunicações legítimas podem ficar difíceis;</li><li>o mesmo MAC pode aparecer em portas diferentes, sinal chamado MAC Flapping.</li></ul>
+    <table><caption>Exemplo didático de mudança na tabela MAC do SW1</caption><thead><tr><th>MAC aprendido</th><th>Antes</th><th>Durante o loop</th></tr></thead><tbody><tr><td><code>AA:AA:AA:AA:AA:AA</code></td><td>Gi0/1</td><td data-mac-change>Sem mudança observada</td></tr></tbody></table>
+    <p class="loop-disclaimer">Contadores, MAC e gráfico são valores ilustrativos do modelo, não medições reais nem uma previsão de tráfego numa rede específica.</p>
+    <div class="loop-table-check"><label for="loop-table-answer">A mesma entrada MAC muda de porta entre leituras. Qual conclusão a tabela sustenta?</label><select id="loop-table-answer" data-table-answer><option value="">Selecione</option><option value="flap">Há MAC Flapping observado</option><option value="cause">O cabo SW1–SW2 está definitivamente defeituoso</option></select><p data-table-feedback role="status" aria-live="polite"></p></div>
+  </section>
+
+
+
+  <section aria-labelledby="loop-associate-title">
+    <p class="loop-index">04 · ASSOCIAR E PREVER</p>
+    <h2 id="loop-associate-title">Use a evidência para nomear o comportamento</h2>
+    <p>Abra os termos quando precisar de uma definição. Eles usam o glossário contextual compartilhado da trilha.</p>
+    <div class="loop-glossary">
+      {% for term in terms %}<span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="loop-tip-{{ term.0 }}" aria-describedby="loop-tip-{{ term.0 }}">{{ term.1 }}</button><span id="loop-tip-{{ term.0 }}" role="tooltip" hidden>{{ term.2 }}</span></span>{% endfor %}
+    </div>
+    <div class="loop-prediction">
+      <label for="loop-match">Frames retornam por outra porta e são replicados novamente. Que conceito descreve o caminho?</label>
+      <select id="loop-match" data-match><option value="">Escolha uma relação</option><option value="loop">Loop de camada 2</option><option value="storm">Broadcast Storm</option><option value="ttl">TTL</option></select>
+      <p data-match-feedback role="status" aria-live="polite"></p><button type="button" data-match-reset>Refazer previsão</button>
+    </div>
+  </section>
+
+  <section aria-labelledby="loop-consolidate-title">
+    <p class="loop-index">05 · CONSOLIDAR</p>
+    <h2 id="loop-consolidate-title">Uma última checagem, depois o checkpoint</h2>
+    <div class="loop-rapid" data-rapid><p><strong>Rapid Fire:</strong> o frame Ethernet inclui TTL?</p><button type="button" data-answer="no" aria-pressed="false">Não</button><button type="button" data-answer="yes" aria-pressed="false">Sim, como IPv4</button><p data-rapid-feedback role="status" aria-live="polite"></p><button type="button" data-rapid-reset>Refazer Rapid Fire</button></div>
+    <p class="loop-model">Redundância sem proteção → caminho circular → circulação e replicação de frames → instabilidade da rede.</p>
+    <h3>Como manter enlaces redundantes sem provocar loops na rede?</h3><p>A próxima aula apresenta os protocolos que organizam os caminhos redundantes.</p>
+    <section class="loop-checkpoint" id="loops-checkpoint" data-checkpoint aria-labelledby="loops-checkpoint-title">
+      <h3 id="loops-checkpoint-title">Checkpoint · 9 situações</h3><p data-count>Questão 1 de 9</p><progress max="9" value="0" data-progress aria-label="Progresso do checkpoint"></progress><p data-question></p><div data-options role="group" aria-label="Alternativas"></div><p data-feedback role="status" aria-live="polite"></p><button type="button" data-next disabled>Próxima situação</button><button type="button" data-restart hidden>Refazer checkpoint</button>
+    </section>
+  </section>
+</main>
+{{ loop_questions|json_script:"loop-questions" }}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/loops-concept.js' %}"></script><script src="{% static 'js/context-glossary.js' %}"></script>{% endblock %}

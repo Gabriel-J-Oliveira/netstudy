@@ -15,6 +15,7 @@ def lesson_link(lesson):
         "title": lesson.title,
         "url": reverse("learning:" + lesson.route),
         "objective": lesson.objective,
+        "section": lesson.section,
     }
 
 
@@ -46,6 +47,10 @@ def trail(request, active=None):
         recommendation = next((entry for entry in entries if entry["progress"] != "Checkpoint concluído"), None)
     for entry in entries:
         entry["recommended"] = bool(recommendation and entry["key"] == recommendation["key"])
+    previous_section = ""
+    for entry in entries:
+        entry["section_heading"] = entry["section"] if entry["section"] != previous_section else ""
+        previous_section = entry["section"]
     return {"entries": entries, "recommendation": recommendation}
 
 

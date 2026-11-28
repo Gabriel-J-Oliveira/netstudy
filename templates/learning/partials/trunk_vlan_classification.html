@@ -1,0 +1,70 @@
+{% load static %}
+<section class="trunk-tag-section" aria-labelledby="trunk-tag-title">
+  <header>
+    <span class="eyebrow">CLASSIFICAÇÃO E MARCAÇÃO</span>
+    <h2 id="trunk-tag-title">A VLAN pode existir sem etiqueta</h2>
+    <p>Imagine uma caixa chegando a um centro de distribuição. Se ela traz uma etiqueta de setor, a equipe lê o número. Se chega sem etiqueta, a equipe usa o setor padrão da entrada. Na saída, outra regra decide se a caixa segue com etiqueta.</p>
+    <p><strong>Na rede:</strong> no {% include "learning/partials/trunk_vlan_term.html" with key="ingress" term="Ingress" definition="Entrada do frame na porta. A porta verifica se aceita o frame e a qual VLAN ele pertence." %}, a porta lê o VLAN ID de um frame {% include "learning/partials/trunk_vlan_term.html" with key="tagged" term="Tagged" definition="Frame com uma tag 802.1Q que, neste exemplo, contém o VLAN ID." %} admitido. Se o frame chega {% include "learning/partials/trunk_vlan_term.html" with key="untagged-new" term="Untagged" definition="Frame recebido ou transmitido sem uma tag 802.1Q explícita no enlace." %} e a porta o aceita, o {% include "learning/partials/trunk_vlan_term.html" with key="pvid" term="PVID" definition="Port VLAN ID. VLAN atribuída na entrada a um frame sem tag admitido pela porta." %} atribui a VLAN internamente. No {% include "learning/partials/trunk_vlan_term.html" with key="egress" term="Egress" definition="Saída do frame pela porta. A política da porta para aquela VLAN determina se o frame sai com tag ou sem tag." %}, vale a política da VLAN naquela porta.</p>
+  </header>
+
+  <div class="trunk-tag-demo" data-trunk-tag-demo>
+    <h3>Do recebimento à outra ponta</h3>
+    <p>Neste exemplo, as portas admitem frames com e sem tag e participam das VLANs 10 e 20. Ajuste os controles e acompanhe a mesma caixa.</p>
+    <ol class="trunk-tag-flow">
+      <li>
+        <h4>1. Entrada no SW1</h4>
+        <label for="trunk-tag-input">Frame recebido</label>
+        <select id="trunk-tag-input" data-tag-input>
+          <option value="">Untagged</option>
+          <option value="10">Tagged · VLAN 10</option>
+          <option value="20">Tagged · VLAN 20</option>
+        </select>
+        <label for="trunk-tag-pvid">PVID de entrada do SW1</label>
+        <select id="trunk-tag-pvid" data-tag-pvid><option>10</option><option>20</option></select>
+        {% include "learning/partials/trunk_vlan_package.html" with situation="input" caption="Sem tag" %}
+      </li>
+      <li>
+        <h4>2. Dentro do SW1</h4>
+        {% include "learning/partials/trunk_vlan_package.html" with situation="internal" caption="Contexto VLAN 10" %}
+        <p class="trunk-tag-reason" data-tag-ingress>Sem tag na entrada: o PVID atribui a VLAN 10.</p>
+      </li>
+      <li>
+        <h4>3. Enlace entre switches</h4>
+        <label for="trunk-tag-output">Regra de saída para a VLAN classificada</label>
+        <select id="trunk-tag-output" data-tag-output><option value="tagged">Tagged</option><option value="untagged">Untagged</option></select>
+        {% include "learning/partials/trunk_vlan_package.html" with situation="wire" caption="Tag 802.1Q · VLAN 10" %}
+        <p class="trunk-tag-reason" data-tag-egress>SW1 acrescenta a tag VLAN 10.</p>
+      </li>
+      <li>
+        <h4>4. Entrada no SW2</h4>
+        <label for="trunk-tag-peer">PVID de entrada do SW2</label>
+        <select id="trunk-tag-peer" data-tag-peer><option>10</option><option>20</option></select>
+        {% include "learning/partials/trunk_vlan_package.html" with situation="peer" caption="Contexto VLAN 10" %}
+        <p class="trunk-tag-reason" data-tag-receive>O SW2 lê a VLAN 10 na tag.</p>
+      </li>
+    </ol>
+    <p class="trunk-tag-result" data-tag-result role="status" aria-atomic="true">SW1: VLAN 10. No enlace: Tagged VLAN 10. SW2: VLAN 10. O contexto foi preservado.</p>
+    <p><strong>Experimente:</strong> selecione saída Untagged e troque só o PVID do SW2 para 20. Em seguida, volte para Tagged e compare.</p>
+  </div>
+
+  <p><strong>Limite da analogia:</strong> a etiqueta de papel representa bits do cabeçalho Ethernet. O setor interno representa a VLAN que o switch associa ao frame durante o processamento.</p>
+  <h3>Quando as duas pontas precisam combinar</h3>
+  <p>Em um trunk tradicional, a {% include "learning/partials/trunk_vlan_term.html" with key="native" term="Native VLAN" definition="VLAN que, na configuração tradicional de um trunk, recebe o tráfego sem tag na entrada e costuma ser enviada sem tag na saída." %} normalmente é o contexto do tráfego sem tag: na entrada, ela cumpre o papel do PVID; na saída, frames dessa VLAN costumam seguir sem tag. Se as pontas usam VLANs nativas diferentes, o mesmo frame sem tag pode entrar em outro contexto no segundo switch.</p>
+  <p>O PVID descreve a classificação de entrada. A {% include "learning/partials/trunk_vlan_term.html" with key="membership" term="VLAN Membership" definition="Participação de uma porta em uma VLAN. Conforme o equipamento, a configuração especifica também se essa VLAN sai com tag ou sem tag." %} e a política de saída determinam quais VLANs podem usar a porta e como cada uma é transmitida.</p>
+
+  <dl class="trunk-port-modes">
+    <div><dt>Access</dt><dd>Tipicamente conecta um host em uma VLAN, com frames sem tag no enlace.</dd></div>
+    <div><dt>Trunk</dt><dd>Carrega várias VLANs. As VLANs costumam sair com tag; a nativa pode sair sem tag, conforme a configuração.</dd></div>
+    <div><dt>Hybrid / General</dt><dd>Permite combinar VLANs Tagged e Untagged na mesma porta. Confira o PVID e a regra de saída de cada VLAN.</dd></div>
+  </dl>
+  <details class="trunk-optional-detail">
+    <summary>Nomes em equipamentos reais</summary>
+    <ul>
+      <li><strong>Cisco Catalyst:</strong> Native VLAN do trunk define o contexto de entrada sem tag na configuração tradicional. <a href="https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9200/software/release/26-x/configuration_guide/vlan/b_26x_vlan_9200_cg/configuring_vlan_trunks.pdf">Guia de trunks</a>.</li>
+      <li><strong>Dell Networking N Series:</strong> o modo General expõe PVID e participação Tagged ou Untagged. <a href="https://www.dell.com/support/kbdoc/en-us/000104748/how-to-configure-switchport-modes-on-dell-emc-networking-n-series-switches">Guia de modos de porta</a>.</li>
+      <li><strong>MikroTik RouterOS:</strong> a porta da bridge tem PVID, e a Bridge VLAN Table indica as portas Tagged e Untagged. <a href="https://help.mikrotik.com/docs/spaces/ROS/pages/28606465/Bridge%2BVLAN%2BTable">Guia de VLANs na bridge</a>.</li>
+    </ul>
+    <p>Confira o modelo e a configuração antes de transferir uma regra de um fabricante para outro. A demonstração representa apenas as VLANs 10 e 20 admitidas nas duas pontas.</p>
+  </details>
+  {% include "learning/partials/trunk_vlan_practice.html" %}
+</section>

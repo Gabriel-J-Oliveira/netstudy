@@ -10,11 +10,11 @@ from .curriculum import LESSONS
 
 
 class JourneyNavigationTests(TestCase):
-    def test_home_and_learning_catalog_link_all_seventeen_lessons(self):
+    def test_home_and_learning_catalog_link_all_twenty_lessons(self):
         self.assertEqual(
             [lesson.key for lesson in LESSONS],
-            ["OSI", "MAC", "FRAME", "SWITCH", "DELIVERY", "IPV4", "ARP", "VLAN", "TRUNK",
-             "GATEWAY", "ROUTES", "INTERVLAN", "ICMP", "TRANSPORT", "PORTS", "DHCP", "DNS"],
+            ["OSI", "ENCAPSULATION", "MAC", "FRAME", "SWITCH", "DELIVERY", "IPV4", "ARP", "VLAN", "TRUNK",
+             "LOOPS", "SPANNING_TREE", "GATEWAY", "ROUTES", "INTERVLAN", "ICMP", "TRANSPORT", "PORTS", "DHCP", "DNS"],
         )
         prior = set()
         for lesson in LESSONS:
@@ -37,7 +37,7 @@ class JourneyNavigationTests(TestCase):
                 self.assertContains(response, f'id="{lesson.checkpoint}"')
                 self.assertContains(response, f'#{lesson.checkpoint}')
                 self.assertContains(response, f'exercise={lesson.exercise}')
-                self.assertContains(response, f"Aula {index + 1:02} de 17")
+                self.assertContains(response, f"Aula {index + 1:02} de 20")
                 self.assert_trail_order(response, "lesson-trail lesson-trail-sidebar")
                 for offset, direction in [(-1, "previous"), (1, "next")]:
                     links = re.findall(rf'data-trail-{direction} href="([^"]+)"', response.content.decode())
@@ -50,16 +50,17 @@ class JourneyNavigationTests(TestCase):
         self.assertEqual(re.findall(r'class="trail-link" href="([^"]+)"', html),
                          [reverse("learning:" + lesson.route) for lesson in LESSONS])
         self.assertEqual(re.findall(r'class="trail-number">(\d+)<', html),
-                         [f"{number:02}" for number in range(1, 18)])
+                         [f"{number:02}" for number in range(1, 21)])
 
     def test_recommendation_reads_existing_checkpoint_session(self):
         session = self.client.session
         session["osi_checkpoint"] = {"complete": True}
+        session["encapsulation_checkpoint"] = {"complete": True}
         session["mac_checkpoint"] = {"complete": False, "current": 1, "answers": {}}
         session.save()
         page = self.client.get(reverse("learning:learn"))
-        self.assertContains(page, "02 · MAC Address")
-        self.assertContains(page, "Checkpoint concluído", count=2)
+        self.assertContains(page, "03 · MAC Address")
+        self.assertContains(page, "Checkpoint concluído", count=4)
         self.assertContains(page, "Checkpoint em andamento", count=2)
         self.assertEqual(self.client.session["osi_checkpoint"], {"complete": True})
 

@@ -4,6 +4,7 @@
 <ol class="lesson-trail{% if sidebar %} lesson-trail-sidebar{% endif %}" aria-label="Trilha de Aprender">
   {% for entry in entries %}
   <li>
+    {% if entry.section_heading %}<span class="trail-section">{{ entry.section_heading }}</span>{% endif %}
     <a class="trail-link" href="{{ entry.url }}"{% if entry.active %} aria-current="page"{% endif %}>
       <span class="trail-number">{{ entry.number }}</span>
       <span>

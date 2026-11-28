@@ -24,13 +24,15 @@ A ancestralidade é `main` → `recovery/netstudy-advanced` → `feature/jornada
 
 | Entrada do aluno | O que já funciona | Limite importante |
 |---|---|---|
-| **Aprender** (`/aprender/`) | 16 módulos em sequência, demonstrações próprias e checkpoints de 10 situações por módulo. | Estado de checkpoint na sessão Django; não é histórico permanente de domínio. |
+| **Aprender** (`/aprender/`) | 19 módulos em uma trilha numerada, demonstrações e checkpoints de 10 situações por módulo. | O progresso exibido vem do checkpoint da sessão atual. |
 | **Praticar** (`/praticar/`) | Nove famílias gerativas da bancada, atividades ARP/MAC, Rapid Fire ARP, L2-02 da Lista 1 e acesso a quatro missões GNS3. | As demais atividades das listas e a experiência multidisciplinar ainda não estão implementadas. |
 | **Laboratório** (`/laboratorio/`) | Bancada livre, presets, cenários pessoais, equipamentos/perfis, terminais e simulações; exercícios guiados usam a **mesma** bancada. | O simulador é didático e finito, não uma emulação completa de Packet Tracer/GNS3 ou de fabricantes. |
 
 **Lista 1, primeiro incremento:** `/praticar/camada-2/uma-saida-ou-varias/` oferece L2-02, três previsões curtas sobre Destination MAC, tabela MAC, portas de saída e aceitação pelos hosts. `learning/l2_practice.py` calcula e avalia as respostas sem depender da bancada ou das sessões dos checkpoints. O contrato de resposta v1 contém `classification`, `lookup`, `action`, `egress[]`, `received[]` e `accepted[]`. A chave de sessão Django `netstudy_l2_02_v1` guarda apenas `schema_version: 1` e IDs dos cenários verificados corretamente; não guarda gabaritos nem estados do simulador. É progresso desta atividade na sessão, não conclusão da lista, nem histórico permanente ou sincronizado. Os três cenários são fixos nesta versão; não há gerador de variações. Uma lista futura ou Attempt v2 poderá referenciar esse resultado verificado por `activityId`/versão, sem adaptar respostas curtas ao Attempt Schema v1 da bancada.
 
 **Jornada sugerida:** conteúdo → checkpoint → exercício contextual em Praticar → investigar/configurar/testar na bancada → voltar à lista → aprofundamento manual no GNS3. Esses passos são sugestões de navegação, não bloqueios de progresso. O exercício guiado apresenta problema e objetivo compactos, mantém a topologia em destaque e recolhe detalhes avançados; a bancada livre preserva o catálogo. A vista aceita zoom de 85% a 160%, deslocamento com o botão do meio e alternativa por teclado. O painel do equipamento acompanha a vista; sua rolagem interna não aciona o zoom.
+
+**Demonstração de Loops de Rede:** `templates/learning/loops_concept.html` apresenta a cena em SVG local, incluindo topologia, mensagens nos equipamentos e percurso dos frames. `static/js/loops-concept.js` usa JavaScript nativo e seis estados didáticos finitos; SVG `animateMotion` e CSS controlam o movimento, sem GSAP, D3 ou biblioteca de gráficos. A animação só começa por ação do aluno, tem pausa, velocidade, avanço, limite ilustrativo de 48 frames e recuperação por desconexão. `prefers-reduced-motion` desativa reprodução e efeitos contínuos. Contadores, filas, descartes e uso do enlace são evidências visuais do modelo, não resultados do simulador integrado nem medições reais.
 
 **Contratos e responsabilidades que devem ser preservados:**
 
@@ -73,26 +75,11 @@ O script aplica as migrations, define DJANGO_ALLOWED_HOSTS para esse IP enquanto
 
 ## Mapa do produto
 
-A página inicial (`/`) apresenta Aprender, Praticar e Laboratório; `/aprender/` apresenta os **16 módulos**, na ordem abaixo. Todos têm um checkpoint de **10 situações**, definido em `learning/<tema>_checkpoint.py`. O conteúdo, o laboratório da aula e o checkpoint são partes distintas.
+A página inicial e `/aprender/` mostram a mesma trilha de 20 aulas, desde Modelo OSI e TCP/IP até DNS. Encapsulamento e Desencapsulamento de Dados ocupa a posição 02, em Fundamentos de redes; Loops de Rede e Broadcast Storm e, em seguida, Spanning Tree — STP, RSTP e MSTP vêm logo após Trunk + 802.1Q. `learning/curriculum.py` define a ordem, o identificador, as rotas, os objetivos e os pré-requisitos. Home, barra lateral e transições calculam a posição e as aulas vizinhas a partir desse catálogo. A recomendação no catálogo usa o primeiro checkpoint ainda não concluído na sessão. Todas as aulas estão acessíveis diretamente.
 
-| # | Módulo | URL | Interação ou foco |
-|---|---|---|---|
-| 1 | ARP | /arp/conceito/ | Request/Reply, cache e terminal; há atividades tradicionais e Rapid Fire à parte. |
-| 2 | MAC Address | /mac/ | Endereço MAC, exercícios e checkpoint. |
-| 3 | Frame Ethernet | /frame/ | Campos, montagem e inspeção do frame; integração com ARP. |
-| 4 | Switch Ethernet | /switch/ | Aprendizado MAC, tabela MAC e encaminhamento. |
-| 5 | Unicast × Broadcast | /unicast-broadcast/ | Unicast conhecido, broadcast e unknown unicast. |
-| 6 | VLAN | /vlan/ | Separação lógica, portas Access e limite do broadcast. |
-| 7 | Trunk + 802.1Q | /trunk-8021q/ | VLANs no mesmo enlace, percurso do frame e Allowed VLANs. |
-| 8 | IPv4 + Sub-rede | /ipv4-subnet/ | Máscara, prefixo e decisão local/remoto. |
-| 9 | Default Gateway + Next Hop | /default-gateway/ | Primeira entrega local e ARP do próximo salto. |
-| 10 | Tabela de Rotas + Escolha de Caminho | /tabela-de-rotas/ | Correspondência de prefixos e escolha manual da rota mais específica. |
-| 11 | Inter-VLAN Routing | /inter-vlan-routing/ | Dois frames ligados por uma função de Camada 3. |
-| 12 | ICMP + Ping + Traceroute | /icmp-ping-traceroute/ | Echo Request/Reply e sondas com TTL crescente. |
-| 13 | TCP × UDP | /tcp-udp/ | Comparação dos serviços de transporte. |
-| 14 | Portas + Cliente/Servidor | /portas-cliente-servidor/ | Entrega ao endpoint e resposta do servidor. |
-| 15 | DNS + Resolução de Nomes | /dns-resolucao-nomes/ | Consulta de nomes, laboratório e evidências. |
-| 16 | DHCP + Configuração Dinâmica | /dhcp-configuracao-dinamica/ | DORA e configuração recebida. |
+Cada módulo mantém seu checkpoint de 10 situações em `learning/<tema>_checkpoint.py` (OSI e Encapsulamento usam seus módulos `*_content.py`). MAC e Frame apresentam a descoberta do MAC como prévia opcional. Os exercícios que usam termos posteriores trazem a regra necessária no enunciado ou no painel. IPv4 ensina primeiro a decisão local/remoto e a aula de ARP retoma os exemplos de MAC, frame, broadcast e IPv4.
+
+**Loops de Rede e Broadcast Storm** preserva a URL `/loops-de-rede/`, sua demonstração visual e as nove questões de loop/storm. A nova aula **Spanning Tree — STP, RSTP e MSTP** vem imediatamente depois em `/spanning-tree/`. O painel STP clássico aprovado foi movido sem reconstruir sua topologia e continua usando o modelo determinístico `static/js/loops-stp-model.js` (limite de 32 iterações) e a interface `static/js/loops-stp-concept.js`. A nova página acrescenta comparação manual STP/RSTP, árvores MSTI calculadas pelo mesmo modelo de spanning tree, cenas Edge/BPDU Guard/Root Guard/Loop Guard e checkpoint próprio. Os relógios comparativos são didáticos, não garantias de convergência; nomenclaturas como `err-disabled`, `root-inconsistent` e `loop-inconsistent` são identificadas como representação Cisco ou dependente de fabricante. Checkpoints das duas páginas têm IDs e conteúdos separados; são interações no navegador e não criam persistência de respostas.
 
 Além da trilha, **/praticar/** reúne os exercícios e **/laboratorio/** abre a bancada integrada editável descrita adiante. As três entradas principais são Aprender, Praticar e Laboratório; a navegação entre aulas aparece nas próprias páginas. ARP tem ainda o fluxo de atividades em learning/exercises.py e Rapid Fire de 12 itens em learning/content.py; MAC tem atividades em learning/mac_exercises.py.
 
@@ -298,6 +285,7 @@ No Windows com .venv preparado:
 .\.venv\Scripts\python.exe manage.py check
 .\.venv\Scripts\python.exe manage.py test
 node static/js/activity-orchestrator.test.js
+node static/js/loops-stp-model.test.js
 node static/js/integrated-lab-model.test.js
 node static/js/integrated-lab-profiles.test.js
 node static/js/integrated-lab-terminal.test.js

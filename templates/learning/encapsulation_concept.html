@@ -1,0 +1,118 @@
+{% extends "learning/base.html" %}
+{% load static %}
+{% block title %}Encapsulamento e Desencapsulamento · NetStudy{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/context-glossary.css' %}">
+<link rel="stylesheet" href="{% static 'css/encapsulation-concept.css' %}?v=visual-2">
+{% endblock %}
+{% block content %}
+<article class="enc-lesson" data-enc-lesson>
+  <header>
+    <p class="eyebrow">Fundamentos de redes</p>
+    <h1>Encapsulamento e Desencapsulamento de Dados</h1>
+    <p class="enc-lead">Um pedido da aplicação precisa chegar ao serviço certo, atravessar redes e ser entregue em cada enlace. {% include "learning/partials/encapsulation_term.html" with key="encapsulation" term="Encapsulamento" definition="Cada camada recebe dados e acrescenta as informações necessárias para cumprir sua função na entrega." %} é o processo de preparar os dados para serem enviados pela rede. Cada camada acrescenta as informações necessárias para cumprir sua parte. No destino, as camadas interpretam essas informações e entregam a carga à camada seguinte.</p>
+  </header>
+
+  {% include "learning/partials/encapsulation_warmup.html" %}
+
+  <section aria-labelledby="enc-structure-title" data-enc-walkthrough>
+    <p class="enc-area-index">Área 03 · Compreender</p>
+    <h2 id="enc-structure-title">Dos dados ao fio, do fio à aplicação</h2>
+    <p>Avance no seu ritmo e selecione uma parte para inspecioná-la.</p>
+    <p class="enc-definitions">Uma {% include "learning/partials/encapsulation_term.html" with key="pdu" term="PDU" definition="Unidade de dados de protocolo. É o conjunto tratado por uma camada, como o segmento TCP, o pacote IPv4 ou o frame Ethernet." %} pode combinar {% include "learning/partials/encapsulation_term.html" with key="header" term="header" definition="Cabeçalho. Vem antes da carga e leva informações que o protocolo precisa interpretar." %}, {% include "learning/partials/encapsulation_term.html" with key="payload" term="payload" definition="Carga útil. É o conteúdo transportado pela unidade, como o segmento TCP dentro do pacote IPv4." %} e, no caso do frame Ethernet, {% include "learning/partials/encapsulation_term.html" with key="trailer" term="trailer" definition="Informação que vem depois da carga. No frame Ethernet, o trailer contém o FCS." %}. No {% include "learning/partials/encapsulation_term.html" with key="decapsulation" term="desencapsulamento" definition="Cada protocolo interpreta suas informações de controle e entrega a carga ao protocolo ou à aplicação seguinte." %}, o destino faz a leitura de fora para dentro.</p>
+    <div class="enc-actions" role="group" aria-label="Sentido da demonstração">
+      <button type="button" class="btn btn-outline-primary" data-enc-mode="send" aria-pressed="true">Cliente · Encapsular</button>
+      <button type="button" class="btn btn-outline-primary" data-enc-mode="receive" aria-pressed="false">Servidor · Desencapsular</button>
+    </div>
+    <div class="enc-panel">
+      <div aria-live="polite" aria-atomic="true">
+        <p class="eyebrow" data-enc-step-position>Cliente · 1/5</p>
+        <h3 data-enc-step-title>Dados da aplicação</h3>
+        <p data-enc-step-copy>O navegador prepara o pedido HTTP.</p>
+      </div>
+      <p class="enc-signal" data-enc-signal hidden><span aria-hidden="true">▂▆▆▂▆▂</span> Sinais no meio físico · representação dos bits</p>
+      <div class="enc-unit" role="group" aria-label="Partes da unidade de dados">
+        {% for key, label, level, fields in layers %}
+        <button type="button" class="enc-{{ key }}" data-enc-layer="{{ key }}" data-min-level="{{ level }}" aria-controls="enc-inspect-{{ key }}" aria-pressed="{% if level == 0 %}true{% else %}false{% endif %}"{% if level != 0 %} hidden{% endif %}>{{ label }}</button>
+        {% endfor %}
+      </div>
+      <div class="enc-inspector" aria-live="polite">
+        {% for key, label, level, fields in layers %}
+        <div id="enc-inspect-{{ key }}" data-enc-inspector="{{ key }}" class="enc-{{ key }}"{% if level != 0 %} hidden{% endif %}>
+          <h4>{{ label }}</h4>
+          {% if key == "ethernet" %}
+          <p class="enc-value"><strong data-enc-side>Cliente · enlace A</strong><br><code data-enc-macs>02:00:00:00:01:10 → 02:00:00:00:01:01</code></p>
+          {% elif key == "ip" %}
+          <p class="enc-value"><strong>TTL observado</strong> · <code data-enc-ttl>64</code></p>
+          {% endif %}
+          <dl>{% for field, description in fields %}<div><dt>{{ field }}</dt><dd>{{ description }}</dd></div>{% endfor %}</dl>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="enc-actions">
+        <button type="button" class="btn btn-outline-primary" data-enc-prev disabled>Anterior</button>
+        <button type="button" class="btn btn-primary" data-enc-next>Avançar</button>
+      </div>
+    </div>
+    <p class="enc-note">O exemplo usa TCP sobre IPv4 e Ethernet. Um {% include "learning/partials/encapsulation_term.html" with key="segment" term="segmento" definition="Unidade TCP formada por seu cabeçalho e pelos dados que ele carrega, quando presentes." %} é carregado num {% include "learning/partials/encapsulation_term.html" with key="packet" term="pacote" definition="Aqui, unidade IPv4 formada pelo cabeçalho IP e sua carga." %}, e o pacote segue num {% include "learning/partials/encapsulation_term.html" with key="frame" term="frame" definition="Unidade da camada de enlace usada para entrega local. Na Ethernet, leva MACs no cabeçalho e FCS no final." %}. UDP usa {% include "learning/partials/encapsulation_term.html" with key="datagram" term="datagramas" definition="Unidades UDP com cabeçalho próprio, que inclui portas, e uma carga. Cada envio preserva seu limite de datagrama." %}. O desenho mostra apenas campos selecionados, sem escala de bytes. Considere a conexão TCP já estabelecida e os MACs locais já conhecidos.</p>
+  </section>
+
+  <section aria-labelledby="enc-path-title" data-enc-path>
+    <p class="enc-area-index">Área 04 · Experimentar</p>
+    <h2 id="enc-path-title">O que muda ao atravessar o roteador?</h2>
+    <p>O mesmo pedido sai de PC-A e chega ao servidor por dois enlaces Ethernet. O percurso não usa NAT.</p>
+    <ol class="enc-path-rail" aria-label="Pontos de inspeção">
+      {% for point, role, copy, side in path %}
+      <li><button type="button" data-path-point="{{ forloop.counter0 }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"><strong>{{ point }}</strong><small>{{ role }}</small></button></li>
+      {% endfor %}
+    </ol>
+    <div class="enc-panel" aria-live="polite" aria-atomic="true">
+      <p class="eyebrow" data-path-position>PC-A · 1/5</p>
+      <p data-path-copy>PC-A prepara o frame para o primeiro enlace. O MAC de destino é o da interface de entrada do roteador.</p>
+    </div>
+    <div class="enc-actions">
+      <button type="button" class="btn btn-outline-primary" data-path-prev disabled>Ponto anterior</button>
+      <button type="button" class="btn btn-primary" data-path-next>Próximo ponto</button>
+    </div>
+    <p class="enc-definitions">Ao comparar os frames, observe o {% include "learning/partials/encapsulation_term.html" with key="ttl" term="TTL" definition="Limite de vida do pacote IPv4. Cada roteador que o encaminha reduz esse valor." %} e o {% include "learning/partials/encapsulation_term.html" with key="checksum" term="checksum" definition="Valor de verificação do cabeçalho IPv4. O roteador o atualiza quando altera o TTL." %} no IPv4. Na Ethernet, o {% include "learning/partials/encapsulation_term.html" with key="ethertype" term="EtherType" definition="Identifica o protocolo carregado pelo frame. O valor 0x0800 identifica IPv4." %} identifica a carga, enquanto o {% include "learning/partials/encapsulation_term.html" with key="fcs" term="FCS" definition="Campo de verificação colocado ao final do frame Ethernet para detectar erros na entrega pelo enlace." %} ajuda a detectar erros no frame.</p>
+    <div class="enc-comparison" data-enc-comparison data-side="before">
+      <table>
+        <caption>Comparação dos frames antes e depois do roteador</caption>
+        <thead><tr><th scope="col">Campo</th><th scope="col">Enlace A · entrada</th><th scope="col">Enlace B · saída</th></tr></thead>
+        <tbody>
+          {% for key, field, before, after, change in frames %}
+          <tr class="enc-{{ key }}{% if change %} enc-changed{% endif %}" data-frame-field="{{ forloop.counter }}">
+            <th scope="row">{{ field }}{% if change %}<small>Muda</small>{% endif %}</th>
+            <td>{{ before }}</td><td>{{ after }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="enc-related">
+      Para aprofundar: <a href="{% url 'learning:switch_concept' %}">Switch Ethernet</a> ·
+      <a href="{% url 'learning:gateway_concept' %}">Default Gateway</a> ·
+      <a href="{% url 'learning:route_concept' %}">Tabela de Rotas</a>
+    </p>
+  </section>
+
+  <section aria-labelledby="enc-practice-title">
+    <p class="enc-area-index">Área 05 · Consolidar</p>
+    <h2 id="enc-practice-title">Preveja antes de conferir</h2>
+    {% for prompt, explanation in predictions %}
+    <details class="enc-prediction"><summary>{{ prompt }}</summary><p>{{ explanation }}</p></details>
+    {% endfor %}
+  </section>
+
+  <section id="encapsulation-checkpoint" aria-label="Checkpoint" aria-live="polite" data-checkpoint-panel>
+    {% include "learning/partials/encapsulation_checkpoint.html" %}
+  </section>
+</article>
+{{ walkthrough|json_script:"enc-walkthrough-data" }}
+{{ path|json_script:"enc-path-data" }}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/encapsulation-concept.js' %}" defer></script>
+<script src="{% static 'js/encapsulation-warmup.js' %}" defer></script>
+<script src="{% static 'js/context-glossary.js' %}" defer></script>
+{% endblock %}

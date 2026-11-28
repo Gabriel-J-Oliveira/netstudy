@@ -1,3 +1,4 @@
+{% load journey %}
 <section id="mac-checkpoint" class="frame-checkpoint mac-checkpoint" aria-labelledby="mac-checkpoint-title">
   {% if not mac_checkpoint_started %}
     <div class="checkpoint-locked"><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="mac-checkpoint-title">Checkpoint — MAC Address</h2><p>As 10 situações serão abertas aqui, sem sair da página.</p></div>
@@ -6,8 +7,7 @@
       <div class="checkpoint-concepts"><article><strong>MAC</strong><span>conceito principal</span></article><article><strong>ARP</strong><span>conceito relacionado</span></article><article><strong>FRAME</strong><span>conceito relacionado</span></article></div>
       <div class="checkpoint-capabilities"><h3>Capacidades treinadas</h3>{% for capability in mac_checkpoint_capabilities %}<span>✓ {{ capability }}</span>{% endfor %}</div>
       {% if mac_checkpoint_misconceptions %}<aside class="checkpoint-review"><h3>Pontos que apareceram</h3>{% for label in mac_checkpoint_misconceptions %}<span>{{ label }}</span>{% endfor %}</aside>{% endif %}
-      <div class="checkpoint-next-concept"><span>PRÓXIMO CONCEITO</span><h3>Switch</h3><p>Agora sabemos o que está dentro do frame e quais endereços MAC ele carrega. O próximo passo é entender como o switch utiliza essas informações quando recebe o frame.</p><b>Em breve</b></div>
-      <form method="post" action="{% url 'learning:mac_checkpoint_restart' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
+      {% lesson_transition "MAC" True %}<form method="post" action="{% url 'learning:mac_checkpoint_restart' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
     </div>
   {% else %}
     <header class="checkpoint-header"><div><span class="action-label label-checkpoint">CHECKPOINT</span><h2 id="mac-checkpoint-title">Checkpoint — MAC Address</h2><p>10 situações para aplicar, inferir e diagnosticar.</p></div><strong>ATIVIDADE {{ mac_checkpoint_activity.number }} DE {{ mac_checkpoint_total }}</strong></header>
@@ -15,6 +15,7 @@
     <article class="checkpoint-activity type-{{ mac_checkpoint_activity.type }}">
       <div class="checkpoint-meta"><span class="concept-primary">{{ mac_checkpoint_activity.primary }}</span>{% for concept in mac_checkpoint_activity.related %}<span class="concept-related">{{ concept }}</span>{% endfor %}<span class="difficulty-badge">{{ mac_checkpoint_activity.category|upper }} · NÍVEL {{ mac_checkpoint_activity.difficulty_level }}</span></div>
       <h3>{{ mac_checkpoint_activity.title }}</h3>{% if mac_checkpoint_activity.question %}<p class="checkpoint-question">{{ mac_checkpoint_activity.question }}</p>{% endif %}{% if mac_checkpoint_activity.situation %}<p>{{ mac_checkpoint_activity.situation }}</p>{% endif %}
+      {% if mac_checkpoint_activity.id != '1' and mac_checkpoint_activity.id != '2' %}<p class="lesson-scaffold">Source MAC identifica a interface remetente e Destination MAC identifica o destinatário neste enlace. Leia linhas como <code>IPv4 → MAC</code> como pares já conhecidos, mostrados pelo comando <code>arp -a</code>. Se o cenário indicar um gateway, ele é o próximo roteador local para uma entrega remota. Um teste ping verifica se há resposta do destino.</p>{% endif %}
       {% if mac_checkpoint_activity.context_lines %}<div class="checkpoint-context">{% for line in mac_checkpoint_activity.context_lines %}<code>{{ line }}</code>{% endfor %}</div>{% endif %}
       {% if mac_checkpoint_activity.outputs %}<div class="checkpoint-outputs">{% for output in mac_checkpoint_activity.outputs %}<section><h4>C:\&gt; {{ output.title }}</h4><pre>{{ output.text }}</pre></section>{% endfor %}</div>{% endif %}
       {% if mac_checkpoint_activity.capture %}<pre class="checkpoint-capture">{{ mac_checkpoint_activity.capture }}</pre>{% endif %}

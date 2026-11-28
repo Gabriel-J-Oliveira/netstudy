@@ -78,7 +78,7 @@ class ProjectAndConceptTests(TestCase):
         self.assertContains(response, 'data-arp-area=', count=7, html=False)
         for number in range(1, 8):
             self.assertContains(response, f"{number:02d} ·")
-        self.assertNotContains(response, "08 ·")
+        self.assertNotContains(response, 'data-arp-area="08"')
         self.assertContains(response, "NetStudy Terminal")
         self.assertContains(response, 'data-arp-terminal', html=False)
         self.assertContains(response, 'data-scope-explorer', html=False)
@@ -158,16 +158,16 @@ class ProjectAndConceptTests(TestCase):
     def test_frame_concept_loads_and_appears_on_home_and_navigation(self):
         home = self.client.get(reverse("learning:home"))
         self.assertContains(home, "Frame Ethernet")
-        self.assertContains(home, "Estudar Frame Ethernet")
+        self.assertContains(home, "04</span>")
         self.assertContains(home, reverse("learning:frame_concept"))
         response = self.client.get(reverse("learning:frame_concept"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "O que é um Frame Ethernet?")
         self.assertContains(response, 'aria-current="page">Aprender</a>', html=False)
 
-    def test_frame_keeps_arp_and_mac_available_and_links_to_both(self):
+    def test_frame_keeps_an_optional_arp_preview_and_links_to_mac(self):
         response = self.client.get(reverse("learning:frame_concept"))
-        self.assertContains(response, "Revisar ARP")
+        self.assertContains(response, "Prévia opcional")
         self.assertContains(response, "Revisar MAC")
         self.assertContains(response, reverse("learning:concept"))
         self.assertContains(response, reverse("learning:mac_concept"))
@@ -192,7 +192,7 @@ class ProjectAndConceptTests(TestCase):
         self.assertContains(response, 'data-frame-area=', count=7, html=False)
         for number in range(1, 8):
             self.assertContains(response, f"{number:02d} ·")
-        self.assertNotContains(response, "08 ·")
+        self.assertNotContains(response, 'data-arp-area="08"')
         self.assertNotContains(response, "E VLAN?")
 
     def test_frame_area_one_focuses_on_data_frame_and_transmission(self):
@@ -272,9 +272,9 @@ class ProjectAndConceptTests(TestCase):
         self.assertNotContains(response, 'href="/frame/atividades/', html=False)
         self.assertNotContains(response, 'href="/frame/rapid-fire/', html=False)
 
-    def test_mac_links_to_arp_and_keeps_arp_available(self):
+    def test_mac_previews_arp_and_keeps_arp_available(self):
         response = self.client.get(reverse("learning:mac_concept"))
-        self.assertContains(response, "Revisar ARP")
+        self.assertContains(response, "Prévia opcional")
         self.assertContains(response, reverse("learning:concept"))
         arp = self.client.get(reverse("learning:concept"))
         self.assertEqual(arp.status_code, 200)
@@ -295,7 +295,7 @@ class ProjectAndConceptTests(TestCase):
         self.assertContains(response, 'data-mac-area=', count=7, html=False)
         for number in range(1, 8):
             self.assertContains(response, f"{number:02d} ·")
-        self.assertNotContains(response, "08 ·")
+        self.assertNotContains(response, 'data-arp-area="08"')
         self.assertContains(response, "NetStudy Terminal")
         self.assertContains(response, "ipconfig /all")
         self.assertContains(response, "arp -a")
@@ -865,7 +865,7 @@ class MacCheckpointTests(TestCase):
         complete = self.client.post(reverse("learning:mac_checkpoint_next"), HTTP_X_REQUESTED_WITH="XMLHttpRequest").json()
         self.assertTrue(complete["complete"])
         self.assertIn("10 situações resolvidas", complete["html"])
-        self.assertIn("Próximo passo é entender como o switch", complete["html"].replace("próximo", "Próximo"))
+        self.assertIn("Próxima aula · 04 · Frame Ethernet", complete["html"])
 
 
 class ArpCheckpointTests(TestCase):
@@ -1557,13 +1557,13 @@ class DeliveryConceptAndCheckpointTests(TestCase):
         self.assertIn("executeArpFrame();", script)
         self.assertIn("resetArpDemo", script)
 
-    def test_navigation_connects_switch_delivery_and_future_vlan(self):
+    def test_navigation_connects_switch_delivery_and_ipv4(self):
         route = reverse("learning:delivery_concept")
         self.assertContains(self.client.get(reverse("learning:home")), route)
         self.assertContains(self.client.get(reverse("learning:switch_concept")), route)
         response = self.client.get(route)
         self.assertContains(response, reverse("learning:switch_concept"))
-        self.assertContains(response, "Próximo: VLAN")
+        self.assertContains(response, "Próxima aula · 07 · IPv4 e Sub-redes")
         self.assertContains(response, 'aria-current="page"', html=False)
 
     def test_scenarios_cover_known_broadcast_unknown_arp_and_boundary(self):
@@ -1828,7 +1828,7 @@ class VlanConceptAndCheckpointTests(TestCase):
         response = self.client.post(reverse("learning:vlan_checkpoint_next"), follow=True)
         self.assertContains(response, "10 situações resolvidas")
         self.assertContains(response, "Trunk usado como correção genérica")
-        self.assertContains(response, "Estudar Trunk + 802.1Q")
+        self.assertContains(response, "Próxima aula · 10 · Trunk 802.1Q")
 
 
 class TrunkConceptAndCheckpointTests(TestCase):
@@ -1921,6 +1921,8 @@ class TrunkConceptAndCheckpointTests(TestCase):
             "trunk-tip-link", "trunk-tip-host", "trunk-tip-interface",
             "trunk-tip-access", "trunk-tip-vlan-id", "trunk-tip-allowed",
             "trunk-tip-link-up", "trunk-tip-untagged",
+            "trunk-tip-ingress", "trunk-tip-tagged", "trunk-tip-untagged-new",
+            "trunk-tip-pvid", "trunk-tip-egress", "trunk-tip-native", "trunk-tip-membership",
         )
         self.assertEqual(page.count('data-glossary-trigger'), len(glossary_ids))
         for glossary_id in glossary_ids:
@@ -1936,14 +1938,14 @@ class TrunkConceptAndCheckpointTests(TestCase):
             "não uma porta TCP/UDP", "tráfego do host à VLAN configurada",
             "Número que identifica a VLAN indicada pela tag 802.1Q",
             "não atravessa, mesmo com o enlace ativo", "não garante que todas as VLANs estejam permitidas",
-            "A Native VLAN é um caso opcional relacionado",
+            "A seção de classificação mostra como a Native VLAN",
         ):
             self.assertIn(definition, page)
         self.assertIn("data-journey-vlan=\"10\"", page)
         self.assertIn("data-journey-vlan=\"20\"", page)
         self.assertIn("data-allowed-toggle", page)
         self.assertIn("data-trunk-checkpoint-start", page)
-        self.assertIn("Native VLAN</summary>", page)
+        self.assertIn('id="trunk-tag-title"', page)
         source = (settings.BASE_DIR / "static" / "js" / "trunk-concept.js").read_text(encoding="utf-8")
         for fragment in ("event.key === \"Escape\"", 'event.pointerType !== "touch"', 'event.pointerType === "mouse"', 'trigger.addEventListener("focus"', 'document.addEventListener("pointerdown"'):
             self.assertIn(fragment, source)
@@ -1999,13 +2001,15 @@ class TrunkConceptAndCheckpointTests(TestCase):
             self.assertContains(response, selector, html=False)
             self.assertIn(selector, source)
 
-    def test_direct_actions_replace_old_quizzes_and_rapid_fire(self):
+    def test_direct_actions_preserve_the_journey_and_add_scoped_practice(self):
         response = self.client.get(reverse("learning:trunk_concept"))
         for selector in (
             "data-connection-choice", "data-tag-choice", "data-broadcast-choice",
             "data-allowed-choice", "data-trunk-rapid-fire", "data-rapid-answer",
         ):
             self.assertNotContains(response, selector, html=False)
+        for hook in ("data-trunk-tag-demo", "data-tag-association", "data-tag-rapid", 'role="status"', "caixa-vlan.svg"):
+            self.assertContains(response, hook, html=False)
         self.assertContains(response, "uma VLAN pode ser bloqueada sem derrubar o enlace.")
         self.assertContains(response, "roteamento de Camada 3")
         self.assertContains(response, "o host recebe o frame sem precisar processar a tag.")
@@ -2020,11 +2024,12 @@ class TrunkConceptAndCheckpointTests(TestCase):
         for fragment in ("max-width:360px", "prefers-reduced-motion", ":focus-visible"):
             self.assertIn(fragment, css)
 
-    def test_checkpoint_has_exactly_ten_with_requested_difficulty_and_investigations(self):
-        self.assertEqual(len(TRUNK_ACTIVITIES), 10)
-        self.assertEqual(set(TRUNK_ACTIVITY_MAP), {str(number) for number in range(1, 11)})
-        self.assertEqual([item["difficulty_level"] for item in TRUNK_ACTIVITIES], [3, 3, 4, 4, 4, 4, 5, 5, 5, 5])
-        self.assertEqual([item["mode"] for item in TRUNK_ACTIVITIES[6:]], ["investigation"] * 4)
+    def test_checkpoint_keeps_original_ten_and_appends_three_configurations(self):
+        self.assertEqual(len(TRUNK_ACTIVITIES), 13)
+        self.assertEqual(list(TRUNK_ACTIVITY_MAP), [str(number) for number in range(1, 14)])
+        self.assertEqual([item["difficulty_level"] for item in TRUNK_ACTIVITIES[:10]], [3, 3, 4, 4, 4, 4, 5, 5, 5, 5])
+        self.assertEqual([item["mode"] for item in TRUNK_ACTIVITIES[6:10]], ["investigation"] * 4)
+        self.assertEqual([item["mode"] for item in TRUNK_ACTIVITIES[10:]], ["configuration"] * 3)
         for number in (5, 7, 8, 9, 10):
             self.assertTrue(TRUNK_ACTIVITY_MAP[str(number)]["required_evidence"])
 
@@ -2079,10 +2084,38 @@ class TrunkConceptAndCheckpointTests(TestCase):
         }
         answers["10"]["misconception_codes"] = ["confuses_trunk_with_inter_vlan_routing"]
         self.set_current(10, answers)
-        response = self.client.post(reverse("learning:trunk_checkpoint_next"), follow=True)
-        self.assertContains(response, "10 situações resolvidas")
+        next_url = reverse("learning:trunk_checkpoint_next")
+        response = self.client.post(next_url, follow=True)
+        self.assertContains(response, "ATIVIDADE 11 DE 13")
+        self.assertNotContains(response, "data-trunk-workbench", html=False)
+        wrong = self.answer_map({"vlan10": "untagged", "vlan20": "tagged"}, ajax=True).json()
+        self.assertFalse(wrong["correct"])
+        self.assertIn("PVID 20", wrong["feedback"])
+        for number in (11, 12, 13):
+            correct = self.answer_map(TRUNK_ACTIVITY_MAP[str(number)]["correct_map"], ajax=True).json()
+            self.assertTrue(correct["correct"])
+            self.client.post(next_url, **self.ajax)
+        response = self.client.get(reverse("learning:trunk_concept"))
+        self.assertContains(response, "13 situações resolvidas")
         self.assertContains(response, "Confunde trunk com roteamento inter-VLAN")
-        self.assertContains(response, "IPv4 + Sub-rede")
+        self.assertContains(response, "Próxima aula · 11 · Loops de Rede e Broadcast Storm")
+        self.assertNotContains(response, "Continuar com as novas situações")
+
+    def test_legacy_completion_can_continue_without_restarting(self):
+        answers = {str(number): {"complete": True, "result_type": "immediate"} for number in range(1, 11)}
+        self.set_current(10, answers)
+        session = self.client.session
+        session["trunk_checkpoint"]["complete"] = True
+        session.save()
+        response = self.client.get(reverse("learning:trunk_concept"))
+        self.assertContains(response, "10 situações resolvidas")
+        self.assertContains(response, "Continuar com as novas situações")
+        next_url = reverse("learning:trunk_checkpoint_next")
+        self.assertTrue(self.client.post(next_url, **self.ajax).json()["complete"])
+        extension = self.client.post(next_url, {"continue_extension": "1"}, **self.ajax).json()
+        self.assertIn("ATIVIDADE 11 DE 13", extension["html"])
+        self.assertFalse(extension["complete"])
+        self.assertEqual(self.client.session["trunk_checkpoint"]["answers"], answers)
 
     def test_no_reload_hooks_and_navigation(self):
         response = self.client.get(reverse("learning:trunk_concept"))
@@ -2127,7 +2160,7 @@ class IPv4SubnetConceptTests(TestCase):
         response = self.client.get(reverse("learning:ipv4_concept"))
         for value in ("192.168.10.90", "192.168.10.120", "192.168.10.130", "192.168.10.200"):
             self.assertContains(response, value.split("192.168.10")[1])
-        self.assertContains(response, "ARP pelo IPv4 do destino")
+        self.assertContains(response, "O próprio host recebe a entrega local.")
         self.assertContains(response, "próximo salto local")
         self.assertContains(response, "MESMA APARÊNCIA NÃO SIGNIFICA MESMA SUB-REDE")
 
@@ -2859,7 +2892,7 @@ class NetworkServicesConceptTests(TestCase):
                 if next_topic:
                     self.assertContains(response, reverse(f"learning:{next_topic}"))
                 else:
-                    self.assertContains(response, "TCP por dentro · em breve")
+                    self.assertContains(response, "Próxima aula · 20 · DNS")
                 self.assertContains(self.client.get(reverse("learning:home")), reverse(f"learning:{kind}_concept"))
         self.assertContains(self.client.get(reverse("learning:ports_concept")), reverse("learning:dns_concept"))
         css = (settings.BASE_DIR / "static" / "css" / "network-concept.css").read_text(encoding="utf-8")

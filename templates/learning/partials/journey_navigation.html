@@ -1,7 +1,12 @@
 <nav class="topic-navigation" aria-label="Navegação principal">
-  <a href="{% url 'learning:learn' %}" {% if area == 'learn' %}aria-current="page"{% endif %}>Aprender</a>
-  <a href="{% url 'learning:practice' %}" {% if area == 'practice' %}aria-current="page"{% endif %}>Praticar</a>
-  <a href="{% url 'learning:integrated_lab' %}" {% if area == 'lab' %}aria-current="page"{% endif %}>Laboratório</a>
+  <ul class="topic-navigation-list">
+    <li>
+      <a href="{% url 'learning:learn' %}" {% if area == 'learn' %}aria-current="page"{% endif %}>Aprender</a>
+      {% if area == 'learn' %}{% include "learning/partials/lesson_trail.html" with sidebar=True %}{% endif %}
+    </li>
+    <li><a href="{% url 'learning:practice' %}" {% if area == 'practice' %}aria-current="page"{% endif %}>Praticar</a></li>
+    <li><a href="{% url 'learning:integrated_lab' %}" {% if area == 'lab' %}aria-current="page"{% endif %}>Laboratório</a></li>
+  </ul>
 </nav>
 {% if lesson %}
 <nav class="journey-context" aria-label="Jornada do conteúdo">

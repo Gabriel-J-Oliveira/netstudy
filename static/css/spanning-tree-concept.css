@@ -1,0 +1,252 @@
+.spanning-tree-lesson>section,.spanning-tree-lesson>.stp-section{margin-block:1.8rem}
+.st-model-chain{display:flex;align-items:center;justify-content:center;gap:.8rem;flex-wrap:wrap;margin:1rem 0;padding:1rem;border:1px solid #cbd9e4;border-radius:.8rem;background:linear-gradient(110deg,#f5f9fc,#edf5fa);color:#173b54;font-weight:750;text-align:center}
+.st-model-chain span{padding:.65rem .8rem;border-radius:.55rem;background:#fff;box-shadow:0 1px 3px #16375018}
+.st-model-chain b{color:#2b7695;font-size:1.3rem}
+.st-learning-area{padding-block:1.25rem;border-top:1px solid #d3dfe8}
+.st-learning-note,.st-quick-check,.mstp-meta,.mstp-results article,.protection-caution{padding:.85rem 1rem;border:1px solid #c8d8e3;border-radius:.65rem;background:#f8fbfd}
+.st-learning-note p:last-child{margin-bottom:0}
+.rstp-controls,.protection-controls,.protection-actions,.mstp-controls{display:flex;align-items:end;flex-wrap:wrap;gap:.55rem;margin-block:.8rem}
+.rstp-controls button,.protection-controls button,.protection-actions button,.mstp-controls button,.mstp-controls select,.mstp-controls label select,.st-quick-check button,.st-quick-check select{min-height:2.7rem;border:1px solid #7896ad;border-radius:.45rem;padding:.5rem .7rem;background:white;color:#14364e;font:inherit}
+.rstp-controls button,.protection-controls button,.protection-actions button,.mstp-controls button,.st-quick-check button{font-weight:750;cursor:pointer}
+.rstp-controls button:first-child{background:#145b78;color:#fff}
+.rstp-controls button:disabled{opacity:.56;cursor:not-allowed}
+.rstp-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-block:1rem}
+.rstp-network{padding:1rem;border:1px solid #bed0dc;border-radius:.8rem;background:#fff;box-shadow:0 4px 14px #102b4010}
+.rstp-network h3{margin-top:0;color:#123b55}
+.rstp-network svg{display:block;width:100%;max-height:180px;margin:.4rem 0;background:linear-gradient(#f8fbfd,#fff);border-radius:.5rem}
+.rstp-network svg path{fill:none;stroke:#39816a;stroke-width:7;stroke-linecap:round}
+.rstp-network svg circle{fill:#d9edf4;stroke:#20647e;stroke-width:3}
+.rstp-network svg text{font:700 12px sans-serif;text-anchor:middle;fill:#173c52}
+.rstp-network svg .failure-cut{stroke:#bf4e40;stroke-width:4;stroke-dasharray:4 6;opacity:0;transition:opacity .2s}
+.rstp-network.is-disrupted svg .failure-cut{opacity:.75}
+.rstp-network svg .bpdu-dot{display:none;fill:#f1bd39;stroke:#72510b;stroke-width:2;transition:cx .2s,cy .2s}
+.rstp-network svg .bpdu-dot.visible{display:block}
+.rstp-network p{margin:.35rem 0}
+.rstp-message{min-height:2.8em;padding:.55rem;border-inline-start:4px solid #3782a0;background:#f2f8fb}
+.rstp-timeline{display:flex;gap:.45rem;overflow-x:auto;padding:.4rem 0 .8rem;list-style:none}
+.rstp-timeline li{flex:1 0 max-content;padding:.5rem .7rem;border:1px solid #c6d6e1;border-radius:999px;background:#f6f9fb;font-size:.88rem;font-weight:700}
+.rstp-timeline li[aria-current=step]{border-color:#166d8c;background:#e5f5fa;color:#0c455d}
+.st-quick-check{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:.5rem;margin-top:1rem}
+.st-quick-check label{font-weight:700}
+.st-quick-check p{grid-column:1/-1;min-height:1.4em;margin:0;color:#244a38}
+.mstp-controls label{display:grid;gap:.25rem;min-width:9rem;font-weight:700}
+.mstp-meta{display:flex;flex-wrap:wrap;gap:.55rem 1rem;margin-block:.8rem}
+.mstp-meta span{min-width:0}
+.mstp-scroll{margin-block:.8rem}
+.mstp-topology{min-width:580px}
+.mstp-topology>path{stroke:#b5c2cb;stroke-width:9}
+.mstp-topology>path[data-mst-instance-path]{stroke-width:6}
+.mstp-topology>path[data-mst-instance-path="1"]{stroke:#2283aa}
+.mstp-topology>path[data-mst-instance-path="2"]{stroke:#c57a23}
+.mstp-topology>path[data-mst-instance-path].msti-blocked{stroke-dasharray:8 7;opacity:.62}
+.mstp-topology>path[data-mst-instance-path].msti-disconnected{stroke:#9f4039;stroke-dasharray:3 10;opacity:.35}
+.mstp-topology>path.mst-base{stroke:#b5c2cb;stroke-width:3}
+.mstp-topology>path.msti-disconnected{stroke:#9f4039;stroke-dasharray:3 12;opacity:.5}
+.mstp-topology>text{font-size:13px}
+.mstp-legend{display:flex;flex-wrap:wrap;gap:.45rem 1rem;margin:.5rem 0;color:#27465b;font-weight:700;font-size:.86rem}
+.mstp-legend span{display:flex;align-items:center;gap:.4rem}
+.mstp-key{width:1.6rem;height:.45rem;border-radius:99px;background:#2283aa}
+.mstp-key.msti-two{background:#c57a23}
+.mstp-key.blocked{height:.35rem;border:1px solid #537087;background:repeating-linear-gradient(90deg,#537087 0 5px,transparent 5px 9px)}
+.mstp-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}
+.mstp-results article h3{margin-top:0;color:#145876}
+.mstp-results article:nth-child(2) h3{color:#96570f}
+.mstp-results article p{margin:.35rem 0;overflow-wrap:anywhere}
+.mstp-feedback{padding:.7rem .85rem;border-inline-start:4px solid #277494;background:#eef6fa}
+.st-glossary{display:flex;flex-wrap:wrap;gap:.4rem;margin-block:1rem}
+.st-glossary .context-glossary{display:inline-flex}
+.st-glossary button{border:1px dotted #567991;border-radius:999px;padding:.3rem .65rem;background:#f7fbfd;color:#153a52;font:inherit;font-size:.9rem;font-weight:700}
+.protection-controls [aria-pressed=true]{background:#165c7a;color:#fff;border-color:#165c7a}
+.protection-stage{display:grid;grid-template-columns:minmax(5rem,1fr) minmax(2rem,.5fr) minmax(8rem,1.2fr) minmax(2rem,.5fr) minmax(6rem,1fr);align-items:center;gap:.25rem;margin-block:1rem;padding:1.2rem .8rem;border:1px solid #c4d5e0;border-radius:.8rem;background:radial-gradient(#c6d5df 1px,transparent 1px) 0 0/16px 16px,#f9fcfd}
+.protection-device{display:grid;place-items:center;min-height:4.2rem;padding:.5rem;border:2px solid #276980;border-radius:.7rem;background:#e6f2f6;color:#153d52;font-weight:800;text-align:center;overflow-wrap:anywhere}
+.protection-link{height:.4rem;background:#39846b;border-radius:1rem;transition:background-color .2s,opacity .2s}
+.protection-link.secondary{opacity:.25}
+.protection-stage[data-state=forwarding] .protection-device:nth-of-type(3){border-color:#b57018;background:#fff1d7}
+.protection-stage[data-state=err-disabled] .protection-device:nth-of-type(3),.protection-stage[data-state=root-inconsistent] .protection-device:nth-of-type(3),.protection-stage[data-state=loop-inconsistent] .protection-device:nth-of-type(3){border-color:#a83e36;background:#fff0ee;color:#762d29}
+.protection-stage[data-state=err-disabled] .protection-link,.protection-stage[data-state=root-inconsistent] .protection-link,.protection-stage[data-state=loop-inconsistent] .protection-link{background:#a83e36;opacity:.35}
+.protection-event{min-height:3em;padding:.7rem .85rem;border-inline-start:4px solid #277494;background:#f3f8fb}
+.protection-caution{margin-block:1rem}
+.st-checkpoint{margin-top:.75rem}
+.st-checkpoint [data-options]{display:flex;flex-wrap:wrap;gap:.45rem}
+.st-checkpoint [data-options] button{min-height:2.7rem;padding:.55rem .8rem;border:1px solid #8ba5b8;border-radius:.45rem;background:#fff;color:#14364e;font:inherit;cursor:pointer}
+.spanning-tree-lesson :focus-visible{outline:3px solid #efb93f;outline-offset:3px}
+@media(max-width:760px){.rstp-comparison,.mstp-results{grid-template-columns:1fr}.st-quick-check{grid-template-columns:1fr}.st-quick-check p{grid-column:1}.protection-stage{grid-template-columns:1fr;justify-items:stretch}.protection-link{width:.35rem;height:1.2rem;justify-self:center}.protection-link.secondary{display:none}}
+@media(max-width:420px){.spanning-tree-lesson{padding-inline:.2rem}.st-model-chain{gap:.35rem;padding:.65rem}.st-model-chain b{transform:rotate(90deg)}.rstp-network{padding:.7rem}.rstp-controls button,.protection-controls button,.protection-actions button,.mstp-controls button{flex:1 1 100%}.mstp-controls label{flex:1 1 100%}.mstp-controls label select{width:100%}.rstp-timeline{margin-inline:-.3rem}.mstp-scroll{max-width:calc(100vw - 2.2rem)}.st-checkpoint [data-options] button{width:100%;text-align:left}}
+@media(prefers-reduced-motion:reduce){.spanning-tree-lesson *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* MSTP uses the same light-blue chassis language as the approved STP/loop diagrams. */
+.mstp-lesson{--msti-blue:#167aa4;--msti-orange:#d27b21}
+.mstp-lesson>h2{max-width:24ch}
+.mstp-demo{padding:clamp(.75rem,2vw,1.25rem);border:1px solid #b8cbd8;border-radius:1rem;background:linear-gradient(145deg,#f3f8fb,#edf4f8);box-shadow:0 12px 30px #13344b12;overflow:hidden}
+.mstp-stage-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.45rem;margin:0 0 .8rem;padding:0;list-style:none}
+.mstp-stage-strip li{min-width:0;padding:.55rem .65rem;border:1px solid #c1d2de;border-radius:.55rem;background:#fff;color:#465e71;font-size:.84rem;font-weight:800;text-align:center}
+.mstp-stage-strip li[aria-current=step]{border-color:#176b8b;background:#e5f3f8;color:#103f58;box-shadow:0 0 0 2px #176b8b22}
+.mstp-stage-strip li.passed{border-color:#79a68c;background:#edf7f0;color:#285c40}
+.mstp-demo-controls,.mstp-instance-switch{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-block:.6rem}
+.mstp-demo-controls button,.mstp-demo-controls select,.mstp-instance-switch button{min-height:2.65rem;padding:.5rem .75rem;border:1px solid #829daf;border-radius:.5rem;background:#fff;color:#153a51;font:inherit;font-weight:750;cursor:pointer}
+.mstp-demo-controls button:first-child,.mstp-demo-controls button[data-mstp-play]{background:#165c7a;color:#fff;border-color:#165c7a}
+.mstp-demo-controls button:disabled{opacity:.55;cursor:not-allowed}
+.mstp-demo-controls label{display:inline-flex;align-items:center;gap:.4rem;font-weight:750}
+.mstp-instance-switch span{font-weight:800}
+.mstp-instance-switch [aria-pressed=true][data-mstp-view="1"]{background:#e2f2f8;border-color:var(--msti-blue);color:#075276}
+.mstp-instance-switch [aria-pressed=true][data-mstp-view="2"]{background:#fff0dd;border-color:var(--msti-orange);color:#75420b}
+.mstp-stage-copy{display:grid;grid-template-columns:minmax(0,1fr);margin:.65rem 0 .8rem;padding:.8rem 1rem;border-inline-start:5px solid var(--msti-blue);border-radius:.4rem;background:#fff}
+.mstp-demo[data-stage="2"] .mstp-stage-copy,.mstp-demo[data-stage="2"] .mstp-instance-readout{border-inline-start-color:var(--msti-orange)}
+.mstp-demo[data-stage="3"] .mstp-stage-copy{border-image:linear-gradient(var(--msti-blue) 0 50%,var(--msti-orange) 50% 100%) 1}
+.mstp-stage-kicker{margin:0;color:#385d72;font-size:.75rem;font-weight:900;letter-spacing:.08em}
+.mstp-stage-copy h3{margin:.2rem 0 .25rem;color:#12364e;font-size:1.2rem}
+.mstp-stage-copy p:last-child{margin:0;max-width:90ch;line-height:1.55}
+.mstp-topology-shell{max-width:100%;overflow:auto;overscroll-behavior-inline:contain;border:1px solid #c1d1dd;border-radius:.8rem;background:radial-gradient(#c5d4df 1px,transparent 1px) 0 0/18px 18px,#fff;scrollbar-color:#829bad #edf3f7}
+.mstp-topology-shell:focus-visible{outline:3px solid #efb93f;outline-offset:3px}
+.mstp-topology{display:block;width:100%;min-width:820px;height:auto;max-height:none;margin:0;background:transparent}
+.mstp-topology .mstp-arrow-blue{fill:var(--msti-blue)}
+.mstp-topology .mstp-arrow-orange{fill:var(--msti-orange)}
+.mstp-physical-links>path{fill:none;stroke:#718b9b;stroke-width:9;stroke-linecap:round}
+.mstp-physical-links>.mstp-access-link{stroke:#8ea4b2;stroke-width:5}
+.mstp-logical-links>path{fill:none;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;opacity:.12;transition:opacity .25s ease,stroke-width .25s ease,filter .25s ease;stroke-dasharray:13 10}
+.mstp-logical-links>path[data-mst-instance-path="1"]{stroke:var(--msti-blue);marker-end:url(#mstp-arrow-blue)}
+.mstp-logical-links>path[data-mst-instance-path="2"]{stroke:var(--msti-orange);marker-end:url(#mstp-arrow-orange)}
+.mstp-logical-links>path.msti-forwarding{opacity:1}
+.mstp-logical-links>path.msti-blocked{opacity:.74;stroke-dasharray:5 12;stroke-width:5;filter:none;marker-end:none}
+.mstp-logical-links>path.msti-disconnected{opacity:0;stroke-width:0;marker-end:none}
+.mstp-logical-links>path.msti-hidden,.mstp-port.msti-hidden{opacity:0}
+.mstp-demo.is-playing .mstp-logical-links>path.msti-forwarding{animation:mstp-direction-flow .72s linear infinite}
+@keyframes mstp-direction-flow{to{stroke-dashoffset:-46}}
+.mstp-link-labels text,.mstp-link-names text{fill:#344f62;font:750 12px sans-serif;text-anchor:middle;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+.mstp-link-names text{font-size:11px;fill:#183d53}
+.mstp-port{fill:#fff;stroke:#5d7484;stroke-width:3;transition:opacity .2s ease,fill .2s ease,stroke .2s ease}
+.mstp-port.forwarding{fill:#fff;stroke-width:4}
+.mstp-port[data-mstp-instance="1"]{stroke:var(--msti-blue)}
+.mstp-port[data-mstp-instance="2"]{stroke:var(--msti-orange)}
+.mstp-port.blocking{fill:#fff0d2;stroke:#ae7414;stroke-dasharray:3 2}
+.mstp-port.disconnected{fill:#ffe7e3;stroke:#b43c34;stroke-dasharray:2 2}
+.mstp-link-names [data-mstp-port-label]{font-weight:850}
+.mstp-disconnect-mark{display:none;stroke:#b43c34!important;stroke-width:10!important;stroke-linecap:round}
+.mstp-disconnect-mark.visible{display:block}
+.mstp-switches .switch-body{fill:#dceff4;stroke:#15546b;stroke-width:4;filter:drop-shadow(0 5px 5px #143a4b25)}
+.mstp-switches .switch-face{fill:#f4fbfd;stroke:#37768b;stroke-width:2}
+.mstp-switches .switch-ports rect{fill:#37879a;stroke:#174f64;stroke-width:1.5}
+.mstp-switches .switch-name{fill:#132f42;font:900 22px sans-serif;text-anchor:middle}
+.mstp-switches .switch-root{fill:#35566b;font:850 11px sans-serif;text-anchor:middle}
+.mstp-switches [data-mst-switch].is-root .switch-body{fill:#e1f3e7;stroke:#2d8654;stroke-width:6;filter:drop-shadow(0 0 8px #3b9a6488)}
+.mstp-switches [data-mst-switch].is-root .switch-root{fill:#17623a;font-weight:950}
+.mstp-endpoints .mstp-pc rect{fill:#f2f7fb;stroke:#7693a5;stroke-width:3;transition:fill .2s ease,stroke .2s ease,filter .2s ease}
+.mstp-endpoints .mstp-pc path{fill:#d8eaf1;stroke:#1f6984;stroke-width:3;stroke-linejoin:round}
+.mstp-endpoints .mstp-pc text{fill:#1c3b50;font:850 14px sans-serif;text-anchor:middle}
+.mstp-endpoints .mstp-pc text.pc-state{font-size:9px;fill:#476378}
+.mstp-endpoints .mstp-pc.active[data-vlan="10"] rect{fill:#e8f6fb;stroke:var(--msti-blue);filter:drop-shadow(0 0 7px #2c8fb055)}
+.mstp-endpoints .mstp-pc.active[data-vlan="20"] rect{fill:#fff5e7;stroke:var(--msti-orange);filter:drop-shadow(0 0 7px #d27b2155)}
+.mstp-bubbles g{display:none}
+.mstp-bubbles g.visible{display:block}
+.mstp-bubbles rect{fill:#fff;stroke:#426d83;stroke-width:2;filter:drop-shadow(0 3px 3px #102b4022)}
+.mstp-bubbles text{fill:#173c52;font:800 12px sans-serif;text-anchor:middle}
+.mstp-frame{display:none;stroke:#fff;stroke-width:3;filter:drop-shadow(0 0 7px #162c3b88)}
+.mstp-frame.visible{display:block}
+.mstp-frame-one{fill:var(--msti-blue)}
+.mstp-frame-two{fill:var(--msti-orange)}
+.mstp-route-def{fill:none;stroke:none}
+.mstp-demo-bottom{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:.65rem;margin-top:.65rem}
+.mstp-instance-readout,.mstp-activity{min-width:0;margin:0;padding:.7rem .85rem;border:1px solid #cbd9e3;border-inline-start:4px solid var(--msti-blue);border-radius:.55rem;background:#fff;line-height:1.5}
+.mstp-instance-readout p{margin:.1rem 0;overflow-wrap:anywhere}
+.mstp-activity{border-inline-start-color:#347b5c}
+.mstp-demo[data-stage="4"] .mstp-activity{border-inline-start-color:#b87b1d}
+.mstp-demo-conclusion{margin:.7rem 0 0;padding:.85rem 1rem;border:1px solid #78a88b;border-radius:.6rem;background:#eaf6ee;color:#1c5937;text-align:center;font-size:1.08rem}
+.mstp-rapid{grid-template-columns:minmax(12rem,.6fr) minmax(0,1fr) auto;align-items:center}
+.mstp-rapid>strong{color:#17465e}
+.mstp-rapid>label{font-weight:700}
+.mstp-rapid>div{display:flex;gap:.4rem;align-items:center}
+.mstp-rapid>div select{min-height:2.65rem;padding:.45rem;border:1px solid #7896ad;border-radius:.45rem;background:#fff;color:#14364e;font:inherit}
+.mstp-rapid>p{grid-column:1/-1}
+.mstp-advanced{margin-top:.8rem;border:1px solid #c8d8e3;border-radius:.7rem;background:#f8fbfd}
+.mstp-advanced summary{padding:.8rem 1rem;color:#144a67;font-weight:850;cursor:pointer}
+.mstp-advanced[open]{padding:0 .9rem .9rem}
+.mstp-advanced>p{max-width:80ch}
+.mstp-advanced .mstp-meta{background:#fff}
+.mstp-advanced .mstp-results{margin-top:.8rem}
+.mstp-advanced .mstp-feedback{margin-bottom:0}
+.mstp-demo :focus-visible,.mstp-advanced :focus-visible,.mstp-rapid :focus-visible{outline:3px solid #efb93f;outline-offset:3px}
+@media(max-width:760px){.mstp-stage-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.mstp-demo-bottom{grid-template-columns:1fr}.mstp-rapid{grid-template-columns:1fr}.mstp-rapid>p{grid-column:1}}
+@media(max-width:420px){.mstp-demo{padding:.55rem}.mstp-stage-strip li{font-size:.74rem;padding:.45rem .3rem}.mstp-demo-controls>*{flex:1 1 100%;min-width:0}.mstp-demo-controls label{justify-content:space-between}.mstp-demo-controls select{min-width:0;flex:1}.mstp-topology{min-width:800px}.mstp-rapid>div{align-items:stretch;flex-direction:column}.mstp-rapid>div select,.mstp-rapid>div button{width:100%}.mstp-advanced[open]{padding-inline:.6rem}}
+@media(prefers-reduced-motion:reduce){.mstp-demo.is-playing .mstp-logical-links>path.msti-forwarding{animation:none!important}.mstp-frame{display:none!important}}
+
+/* Spanning Tree · CSS da área clássica: isolado para evitar regras genéricas de SVG. */
+.spanning-tree-lesson .st-problem-review{padding:1rem 1.15rem;border:1px solid #c9d8e3;border-radius:.9rem;background:linear-gradient(145deg,#f5f9fc,#fff)}
+.spanning-tree-lesson .st-problem-review>p:not(.loop-index){max-width:76ch}
+.spanning-tree-lesson .st-problem-map{position:relative;isolation:isolate;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:92px 92px;gap:.2rem 3rem;max-width:940px;min-height:190px;margin:.65rem auto 0;padding:.15rem 1rem}
+.spanning-tree-lesson .st-problem-connectors{position:absolute;inset:0;z-index:-1;display:block;width:100%;height:100%;max-width:none;overflow:visible;fill:none;pointer-events:none}
+.spanning-tree-lesson .st-problem-connectors .st-map-connector{fill:none;stroke:#b0c4d0;stroke-width:3;stroke-linecap:round;stroke-dasharray:7 7}
+.spanning-tree-lesson .st-problem-connectors .st-map-loop{stroke:#d39a3a;stroke-dasharray:none;opacity:.7}
+.spanning-tree-lesson .st-problem-connectors .st-map-cut{stroke:#a94b44;stroke-width:7;stroke-linecap:round}
+.spanning-tree-lesson .st-problem-node{display:grid;grid-template-columns:70px minmax(0,1fr);grid-template-rows:auto 1fr;gap:.1rem .65rem;align-items:center;min-width:0;padding:.45rem .65rem;border:1px solid #c5d5e0;border-radius:.7rem;background:#fff;box-shadow:0 2px 8px #143b520c}
+.spanning-tree-lesson .st-problem-node-redundancy{grid-column:1;grid-row:1}.spanning-tree-lesson .st-problem-node-loop{grid-column:2;grid-row:1}.spanning-tree-lesson .st-problem-node-stp{grid-column:1/-1;grid-row:2;justify-self:center;width:min(52%,440px)}
+.spanning-tree-lesson .st-problem-node .st-mini-network{grid-row:1/3;display:block;width:70px;height:44px;max-width:100%;overflow:visible;fill:none;stroke:#3c7189;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.spanning-tree-lesson .st-problem-node .st-mini-network .mini-switch rect{fill:#e4f1f5;stroke:#24657e;stroke-width:2}.spanning-tree-lesson .st-problem-node .st-mini-network .mini-switch path{stroke:#24657e;stroke-width:1.5}
+.spanning-tree-lesson .st-problem-node .mini-link{fill:none;stroke:#7a9aaa;stroke-width:3}.spanning-tree-lesson .st-problem-node .mini-reserve{stroke:#398461;stroke-dasharray:4 4}.spanning-tree-lesson .st-problem-node .mini-loop{stroke:#c78324;stroke-dasharray:none}.spanning-tree-lesson .st-problem-node .mini-tree{stroke:#398461;stroke-width:4}.spanning-tree-lesson .st-problem-node .mini-direction{fill:none;stroke:#b97519;stroke-width:2.5}.spanning-tree-lesson .st-problem-node .mini-frame{fill:#f2c54b;stroke:#805d12;stroke-width:1.5}.spanning-tree-lesson .st-problem-node .mini-block-mark{stroke:#a9443c;stroke-width:4;stroke-linecap:round}
+.spanning-tree-lesson .st-problem-node h3{align-self:end;margin:0;color:#163b54;font-size:.94rem;line-height:1.15}.spanning-tree-lesson .st-problem-node p{align-self:start;margin:0;color:#304c60;font-size:.82rem;line-height:1.3}
+.spanning-tree-lesson .st-problem-key{max-width:940px;margin:.6rem auto 0;padding:.65rem .85rem;border-inline-start:5px solid #267594;border-radius:.35rem;background:#eaf4f8;color:#133b53;line-height:1.35}
+
+.spanning-tree-lesson .stp-teaching-block{margin:1rem 0;padding:1.05rem 1.15rem;border:1px solid #d0dce5;border-radius:.8rem;background:#fff}
+.spanning-tree-lesson .stp-teaching-block>p{max-width:84ch;line-height:1.55}.spanning-tree-lesson .stp-teaching-block h3{margin:.2rem 0 .65rem;color:#153c55}.spanning-tree-lesson .stp-step-label{margin:0;color:#34708b;font-size:.76rem;font-weight:900;letter-spacing:.08em}
+.spanning-tree-lesson .stp-teaching-block button,.spanning-tree-lesson .stp-experiment button{min-height:2.65rem;padding:.55rem .8rem;border:1px solid #7899ad;border-radius:.5rem;background:#fff;color:#153b54;font:inherit;font-weight:750;cursor:pointer}
+.spanning-tree-lesson .stp-teaching-block button:hover,.spanning-tree-lesson .stp-experiment button:hover{background:#edf6fa}.spanning-tree-lesson .stp-teaching-block button[aria-pressed="true"]{border-color:#176d8b;background:#e8f5f9;box-shadow:inset 0 0 0 1px #176d8b}.spanning-tree-lesson .stp-teaching-block button:disabled{opacity:.6;cursor:not-allowed}
+.spanning-tree-lesson .st-road-pair{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:1rem;align-items:center}.spanning-tree-lesson .st-road-copy p{max-width:62ch}
+.spanning-tree-lesson .st-road-visual{display:grid;grid-template-columns:1fr auto 1fr;gap:.65rem;align-items:center}.spanning-tree-lesson .st-road-scene{position:relative;min-width:0;padding:.55rem;border:1px solid #d3dfe8;border-radius:.65rem;background:#f7fafc;text-align:center}
+.spanning-tree-lesson .st-road-scene svg{display:block;width:100%;height:auto;max-height:180px;fill:none;stroke:#8aa3b5;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}.spanning-tree-lesson .st-road-scene svg circle{fill:#fff;stroke:#236b88;stroke-width:4}.spanning-tree-lesson .st-road-scene .st-network-active{stroke:#398462;stroke-width:8}.spanning-tree-lesson .st-road-scene .st-network-blocked{stroke:#c78324;stroke-dasharray:7 6}.spanning-tree-lesson .st-road-scene .st-road-reserve{stroke:#398462;stroke-dasharray:6 5}.spanning-tree-lesson .st-road-transfer{color:#37718b;font-size:1.45rem;font-weight:900}.spanning-tree-lesson .st-road-scene small{display:block;color:#486276;font-weight:700}.spanning-tree-lesson .st-road-scene .road-place{position:relative;z-index:1;display:inline-block;margin-inline:.15rem;padding:.1rem .35rem;border-radius:.25rem;background:#fff;color:#183e56;font-size:.76rem;font-weight:850}
+.spanning-tree-lesson .st-analogy-limit{margin-top:.65rem;padding:.55rem .75rem;border-radius:.45rem;background:#f4f7f9}.spanning-tree-lesson .st-analogy-limit summary{color:#24536c;font-weight:750;cursor:pointer}.spanning-tree-lesson .st-analogy-limit p{margin:.5rem 0 0;max-width:80ch}
+
+.spanning-tree-lesson .st-bpdu-lesson{padding:.85rem;border:1px solid #cedce5;border-radius:.7rem;background:#f7fafc}.spanning-tree-lesson .st-bpdu-scene{display:grid;grid-template-columns:minmax(6rem,1fr) minmax(5rem,1.2fr) minmax(6rem,1fr);gap:.65rem;align-items:center;max-width:620px;margin:.25rem auto .7rem}
+.spanning-tree-lesson .st-bpdu-switch{display:grid;gap:.18rem;justify-items:center;padding:.65rem;border:2px solid #37748c;border-radius:.7rem;background:#e7f3f6;color:#153c54}.spanning-tree-lesson .st-bpdu-switch small{color:#4a6677}.spanning-tree-lesson .switch-glyph{color:#276783;font-size:.8rem;letter-spacing:-.2em}
+.spanning-tree-lesson .st-bpdu-wire{position:relative;height:.35rem;border-radius:999px;background:#91aab9}.spanning-tree-lesson .st-bpdu-ticket{position:absolute;top:50%;left:0;z-index:1;padding:.25rem .42rem;border:1px solid #9a751d;border-radius:.35rem;background:#fff2c9;color:#523d06;font-size:.74rem;font-weight:900;opacity:0;transform:translate(-50%,-50%)}
+.spanning-tree-lesson .st-bpdu-lesson.is-sent .st-bpdu-ticket{animation:stp-bpdu-cross .9s ease-out forwards}@keyframes stp-bpdu-cross{0%{left:0;opacity:0}12%{opacity:1}88%{opacity:1}100%{left:100%;opacity:0}}
+.spanning-tree-lesson .st-bpdu-actions,.spanning-tree-lesson .st-election-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem}.spanning-tree-lesson .st-bpdu-payload{max-width:620px;margin:.65rem auto;padding:.75rem;border:1px solid #e1c66a;border-radius:.55rem;background:#fff9e6}.spanning-tree-lesson .st-bpdu-payload dl{display:grid;grid-template-columns:minmax(10rem,.7fr) minmax(0,1.3fr);gap:.25rem .65rem;margin:.5rem 0 0}.spanning-tree-lesson .st-bpdu-payload dt{font-weight:800}.spanning-tree-lesson .st-bpdu-payload dd{margin:0;overflow-wrap:anywhere}
+.spanning-tree-lesson .st-teaching-feedback{min-height:1.5em;margin:.65rem 0 0;padding:.5rem .65rem;border-inline-start:3px solid #4b8299;background:#edf5f8;color:#193f56}
+
+.spanning-tree-lesson .st-election-board{padding:.8rem;border-radius:.7rem;background:#f6f9fb}.spanning-tree-lesson .st-bridge-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}.spanning-tree-lesson .st-bridge-cards article{min-width:0;padding:.7rem;border:1px solid #c8d6e0;border-radius:.6rem;background:#fff;text-align:center;transition:border-color .2s ease,background .2s ease,transform .2s ease}.spanning-tree-lesson .st-bridge-cards article.is-root-candidate{border:2px solid #34845c;background:#edf8f0;transform:translateY(-2px)}.spanning-tree-lesson .st-bridge-cards h4{margin:.1rem 0 .4rem;color:#173f57}.spanning-tree-lesson .st-bridge-cards p{margin:.2rem 0}.spanning-tree-lesson .st-bridge-cards [data-stp-card-result]{display:block;min-height:1.5em;margin-top:.35rem;color:#2d6546;font-weight:800}
+.spanning-tree-lesson .st-cost-compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin:.8rem 0}.spanning-tree-lesson .st-cost-route{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.3rem .65rem;align-items:center;padding:.7rem;border:1px solid #cbd9e2;border-radius:.65rem;background:#f7fafc}.spanning-tree-lesson .st-cost-route strong{padding:.3rem .5rem;border-radius:.35rem;background:#fff;color:#294c60;font-size:1.1rem}.spanning-tree-lesson .st-cost-route svg{grid-column:1/-1;width:100%;height:2.4rem;fill:none;stroke:#93a9b7;stroke-width:5;stroke-linecap:round}.spanning-tree-lesson .st-cost-route svg circle{fill:#fff;stroke:#37758d;stroke-width:3}.spanning-tree-lesson .st-cost-route.via svg path{stroke:#398462}.spanning-tree-lesson .st-cost-compare.is-compared .st-cost-route.via{border-color:#36825d;background:#edf8f0;box-shadow:0 0 0 2px #36825d20}.spanning-tree-lesson .st-cost-compare.is-compared .st-cost-route.via strong{background:#dff1e5;color:#20573a}
+.spanning-tree-lesson .st-port-role-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}.spanning-tree-lesson .st-port-role-cards article{padding:.65rem;border:1px solid #d0dce5;border-radius:.55rem;background:#f8fafb}.spanning-tree-lesson .st-port-role-cards h4{margin:.1rem 0 .25rem;color:#1c4b65}.spanning-tree-lesson .st-port-role-cards p{margin:0;line-height:1.48}
+.spanning-tree-lesson .st-port-state-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem;margin:.7rem 0}.spanning-tree-lesson .st-port-state-grid p{margin:0;padding:.55rem;border-radius:.45rem;background:#eef4f7}.spanning-tree-lesson .st-port-state-grid strong,.spanning-tree-lesson .st-port-state-grid span{display:block}.spanning-tree-lesson .st-port-state-grid strong{color:#163f58}.spanning-tree-lesson .st-disabled-note{padding:.6rem .75rem;border-inline-start:4px solid #8c5250;background:#fbf3f2}
+.spanning-tree-lesson .st-role-practice{margin-top:.7rem;padding:.75rem;border:1px solid #cddbe4;border-radius:.65rem;background:#f8fafb}.spanning-tree-lesson .st-role-practice h4{margin:.1rem 0 .3rem;color:#183f57}.spanning-tree-lesson .st-role-practice>p{margin:.3rem 0;color:#405a6c}.spanning-tree-lesson .st-role-palette,.spanning-tree-lesson .st-role-targets{display:flex;flex-wrap:wrap;gap:.4rem;margin:.5rem 0}.spanning-tree-lesson .st-role-targets button{display:flex;flex:1 1 12rem;justify-content:space-between;align-items:center;gap:.6rem;text-align:left}.spanning-tree-lesson .st-role-targets button span{color:#486779;font-size:.82rem}.spanning-tree-lesson .st-role-targets button.is-correct{border-color:#43805a;background:#eaf5ed;color:#204d31}.spanning-tree-lesson .st-role-targets button.is-incorrect{border-color:#a75049;background:#fff0ee;color:#682c28}
+.spanning-tree-lesson .stp-demo-brief{margin:1.35rem 0 .65rem;padding:.85rem 1rem;border-inline-start:5px solid #287493;background:#eff6f9}.spanning-tree-lesson .stp-demo-brief h3{margin:.15rem 0 .25rem;color:#153d55}.spanning-tree-lesson .stp-demo-brief p:last-child{margin:0;max-width:80ch}.spanning-tree-lesson .stp-experiment{margin-block:1rem;padding:.8rem 1rem;border:1px solid #c8d7e1;border-radius:.65rem;background:#f8fafb}.spanning-tree-lesson .stp-experiment>summary{color:#194761;font-size:1.05rem;font-weight:850;cursor:pointer}.spanning-tree-lesson .stp-experiment[open]{box-shadow:0 3px 14px #153d520c}.spanning-tree-lesson .stp-experiment-challenges{margin:.8rem 0;padding:.7rem .8rem;border-inline-start:4px solid #789bb0;background:#eef4f7}.spanning-tree-lesson .stp-experiment-challenges ul{margin:.4rem 0;padding-inline-start:1.25rem}.spanning-tree-lesson .stp-experiment-challenges p{margin:.4rem 0 0}
+.spanning-tree-lesson .stp-section :focus-visible,.spanning-tree-lesson .st-problem-review :focus-visible{outline:3px solid #e5a920;outline-offset:3px}
+@media(max-width:760px){.spanning-tree-lesson .st-road-pair{grid-template-columns:1fr}.spanning-tree-lesson .st-problem-map{grid-template-columns:1fr;grid-template-rows:auto;gap:.5rem;min-height:0;padding:0}.spanning-tree-lesson .st-problem-connectors{display:none}.spanning-tree-lesson .st-problem-node-redundancy,.spanning-tree-lesson .st-problem-node-loop,.spanning-tree-lesson .st-problem-node-stp{grid-column:1;grid-row:auto;width:auto;justify-self:stretch}.spanning-tree-lesson .st-problem-node{min-height:68px}.spanning-tree-lesson .st-port-state-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.spanning-tree-lesson .st-problem-review{padding:.8rem}.spanning-tree-lesson .st-problem-map{grid-template-rows:auto;grid-template-columns:1fr;gap:.5rem;min-height:0;padding:0}.spanning-tree-lesson .st-problem-connectors{display:none}.spanning-tree-lesson .st-problem-node-redundancy,.spanning-tree-lesson .st-problem-node-loop,.spanning-tree-lesson .st-problem-node-stp{grid-column:1;grid-row:auto;width:auto;justify-self:stretch}.spanning-tree-lesson .st-problem-node{min-height:74px}.spanning-tree-lesson .st-road-visual{grid-template-columns:1fr}.spanning-tree-lesson .st-road-transfer{transform:rotate(90deg);text-align:center}.spanning-tree-lesson .st-bridge-cards,.spanning-tree-lesson .st-cost-compare,.spanning-tree-lesson .st-port-role-cards{grid-template-columns:1fr}.spanning-tree-lesson .st-bpdu-scene{grid-template-columns:minmax(4.5rem,1fr) minmax(3.5rem,1fr) minmax(4.5rem,1fr);gap:.35rem}.spanning-tree-lesson .st-bpdu-switch{padding:.4rem .2rem;font-size:.88rem}.spanning-tree-lesson .st-bpdu-payload dl{grid-template-columns:1fr;gap:.08rem}.spanning-tree-lesson .st-bpdu-payload dd{margin-bottom:.35rem}.spanning-tree-lesson .st-port-state-grid{grid-template-columns:1fr 1fr}.spanning-tree-lesson .stp-teaching-block{padding:.75rem}.spanning-tree-lesson .st-role-targets button{flex-basis:100%}}
+@media(prefers-reduced-motion:reduce){.spanning-tree-lesson .stp-teaching-block *,.spanning-tree-lesson .st-problem-review *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Visuals and controls for the classic STP teaching path. */
+.spanning-tree-lesson .st-road-lab{min-width:0;padding:.55rem;border:1px solid #cbd9e2;border-radius:.75rem;background:#f7fafc}
+.spanning-tree-lesson .st-road-visual{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:.4rem;align-items:center}
+.spanning-tree-lesson .st-road-scene{min-width:0;margin:0;padding:.35rem;border:1px solid #d1dde5;border-radius:.55rem;background:#fff}
+.spanning-tree-lesson .st-road-scene figcaption{color:#214a61;font-size:.78rem;font-weight:850;text-align:center}
+.spanning-tree-lesson .st-road-scene svg{display:block;width:100%;height:auto;max-height:160px;fill:none;stroke:#516b7b;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.spanning-tree-lesson .st-road-scene .road-surface{fill:none;stroke:#526878;stroke-width:18}
+.spanning-tree-lesson .st-road-scene .road-center{fill:none;stroke:#fff;stroke-width:2;stroke-dasharray:8 8}
+.spanning-tree-lesson .st-road-scene .road-alt.road-surface{stroke:#8496a0;stroke-width:14}
+.spanning-tree-lesson .st-road-scene .road-alt.road-center{stroke:#fff;stroke-width:1.5;stroke-dasharray:6 7}
+.spanning-tree-lesson .st-road-scene .road-house path{fill:#f2d9a8;stroke:#765a30;stroke-width:2}.spanning-tree-lesson .st-road-scene .road-house rect{fill:#fff;stroke:#765a30;stroke-width:1.5}.spanning-tree-lesson .st-road-scene .road-house text{fill:#273e4c;stroke:none;font:800 9px sans-serif;text-anchor:middle}
+.spanning-tree-lesson .st-road-scene .road-sign rect{fill:#fff4cc;stroke:#936c1a;stroke-width:1.5}.spanning-tree-lesson .st-road-scene .road-sign text{fill:#64480a;stroke:none;font:900 9px sans-serif;text-anchor:middle}.spanning-tree-lesson .st-road-scene .road-barrier{stroke:#ac4b44;stroke-width:4;stroke-linecap:round;display:none}
+.spanning-tree-lesson .st-road-scene .road-car{opacity:0}.spanning-tree-lesson .st-road-lab.is-moving .road-car{opacity:1}.spanning-tree-lesson .st-road-scene .road-car rect{fill:#f4c951;stroke:#684d10;stroke-width:2}.spanning-tree-lesson .st-road-scene .road-car circle{fill:#243c4c;stroke:#fff;stroke-width:1.5}
+.spanning-tree-lesson .st-road-scene.network-scene .network-link{fill:none;stroke:#67808e;stroke-width:10;stroke-linecap:round}.spanning-tree-lesson .st-road-scene.network-scene .network-main{stroke:#36835e;stroke-width:8}.spanning-tree-lesson .st-road-scene.network-scene .network-alt{stroke:#c78a27;stroke-width:7;stroke-dasharray:7 7}.spanning-tree-lesson .st-road-scene.network-scene .network-switch rect{fill:#dceef3;stroke:#1e627d;stroke-width:3}.spanning-tree-lesson .st-road-scene.network-scene .network-switch path{stroke:#1e627d;stroke-width:1.7}.spanning-tree-lesson .st-road-scene.network-scene .network-switch text{fill:#173c51;stroke:none;font:900 11px sans-serif;text-anchor:middle}
+.spanning-tree-lesson .st-road-scene.network-scene .network-port-block circle{fill:#fff0cf;stroke:#a56d17;stroke-width:3}.spanning-tree-lesson .st-road-scene.network-scene .network-port-block path{stroke:#a3453e;stroke-width:3}.spanning-tree-lesson .st-road-scene.network-scene .network-frame{opacity:0}.spanning-tree-lesson .st-road-lab.is-moving .network-frame{opacity:1}.spanning-tree-lesson .st-road-scene.network-scene .network-frame rect{fill:#45a0c0;stroke:#143c52;stroke-width:2}
+.spanning-tree-lesson .st-road-lab.is-main-failed .road-main{stroke:#aa4b45;stroke-dasharray:8 7;opacity:.75}.spanning-tree-lesson .st-road-lab.is-main-failed .road-alt.road-surface{stroke:#36835e;stroke-width:18}.spanning-tree-lesson .st-road-lab.is-main-failed .road-alt.road-center{stroke:#fff;stroke-width:2}.spanning-tree-lesson .st-road-lab.is-main-failed .road-barrier{display:block}.spanning-tree-lesson .st-road-lab.is-main-failed .road-sign{display:none}.spanning-tree-lesson .st-road-lab.is-main-failed .network-main{stroke:#aa4b45;stroke-dasharray:5 7;opacity:.55}.spanning-tree-lesson .st-road-lab.is-main-failed .network-alt{stroke:#36835e;stroke-width:10;stroke-dasharray:none}
+.spanning-tree-lesson .st-road-scene small{display:block;margin-top:.1rem;color:#435f70;font-size:.72rem;line-height:1.3;text-align:center}.spanning-tree-lesson .st-road-actions{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.4rem}.spanning-tree-lesson .st-road-actions button{flex:1 1 10rem;margin:0}.spanning-tree-lesson .st-road-transfer{padding:.1rem;color:#28708b;font-size:1.2rem;font-weight:900}
+.spanning-tree-lesson .st-bpdu-switch{min-width:0}.spanning-tree-lesson .st-bpdu-switch .switch-glyph{display:flex;gap:3px;letter-spacing:0}.spanning-tree-lesson .st-bpdu-switch .switch-glyph i{display:block;width:13px;height:8px;border:2px solid #1e627d;border-radius:2px;background:#8ac4d2}
+.spanning-tree-lesson .st-bpdu-wire{display:grid;place-items:center}.spanning-tree-lesson .st-bpdu-data-distinction{position:absolute;top:1.05rem;color:#506a78;font-size:.58rem;font-weight:900;letter-spacing:.07em;white-space:nowrap}.spanning-tree-lesson .st-bpdu-ticket{z-index:2;opacity:0}.spanning-tree-lesson .st-bpdu-lesson.is-sent .st-bpdu-ticket{animation:stp-bpdu-arrive .9s ease-out forwards}@keyframes stp-bpdu-arrive{0%{left:100%;opacity:0}12%{opacity:1}88%{opacity:1}100%{left:0;opacity:1}}
+.spanning-tree-lesson .st-bpdu-payload[hidden]{display:none}.spanning-tree-lesson .st-bpdu-payload{max-width:700px}.spanning-tree-lesson .st-bpdu-data-note{margin:.55rem 0 0;padding:.45rem .6rem;border-inline-start:3px solid #477e94;background:#edf5f8}
+.spanning-tree-lesson .st-bpdu-match{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem;align-items:end;margin-top:.65rem;padding:.65rem;border:1px solid #d6e0e7;border-radius:.55rem;background:#fff}.spanning-tree-lesson .st-bpdu-match h4,.spanning-tree-lesson .st-bpdu-match>button,.spanning-tree-lesson .st-bpdu-match>p{grid-column:1/-1}.spanning-tree-lesson .st-bpdu-match h4{margin:0;color:#193f56;font-size:.95rem}.spanning-tree-lesson .st-bpdu-match label{display:block;margin-bottom:.15rem;font-size:.8rem;font-weight:800}.spanning-tree-lesson .st-bpdu-match select{width:100%;min-height:2.4rem;padding:.35rem;border:1px solid #8da8b8;border-radius:.4rem;background:#fff;color:#183c53;font:inherit;font-size:.85rem}.spanning-tree-lesson .st-bpdu-match>button{justify-self:start}.spanning-tree-lesson .st-bpdu-match>p{margin:0}
+@media(max-width:760px){.spanning-tree-lesson .st-road-visual{grid-template-columns:1fr}.spanning-tree-lesson .st-road-transfer{justify-self:center;transform:rotate(90deg)}.spanning-tree-lesson .st-road-scene svg{max-height:145px}.spanning-tree-lesson .st-bpdu-match{grid-template-columns:1fr}}
+@media(max-width:520px){.spanning-tree-lesson .st-road-lab{padding:.4rem}.spanning-tree-lesson .st-road-scene svg{max-height:130px}.spanning-tree-lesson .st-bpdu-data-distinction{font-size:.48rem}}
+@media(prefers-reduced-motion:reduce){.spanning-tree-lesson .st-road-scene [data-stp-road-motion],.spanning-tree-lesson .st-road-scene [data-stp-network-motion]{display:none!important}.spanning-tree-lesson .st-bpdu-lesson.is-sent .st-bpdu-ticket{animation:none!important}.spanning-tree-lesson .st-road-scene *{transition:none!important}}
+/* Classic STP: compact interactive election, costs, roles, states and review. */
+.spanning-tree-lesson .st-election-phase{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.3rem .7rem;align-items:center;margin-top:.6rem;padding:.65rem;border-radius:.55rem;background:#fff;border:1px solid #d5e0e7}.spanning-tree-lesson .st-election-phase>strong,.spanning-tree-lesson .st-election-phase>p{grid-column:1}.spanning-tree-lesson .st-election-phase>p{margin:0;color:#3e596b}.spanning-tree-lesson .st-election-phase>button{grid-column:2;grid-row:1/3}.spanning-tree-lesson .st-election-second{margin-top:.65rem;padding:.7rem;border-inline-start:4px solid #2d7895;background:#eef6f9}.spanning-tree-lesson .st-election-predictions{display:flex;gap:.35rem;margin:.45rem 0}.spanning-tree-lesson .st-election-predictions button[aria-pressed="true"]{background:#dbeef4;box-shadow:inset 0 0 0 2px #26728e}
+.spanning-tree-lesson .st-cost-workbench{display:grid;grid-template-columns:minmax(0,.55fr) minmax(260px,1fr);gap:.65rem;align-items:center;padding:.75rem;border:1px solid #cddbe4;border-radius:.7rem;background:#f7fafc}.spanning-tree-lesson .st-cost-scenario p{margin:.25rem 0}.spanning-tree-lesson .st-cost-topology{display:block;width:100%;max-height:220px;fill:none;stroke:#738d9c;stroke-width:6;stroke-linecap:round;stroke-linejoin:round}.spanning-tree-lesson .st-cost-topology text{fill:#233f51;stroke:none;font:800 14px sans-serif;text-anchor:middle}.spanning-tree-lesson .st-cost-topology .cost-node rect{fill:#e6f1f5;stroke:#276782;stroke-width:3}.spanning-tree-lesson .st-cost-topology .cost-link.is-best{stroke:#33835d;stroke-width:10}.spanning-tree-lesson .st-cost-topology .cost-traveler{fill:#e8b63e;stroke:#654a12;stroke-width:2}.spanning-tree-lesson .st-cost-topology .cost-traveler.on-direct{cx:220px;cy:45px}.spanning-tree-lesson .st-cost-topology .cost-traveler.on-via{cx:220px;cy:170px}.spanning-tree-lesson .st-cost-choice{display:flex;gap:.4rem;flex-wrap:wrap}.spanning-tree-lesson .st-cost-choice [aria-pressed="true"]{background:#e3f2e9;border-color:#4d8a63}.spanning-tree-lesson .st-cost-workbench>[data-stp-cost-compare],.spanning-tree-lesson .st-cost-workbench>[data-stp-cost-feedback],.spanning-tree-lesson .st-cost-workbench>[data-stp-cost-next]{grid-column:1/-1}
+.spanning-tree-lesson .st-role-topology{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;margin:.55rem 0;padding:.6rem;background:linear-gradient(160deg,transparent 48%,#dce8ed 49%,#dce8ed 50%,transparent 51%),linear-gradient(20deg,transparent 48%,#dce8ed 49%,#dce8ed 50%,transparent 51%);border:1px solid #d0dce4;border-radius:.6rem}.spanning-tree-lesson .st-role-topology article{display:grid;align-content:start;gap:.3rem;padding:.5rem;border:1px solid #9bb3c0;border-radius:.5rem;background:#fff;z-index:1}.spanning-tree-lesson .st-role-topology article>strong{color:#194961;text-align:center}.spanning-tree-lesson .st-role-topology button{display:flex;justify-content:space-between;align-items:center;min-height:2.3rem;padding:.3rem .45rem;font-size:.8rem}.spanning-tree-lesson .st-role-topology button span{color:#536b79}.spanning-tree-lesson .st-port-state-controls{display:flex;flex-wrap:wrap;gap:.35rem}.spanning-tree-lesson .st-port-state-controls button[aria-pressed="true"]{background:#e5f2f7;box-shadow:inset 0 0 0 2px #37758d}.spanning-tree-lesson .st-port-state-practice{margin-top:.65rem;padding:.7rem;border:1px solid #d1dde5;border-radius:.6rem;background:#f8fafb}.spanning-tree-lesson .st-port-state-practice h4,.spanning-tree-lesson .st-port-state-practice p{margin:.2rem 0}
+.spanning-tree-lesson .st-rapid-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}.spanning-tree-lesson .st-rapid-grid fieldset{min-width:0;padding:.6rem;border:1px solid #d1dde5;border-radius:.55rem;background:#f9fbfc}.spanning-tree-lesson .st-rapid-grid legend{float:none;width:auto;margin:0 0 .25rem;color:#193f56;font-weight:800}.spanning-tree-lesson .st-rapid-grid label{display:block;margin:.25rem 0}.spanning-tree-lesson .st-rapid-grid button{min-height:2.2rem;padding:.3rem .6rem}.spanning-tree-lesson .st-rapid-grid p{min-height:2.5em;margin:.3rem 0 0;color:#284b60;font-size:.88rem}
+.spanning-tree-lesson .stp-topology .stp-host-link{fill:none;stroke:#8299a7;stroke-width:5}.spanning-tree-lesson .stp-topology .stp-host rect{fill:#eef7fa;stroke:#33738d;stroke-width:2}.spanning-tree-lesson .stp-topology .stp-host text{fill:#163e54;stroke:none;font:800 12px sans-serif;text-anchor:middle}.spanning-tree-lesson .stp-controls{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem}.spanning-tree-lesson .stp-controls label{font-weight:750}.spanning-tree-lesson .stp-controls select{min-height:2.65rem;padding:.35rem;border:1px solid #7899ad;border-radius:.45rem;background:#fff;color:#153b54;font:inherit}.spanning-tree-lesson [data-stp-prev]:focus-visible,.spanning-tree-lesson [data-stp-play]:focus-visible,.spanning-tree-lesson [data-stp-pause]:focus-visible,.spanning-tree-lesson [data-stp-rapid-check]:focus-visible,.spanning-tree-lesson [data-stp-cost-choice]:focus-visible,.spanning-tree-lesson [data-stp-election-predict]:focus-visible{outline:3px solid #e5a920;outline-offset:2px}
+@media(max-width:760px){.spanning-tree-lesson .st-cost-workbench{grid-template-columns:1fr}.spanning-tree-lesson .st-cost-workbench>[data-stp-cost-compare],.spanning-tree-lesson .st-cost-workbench>[data-stp-cost-feedback],.spanning-tree-lesson .st-cost-workbench>[data-stp-cost-next]{grid-column:1}}
+@media(max-width:520px){.spanning-tree-lesson .st-election-phase{grid-template-columns:1fr}.spanning-tree-lesson .st-election-phase>button{grid-column:1;grid-row:auto;justify-self:start}.spanning-tree-lesson .st-role-topology{grid-template-columns:1fr}.spanning-tree-lesson .st-rapid-grid{grid-template-columns:1fr}.spanning-tree-lesson .stp-controls>*{max-width:100%}.spanning-tree-lesson .st-cost-topology{max-height:180px}}
+@media(prefers-reduced-motion:reduce){.spanning-tree-lesson .st-cost-topology .cost-traveler{display:none!important}}
+
+.spanning-tree-lesson .st-state-port{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;margin:.5rem 0;padding:.55rem;border:1px solid #9bb3c0;border-radius:.5rem;background:#eaf1f4}.spanning-tree-lesson .st-state-port strong{margin-inline-end:auto;color:#173f56}.spanning-tree-lesson .state-signal{padding:.22rem .4rem;border-radius:999px;background:#d8e0e4;color:#48606d;font-size:.76rem;font-weight:750;opacity:.52}.spanning-tree-lesson .state-signal::before{content:"○ ";font-weight:900}.spanning-tree-lesson .st-port-state-practice[data-state="Blocking"] .signal-bpdu,.spanning-tree-lesson .st-port-state-practice[data-state="Listening"] .signal-bpdu,.spanning-tree-lesson .st-port-state-practice[data-state="Learning"] .signal-bpdu,.spanning-tree-lesson .st-port-state-practice[data-state="Forwarding"] .signal-bpdu{opacity:1;background:#e3f0f5;color:#1d5d76}.spanning-tree-lesson .st-port-state-practice[data-state="Learning"] .signal-mac,.spanning-tree-lesson .st-port-state-practice[data-state="Forwarding"] .signal-mac{opacity:1;background:#e7f3eb;color:#286044}.spanning-tree-lesson .st-port-state-practice[data-state="Forwarding"] .signal-data{opacity:1;background:#d8eedf;color:#205b39}.spanning-tree-lesson .st-port-state-practice[data-state="Disabled"] .st-state-port{background:#f2e8e7;border-color:#aa7772}.spanning-tree-lesson .st-port-state-practice[data-state="Disabled"] .state-signal{opacity:.35}
+.spanning-tree-lesson .st-cost-topology .cost-traveler{opacity:0}.spanning-tree-lesson .st-cost-workbench.is-compared .cost-traveler{opacity:1}.spanning-tree-lesson .st-cost-workbench.is-compared .is-best-traveler{fill:#e7b13a;stroke:#654a12}.spanning-tree-lesson .st-cost-topology .cost-traveler-direct{color:#e7b13a}.spanning-tree-lesson .st-cost-topology .cost-traveler-via{color:#49a878}
+.spanning-tree-lesson .stp-bpdu-lesson.is-sent .st-bpdu-ticket{opacity:1}
+@media(prefers-reduced-motion:reduce){.spanning-tree-lesson .st-road-lab.is-moving .road-car,.spanning-tree-lesson .st-road-lab.is-moving .network-frame{opacity:1}.spanning-tree-lesson .st-bpdu-lesson.is-sent .st-bpdu-ticket{left:0;opacity:1}}

@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from . import encapsulation_content, osi_content
 from .content import RAPID_FIRE
 from .exercises import ACTIVITIES, ACTIVITY_MAP, CAPABILITIES, MISCONCEPTION_LABELS, STAGES
 from .mac_exercises import (
@@ -57,6 +58,7 @@ from .trunk_checkpoint import (
     ACTIVITY_MAP as TRUNK_ACTIVITY_MAP,
     CAPABILITIES as TRUNK_CAPABILITIES,
     MISCONCEPTION_LABELS as TRUNK_MISCONCEPTION_LABELS,
+    ORIGINAL_ACTIVITY_COUNT as TRUNK_ORIGINAL_ACTIVITY_COUNT,
 )
 from .ipv4_checkpoint import (
     ACTIVITIES as IPV4_ACTIVITIES,
@@ -1193,6 +1195,19 @@ def vlan_checkpoint_reset_current(request):
     return _vlan_checkpoint_response(request)
 
 
+def loops_concept(request):
+    from .loop_content import LOOP_QUESTIONS, LOOP_TERMS
+    return render(request, "learning/loops_concept.html", _context(request, current_topic="LOOPS", loop_questions=LOOP_QUESTIONS, terms=LOOP_TERMS))
+
+
+def spanning_tree_concept(request):
+    from .loop_content import SPANNING_TREE_QUESTIONS, SPANNING_TREE_TERMS
+    return render(request, "learning/spanning_tree_concept.html", _context(
+        request, current_topic="SPANNING_TREE", spanning_tree_questions=SPANNING_TREE_QUESTIONS,
+        terms=SPANNING_TREE_TERMS,
+    ))
+
+
 def trunk_concept(request):
     return render(request, "learning/trunk_concept.html", _context(request, current_topic="TRUNK", **_trunk_checkpoint_context(request)))
 
@@ -1985,6 +2000,9 @@ def ports_checkpoint_reset(request):
 
 
 _NETWORK_MODULES = {
+    "encapsulation": (encapsulation_content.ACTIVITIES, encapsulation_content.ACTIVITY_MAP,
+                      encapsulation_content.CAPABILITIES, encapsulation_content.MISCONCEPTION_LABELS),
+    "osi": (osi_content.ACTIVITIES, osi_content.ACTIVITY_MAP, osi_content.CAPABILITIES, osi_content.MISCONCEPTION_LABELS),
     "dns": (DNS_ACTIVITIES, DNS_ACTIVITY_MAP, DNS_CAPABILITIES, DNS_MISCONCEPTION_LABELS),
     "dhcp": (DHCP_ACTIVITIES, DHCP_ACTIVITY_MAP, DHCP_CAPABILITIES, DHCP_MISCONCEPTION_LABELS),
 }
@@ -2038,6 +2056,47 @@ def dns_concept(request):
     return render(request, "learning/dns_concept.html", _context(request, current_topic="DNS", **_network_context(request, "dns")))
 
 
+def osi_concept(request):
+    return render(request, "learning/osi_concept.html", _context(
+        request, current_topic="OSI", groups=osi_content.MODELS, steps=osi_content.STEPS,
+        evidence=osi_content.EVIDENCE, **_network_context(request, "osi"),
+    ))
+
+
+@require_POST
+def osi_checkpoint(request, action):
+    return _radio_checkpoint(request, action, "osi")
+
+
+def encapsulation_concept(request):
+    return render(request, "learning/encapsulation_concept.html", _context(
+        request, current_topic="ENCAPSULATION", layers=encapsulation_content.LAYERS,
+        analogy=encapsulation_content.ANALOGY, associations=encapsulation_content.ASSOCIATIONS,
+        association_options=encapsulation_content.ASSOCIATION_OPTIONS, rapid_fire=encapsulation_content.RAPID_FIRE,
+        walkthrough=encapsulation_content.WALKTHROUGH, path=encapsulation_content.PATH,
+        frames=encapsulation_content.FRAMES, predictions=encapsulation_content.PREDICTIONS,
+        **_network_context(request, "encapsulation"),
+    ))
+
+
+@require_POST
+def encapsulation_checkpoint(request, action):
+    return _radio_checkpoint(request, action, "encapsulation")
+
+
+def _radio_checkpoint(request, action, kind):
+    if action == "responder":
+        answer = request.POST.get("conclusao")
+        return _network_answer(request, kind, {"conclusao": answer} if answer else {})
+    handlers = {
+        "iniciar": _network_start, "avancar": _network_next,
+        "pista": _network_hint, "rever": _network_reset, "refazer": _network_start,
+    }
+    if action not in handlers:
+        raise Http404
+    return handlers[action](request, kind)
+
+
 def dhcp_concept(request):
     return render(request, "learning/dhcp_concept.html", _context(request, current_topic="DHCP", **_network_context(request, "dhcp")))
 
@@ -2047,7 +2106,7 @@ def _network_start(request, kind):
     return _network_response(request, kind)
 
 
-def _network_answer(request, kind):
+def _network_answer(request, kind, decoded=None):
     checkpoint = request.session.get(f"{kind}_checkpoint")
     if not checkpoint or checkpoint.get("complete"):
         return _network_response(request, kind)
@@ -2055,13 +2114,15 @@ def _network_answer(request, kind):
     stored = checkpoint["answers"].get(item["id"])
     if not (stored and stored.get("complete")):
         stored = stored or _initial_answer()
-        decoded = _decode_payload(request.POST.get("answer_payload"), dict)
+        if decoded is None:
+            decoded = _decode_payload(request.POST.get("answer_payload"), dict)
         raw = json.dumps({key: value.strip().lower() if isinstance(value, str) else value for key, value in decoded.items()}) if decoded else None
         stored, error = _submit_mapping(item, stored, raw)
         if error:
             stored["ui_error"] = error
         if not stored.get("complete") and stored.get("attempt_count", 0) >= 2:
-            stored["last_feedback"] = item["wrong_feedback"]
+            if kind not in {"osi", "encapsulation"}:
+                stored["last_feedback"] = item["wrong_feedback"]
             stored["hint_level"] = max(1, stored.get("hint_level", 0))
         if stored.get("complete"):
             stored.pop("ui_error", None)
@@ -2136,7 +2197,7 @@ def dhcp_checkpoint_reset(request): return _network_reset(request, "dhcp")
 
 def _trunk_checkpoint_context(request):
     checkpoint = request.session.get("trunk_checkpoint")
-    context = {"trunk_checkpoint_started": bool(checkpoint)}
+    context = {"trunk_checkpoint_started": bool(checkpoint), "trunk_checkpoint_total": len(TRUNK_ACTIVITIES)}
     if not checkpoint:
         return context
     answers = checkpoint.get("answers", {})
@@ -2147,11 +2208,15 @@ def _trunk_checkpoint_context(request):
             for code in answer.get("misconception_codes", []):
                 if code not in codes:
                     codes.append(code)
+        context.update({
+            "trunk_checkpoint_solved": checkpoint["current"],
+            "trunk_checkpoint_has_extension": checkpoint["current"] == TRUNK_ORIGINAL_ACTIVITY_COUNT,
+        })
         context.update({"trunk_checkpoint_complete": True, "trunk_checkpoint_immediate": result_types.count("immediate"), "trunk_checkpoint_guided": result_types.count("guided"), "trunk_checkpoint_capabilities": TRUNK_CAPABILITIES, "trunk_checkpoint_misconceptions": [TRUNK_MISCONCEPTION_LABELS[code] for code in codes if code in TRUNK_MISCONCEPTION_LABELS]})
     else:
         item = TRUNK_ACTIVITY_MAP[str(checkpoint.get("current", 1))]
         stored = answers.get(item["id"])
-        context.update({"trunk_checkpoint_activity": item, "trunk_checkpoint_result": stored, "trunk_checkpoint_total": len(TRUNK_ACTIVITIES), "trunk_checkpoint_hint_text": item.get("hints", [])[min(stored.get("hint_level", 0), len(item.get("hints", []))) - 1] if stored and stored.get("hint_level") and item.get("hints") else None, "trunk_checkpoint_builder_initial": stored.get("last_payload", {}) if stored and stored.get("complete") else {}})
+        context.update({"trunk_checkpoint_activity": item, "trunk_checkpoint_result": stored, "trunk_checkpoint_hint_text": item.get("hints", [])[min(stored.get("hint_level", 0), len(item.get("hints", []))) - 1] if stored and stored.get("hint_level") and item.get("hints") else None, "trunk_checkpoint_builder_initial": stored.get("last_payload", {}) if stored and stored.get("complete") else {}})
     return context
 
 
@@ -2198,7 +2263,12 @@ def trunk_checkpoint_answer(request):
 @require_POST
 def trunk_checkpoint_next(request):
     checkpoint = request.session.get("trunk_checkpoint")
-    if not checkpoint or checkpoint.get("complete"):
+    if not checkpoint:
+        return _trunk_checkpoint_response(request)
+    if checkpoint.get("complete"):
+        if request.POST.get("continue_extension") == "1" and checkpoint["current"] == TRUNK_ORIGINAL_ACTIVITY_COUNT:
+            checkpoint.update(current=TRUNK_ORIGINAL_ACTIVITY_COUNT + 1, complete=False)
+            request.session.modified = True
         return _trunk_checkpoint_response(request)
     item = TRUNK_ACTIVITY_MAP[str(checkpoint["current"])]
     if not checkpoint["answers"].get(item["id"], {}).get("complete"):

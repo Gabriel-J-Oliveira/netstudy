@@ -1,0 +1,84 @@
+{% extends "learning/base.html" %}
+{% load static %}
+{% block title %}Modelo OSI e TCP/IP · NetStudy{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/osi-concept.css' %}">{% endblock %}
+{% block content %}
+<article class="osi-lesson" data-osi-lesson>
+  <header>
+    <p class="eyebrow">Fundamentos de redes</p>
+    <h1>Modelo OSI e TCP/IP</h1>
+    <p class="osi-lead">Ao abrir um site, o navegador pede uma página, o transporte entrega dados entre aplicações e a rede encontra um caminho até o servidor. A interface ainda precisa transmitir bits pelo meio físico. Organizar essas responsabilidades em camadas ajuda a entender a entrega e investigar onde ela falhou.</p>
+  </header>
+
+  <section aria-labelledby="osi-models-title">
+    <h2 id="osi-models-title">Compare os dois modelos</h2>
+    <p>Selecione uma camada para ver sua função e as relações no outro modelo. O alinhamento é uma aproximação das responsabilidades.</p>
+    <div class="osi-model-head"><strong>OSI · 7 camadas</strong><strong>TCP/IP · 4 camadas</strong></div>
+    <div class="osi-model" aria-label="Correspondência conceitual das camadas">
+      {% for key, name, layers, description in groups %}
+      <div class="osi-model-row osi-{{ key }}">
+        <div class="osi-stack">
+          {% for label, role, examples, route, related in layers %}
+          <button type="button" data-osi-layer data-group="{{ key }}" aria-controls="osi-layer-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" aria-pressed="{% if forloop.parentloop.first and forloop.first %}true{% else %}false{% endif %}">{{ label }}</button>
+          {% endfor %}
+        </div>
+        <button type="button" data-osi-layer data-group="{{ key }}" aria-controls="tcpip-layer-{{ key }}" aria-pressed="false">{{ name }}</button>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="osi-layer-panel" aria-live="polite">
+      {% for key, name, layers, description in groups %}
+      {% for label, role, examples, route, related in layers %}
+      <div data-osi-info id="osi-layer-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"{% if not forloop.parentloop.first or not forloop.first %} hidden{% endif %}>
+        <h3>OSI · {{ label }}</h3><p>{{ role }}</p><p><strong>Exemplos</strong> · {{ examples }}</p>
+        {% if route %}<a href="{% url 'learning:'|add:route %}">Estudar {{ related }}</a>{% endif %}
+      </div>
+      {% endfor %}
+      <div data-osi-info id="tcpip-layer-{{ key }}" hidden>
+        <h3>TCP/IP · {{ name }}</h3><p>{{ description }}</p>
+        {% for label, role, examples, route, related in layers %}
+        <p>{{ examples }}{% if route %} · <a href="{% url 'learning:'|add:route %}">{{ related }}</a>{% endif %}</p>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <p class="osi-note">As funções de representação e diálogo podem ficar na aplicação ou em bibliotecas e protocolos que ela usa. Alguns protocolos, como ARP, atuam na fronteira entre endereçamento IPv4 e entrega local.</p>
+  </section>
+
+  <section aria-labelledby="osi-path-title" data-osi-path>
+    <h2 id="osi-path-title">Acompanhe um pedido HTTP</h2>
+    <p>O cliente já conhece o IPv4 do servidor remoto e abriu a conexão TCP. Antes de avançar, preveja o que acontece com o destino IP quando o pedido passa pelo roteador.</p>
+    <ol class="osi-path-rail" aria-label="Percurso do pedido">
+      <li data-osi-place="Cliente">Cliente <small>Desce pelas camadas</small></li>
+      <li data-osi-place="Percurso">Rede <small>Encaminha o pacote</small></li>
+      <li data-osi-place="Servidor">Servidor <small>Sobe pelas camadas</small></li>
+    </ol>
+    <div class="osi-layer-panel" aria-live="polite">
+      {% for place, key, layer, message, inspect in steps %}
+      <div data-osi-step="{{ place }}" class="osi-{{ key }}"{% if not forloop.first %} hidden{% endif %}>
+        <p class="eyebrow">{{ place }} · {{ forloop.counter }}/{{ steps|length }}</p>
+        <h3>{{ layer }}</h3><p>{{ message }}</p><p class="osi-observation">{{ inspect }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="osi-actions">
+      <button type="button" class="btn btn-outline-primary" data-osi-back disabled>Anterior</button>
+      <button type="button" class="btn btn-primary" data-osi-next>Avançar</button>
+      <button type="button" class="btn btn-outline-secondary" data-osi-reset>Reiniciar</button>
+    </div>
+  </section>
+
+  <section aria-labelledby="osi-evidence-title">
+    <h2 id="osi-evidence-title">O que cada teste permite concluir?</h2>
+    <p>Escolha uma situação, formule uma hipótese e abra a análise para conferir.</p>
+    <div class="osi-evidence">
+      {% for title, analysis in evidence %}<details><summary>{{ title }}</summary><p>{{ analysis }}</p></details>{% endfor %}
+    </div>
+  </section>
+
+  <section id="osi-checkpoint" aria-label="Checkpoint" aria-live="polite" data-checkpoint-panel>
+    {% include "learning/partials/osi_checkpoint.html" %}
+  </section>
+</article>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/osi-concept.js' %}" defer></script>{% endblock %}

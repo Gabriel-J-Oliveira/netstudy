@@ -1,0 +1,19 @@
+{% if recommendation and not sidebar %}
+<p class="trail-recommendation"><strong>Próxima aula recomendada</strong> · <a href="{{ recommendation.url }}">{{ recommendation.number }} · {{ recommendation.title }}</a></p>
+{% endif %}
+<ol class="lesson-trail{% if sidebar %} lesson-trail-sidebar{% endif %}" aria-label="Trilha de Aprender">
+  {% for entry in entries %}
+  <li>
+    {% if entry.section_heading %}<span class="trail-section">{{ entry.section_heading }}</span>{% endif %}
+    <a class="trail-link" href="{{ entry.url }}"{% if entry.active %} aria-current="page"{% endif %}>
+      <span class="trail-number">{{ entry.number }}</span>
+      <span>
+        <strong>{{ entry.title }}</strong>
+        {% if not sidebar %}<span class="trail-objective">{{ entry.objective }}</span>{% endif %}
+        {% if entry.recommended %}<span class="trail-status">Próxima recomendada</span>{% endif %}
+        {% if entry.progress %}<span class="trail-status">{{ entry.progress }}</span>{% endif %}
+      </span>
+    </a>
+  </li>
+  {% endfor %}
+</ol>

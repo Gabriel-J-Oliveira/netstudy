@@ -1,4 +1,32 @@
 :root { --ink:#172033; --muted:#667085; --navy:#132a4a; --blue:#2563eb; --blue-soft:#eef4ff; --line:#dfe5ee; --green:#157347; --green-bg:#eaf7ef; --red:#b42318; --red-bg:#fff0ef; }
+.lesson-trail { list-style:none; display:grid; gap:.4rem; padding:0; margin:0; }
+.trail-catalog { max-width:860px; margin-top:2rem; }
+.trail-recommendation { padding:.75rem 1rem; background:var(--blue-soft); border-radius:.5rem; }
+.trail-link { display:grid; grid-template-columns:2.3ch minmax(0,1fr); align-items:start; gap:.75rem; padding:.65rem .85rem; color:var(--ink); background:#fff; border:1px solid var(--line); border-radius:.45rem; text-decoration:none; overflow-wrap:anywhere; }
+.trail-link:hover { background:var(--blue-soft); color:var(--navy); }
+.trail-link:focus-visible { outline:2px solid #5589e4; outline-offset:-2px; }
+.trail-number { font-variant-numeric:tabular-nums; font-weight:750; color:#2354a0; }
+.trail-objective, .trail-status { display:block; font-size:.875em; }
+.trail-objective { color:var(--muted); }
+.trail-status { color:#174786; margin-top:.15rem; }
+.trail-section { display:block; margin:.45rem 0 .25rem; font-size:.8rem; font-weight:750; }
+.lesson-trail-sidebar { gap:.05rem; margin:.4rem 0 .55rem .6rem; padding:0 0 0 .4rem; border-left:1px solid #536e91; }
+.lesson-trail-sidebar .trail-link { padding:.35rem .4rem; gap:.45rem; background:none; color:#d9e4f4; border-color:transparent; font-size:.82rem; }
+.lesson-trail-sidebar .trail-link:hover { background:#1d3a61; }
+.lesson-trail-sidebar .trail-link[aria-current="page"] { background:#254a78; box-shadow:inset 3px 0 #76a7ff; color:#fff; }
+.lesson-trail-sidebar :is(.trail-number,.trail-status) { color:#bed6fb; }
+.lesson-intro { margin:0 0 1.75rem; padding:.75rem 1rem; border-left:3px solid var(--blue); background:var(--blue-soft); }
+.lesson-intro p { margin:0 0 .35rem; }
+.lesson-intro p:last-child { margin-bottom:0; }
+.lesson-transition { margin:2rem 0 0; padding:1rem; border-top:1px solid var(--line); }
+.lesson-transition > div { display:flex; flex-wrap:wrap; gap:.75rem 1.4rem; }
+.lesson-transition a { font-weight:650; }
+.lesson-preview { margin:1.25rem 0; }
+.lesson-preview > summary { cursor:pointer; font-weight:700; padding:.65rem 0; }
+.lesson-scaffold { padding:.65rem .8rem; border-left:3px solid var(--blue); background:var(--blue-soft); color:var(--ink); }
+@media (max-width:900px) {
+  .lesson-trail-sidebar { max-height:34vh; overflow-y:auto; scrollbar-width:thin; }
+}
 .journey-context { display:grid; gap:12px; font-size:14px; overflow-wrap:anywhere; }
 .journey-context a { color:#d9e4f4; }
 .journey-home { padding-bottom:28px; border-bottom:1px solid var(--line); }
@@ -16,7 +44,10 @@ body { margin:0; color:var(--ink); background:#f8fafc; font-family:Inter, ui-san
 .brand { display:block; margin-bottom:44px; color:#fff; font-size:1.55rem; font-weight:750; letter-spacing:-.03em; text-decoration:none; }
 .sidebar-section { color:#91a6c4; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.12em; }
 .current-topic { margin:8px 0 28px; color:#fff; font-size:1.15rem; font-weight:700; }
-.topic-navigation { display:grid; gap:5px; margin:12px 0 28px; }.topic-navigation a { padding:9px 11px; border-radius:7px; color:#aebed4; font-weight:650; text-decoration:none; }.topic-navigation a:hover,.topic-navigation a:focus-visible { color:#fff; background:#1d3a61; outline:none; }.topic-navigation a[aria-current="page"] { color:#fff; background:#254a78; box-shadow:inset 3px 0 #76a7ff; }
+.topic-navigation-list { display:grid; gap:5px; margin:12px 0 28px; padding:0; list-style:none; }
+.topic-navigation-list > li > a { display:block; padding:9px 11px; border-radius:7px; color:#aebed4; font-weight:650; text-decoration:none; }
+.topic-navigation-list > li > a:hover, .topic-navigation-list > li > a:focus-visible { color:#fff; background:#1d3a61; }
+.topic-navigation-list > li > a[aria-current="page"] { color:#fff; background:#254a78; box-shadow:inset 3px 0 #76a7ff; }
 .main-content { min-width:0; padding:64px 6vw 90px; }.content-column { min-width:0; max-width:1240px; margin:0 auto; }
 h1 { margin:.2rem 0 .5rem; font-size:clamp(2.2rem,4vw,3.5rem); letter-spacing:-.045em; font-weight:760; } h2 { margin-bottom:1rem; font-size:1.55rem; letter-spacing:-.025em; } h3 { font-size:1.05rem; }
 .eyebrow { color:var(--blue); font-size:.76rem; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }.subtitle { color:var(--muted); font-size:1.2rem; }

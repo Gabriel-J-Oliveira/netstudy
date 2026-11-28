@@ -1,0 +1,17 @@
+{% if bridge %}
+{% if shortcut %}
+<p><a class="btn btn-outline-primary" href="{{ next.url }}">Próxima aula · {{ next.number }} · {{ next.title }} →</a></p>
+{% else %}
+<nav class="lesson-transition" aria-label="Navegação entre aulas">
+  <p>{{ bridge }}</p>
+  <div>
+    {% if previous %}<a data-trail-previous href="{{ previous.url }}">← Aula {{ previous.number }} · {{ previous.title }}</a>{% endif %}
+    {% if next %}
+    <a data-trail-next href="{{ next.url }}">Próxima aula · {{ next.number }} · {{ next.title }} →</a>
+    {% else %}
+    <a href="{% url 'learning:practice' %}">Ir para Praticar →</a>
+    {% endif %}
+  </div>
+</nav>
+{% endif %}
+{% endif %}

@@ -1,0 +1,171 @@
+{% extends "learning/base.html" %}
+{% load static %}
+{% block title %}Spanning Tree — STP, RSTP e MSTP · NetStudy{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/context-glossary.css' %}"><link rel="stylesheet" href="{% static 'css/loops-concept.css' %}"><link rel="stylesheet" href="{% static 'css/spanning-tree-concept.css' %}?v=classic-stp-visual-7">{% endblock %}
+{% block content %}
+<main class="loops-lesson spanning-tree-lesson" data-spanning-tree>
+  <header class="loops-hero"><p class="eyebrow">CAMADA 2 · REDUNDÂNCIA</p><h1>Spanning Tree — STP, RSTP e MSTP</h1><p>Na aula anterior, um enlace redundante fechou um caminho circular. Spanning Tree organiza os caminhos ativos para manter alternativas sem deixar a topologia formar um ciclo de encaminhamento.</p></header>
+
+  <section class="st-problem-review" aria-labelledby="st-overview-title">
+    <p class="loop-index">01 · RETOMAR O PROBLEMA</p>
+    <h2 id="st-overview-title">Um caminho extra ajuda — até todos encaminharem</h2>
+    <p>Antes de falar do protocolo, vamos retomar o que acontece quando existem caminhos alternativos entre switches.</p>
+    <div class="st-problem-map" aria-label="Caminho visual: redundância, risco de loop e bloqueio lógico pelo STP">
+      <svg class="st-problem-connectors" viewBox="0 0 1000 230" aria-hidden="true" focusable="false"><path class="st-map-connector" d="M190 52 500 170 810 52"/><path class="st-map-connector st-map-loop" d="M190 52h620"/><path class="st-map-cut" d="M490 45v15m20-15v15"/></svg>
+      <article class="st-problem-node st-problem-node-redundancy">
+        <svg class="st-mini-network" viewBox="0 0 150 54" role="img" aria-label="Três switches com dois caminhos conectados entre si"><path class="mini-link" d="M24 12 75 42 126 12M24 12h102"/><path class="mini-link mini-reserve" d="M24 12h102"/><g class="mini-switch"><rect x="10" y="3" width="28" height="18" rx="5"/><path d="M15 12h18m-13-4v8m8-8v8"/></g><g class="mini-switch"><rect x="61" y="33" width="28" height="18" rx="5"/><path d="M66 42h18m-13-4v8m8-8v8"/></g><g class="mini-switch"><rect x="112" y="3" width="28" height="18" rx="5"/><path d="M117 12h18m-13-4v8m8-8v8"/></g></svg>
+        <h3>Redundância</h3><p>Dois caminhos mantêm uma alternativa se um enlace falhar.</p>
+      </article>
+      <article class="st-problem-node st-problem-node-loop">
+        <svg class="st-mini-network" viewBox="0 0 150 54" role="img" aria-label="Três switches ligados em círculo e um frame seguindo o circuito"><path class="mini-link mini-loop" d="M24 12 75 42 126 12 24 12"/><path class="mini-direction" d="m47 25 8 4-8 4m42 0 8-4-8-4m-20-13 0 9"/><circle class="mini-frame" cx="50" cy="27" r="5"/><g class="mini-switch"><rect x="10" y="3" width="28" height="18" rx="5"/><path d="M15 12h18m-13-4v8m8-8v8"/></g><g class="mini-switch"><rect x="61" y="33" width="28" height="18" rx="5"/><path d="M66 42h18m-13-4v8m8-8v8"/></g><g class="mini-switch"><rect x="112" y="3" width="28" height="18" rx="5"/><path d="M117 12h18m-13-4v8m8-8v8"/></g></svg>
+        <h3>Loop</h3><p>Se todos encaminham, frames podem circular indefinidamente.</p>
+      </article>
+      <article class="st-problem-node st-problem-node-stp">
+        <svg class="st-mini-network" viewBox="0 0 150 54" role="img" aria-label="Árvore STP com um enlace conectado, porém bloqueado"><path class="mini-link mini-tree" d="M24 12 75 42 126 12"/><path class="mini-link mini-reserve" d="M24 12h102"/><path class="mini-block-mark" d="M70 7v10m10-10v10"/><g class="mini-switch"><rect x="10" y="3" width="28" height="18" rx="5"/><path d="M15 12h18m-13-4v8m8-8v8"/></g><g class="mini-switch"><rect x="61" y="33" width="28" height="18" rx="5"/><path d="M66 42h18m-13-4v8m8-8v8"/></g><g class="mini-switch"><rect x="112" y="3" width="28" height="18" rx="5"/><path d="M117 12h18m-13-4v8m8-8v8"/></g></svg>
+        <h3>STP</h3><p>Uma porta para de encaminhar; o cabo segue conectado como alternativa.</p>
+      </article>
+    </div>
+    <p class="st-problem-key"><strong>O mesmo cabo extra pode ser solução ou problema. Tudo depende de como a rede organiza seus caminhos.</strong></p>
+  </section>
+
+  {% include "learning/partials/spanning_tree_classic.html" %}
+
+  <section class="st-learning-area" aria-labelledby="rstp-title" data-rstp-lab>
+    <p class="loop-index">03 · RSTP · CORRIDA PELA RECUPERAÇÃO</p><h2 id="rstp-title">A mesma falha, duas formas de recuperar</h2><p>Provoque uma falha comum e avance o relógio didático manualmente. Os dois lados começam juntos; os tempos são uma ilustração comparativa, não garantias de convergência.</p>
+    <div class="rstp-controls"><button type="button" data-rstp-fail>Provocar a mesma falha</button><button type="button" data-rstp-tick disabled>Avançar 1 segundo didático</button><button type="button" data-rstp-reset>Reiniciar comparação</button></div>
+    <div class="rstp-comparison">
+      <article class="rstp-network" data-rstp-side="stp"><h3>STP clássico</h3><svg viewBox="0 0 360 110" role="img" aria-label="Topologia redundante de três switches no modelo STP clássico"><path d="M70 52H180L290 52M70 52L180 92L290 52"/><circle cx="70" cy="52" r="20"/><circle cx="180" cy="92" r="20"/><circle cx="290" cy="52" r="20"/><text x="70" y="56">SW1</text><text x="180" y="96">SW2</text><text x="290" y="56">SW3</text><path class="failure-cut" d="M180 70V47"/><circle class="bpdu-dot" data-rstp-bpdu cx="70" cy="52" r="6"/></svg><p>Porta disponível: <strong data-rstp-state>Forwarding</strong></p><p>Pacotes perdidos no modelo: <strong data-rstp-loss>0</strong></p><p>Disponibilidade ilustrativa: <strong data-rstp-uptime>100%</strong></p><p class="rstp-message" data-rstp-message>Rede estável; tráfego passa.</p></article>
+      <article class="rstp-network" data-rstp-side="rstp"><h3>RSTP</h3><svg viewBox="0 0 360 110" role="img" aria-label="Topologia redundante equivalente de três switches no modelo RSTP"><path d="M70 52H180L290 52M70 52L180 92L290 52"/><circle cx="70" cy="52" r="20"/><circle cx="180" cy="92" r="20"/><circle cx="290" cy="52" r="20"/><text x="70" y="56">SW1</text><text x="180" y="96">SW2</text><text x="290" y="56">SW3</text><path class="failure-cut" d="M180 70V47"/><circle class="bpdu-dot" data-rstp-bpdu cx="70" cy="52" r="6"/></svg><p>Papel alternativo: <strong data-rstp-alt>Alternate · Discarding</strong></p><p>Pacotes perdidos no modelo: <strong data-rstp-loss>0</strong></p><p>Disponibilidade ilustrativa: <strong data-rstp-uptime>100%</strong></p><p class="rstp-message" data-rstp-message>Rede estável; tráfego passa.</p></article>
+    </div>
+    <ol class="rstp-timeline" aria-label="Marcos comparativos"><li data-rstp-marker="0" aria-current="step">Falha comum</li><li data-rstp-marker="1">Alternate disponível</li><li data-rstp-marker="4">RSTP recuperada</li><li data-rstp-marker="30">STP clássico recuperado</li></ol>
+    <div class="st-learning-note"><p><strong>O que muda:</strong> o RSTP usa papéis Root, Designated, Alternate e Backup e os estados Discarding, Learning e Forwarding. Em enlaces ponto a ponto, Proposal/Agreement pode permitir sincronização e transição rápida. O STP clássico usa Blocking, Listening, Learning e Forwarding com temporizações tradicionais. Topologia, interoperabilidade e implementação influenciam o resultado real.</p><p role="status" aria-live="polite" data-rstp-status>Os dois cenários estão estáveis. Inicie a falha e avance no seu ritmo.</p></div>
+    <div class="st-quick-check"><label for="rstp-prediction">Previsão: qual estado não encaminha dados durante a recuperação RSTP?</label><select id="rstp-prediction"><option value="">Selecione</option><option>Discarding</option><option>Forwarding</option></select><button type="button" data-rstp-check>Conferir</button><p role="status" aria-live="polite" data-rstp-feedback></p></div>
+  </section>
+
+  <section class="st-learning-area mstp-lesson" aria-labelledby="mstp-title" data-mstp-lab>
+    <p class="loop-index">04 · MSTP · MÚLTIPLAS ÁRVORES LÓGICAS</p>
+    <h2 id="mstp-title">Uma infraestrutura, diferentes árvores lógicas</h2>
+    <p>Veja primeiro as árvores em funcionamento. Depois, se quiser, altere os mapeamentos, as raízes e a topologia.</p>
+
+    <div class="mstp-demo" data-mstp-demo data-stage="1">
+      <ol class="mstp-stage-strip" aria-label="Etapas da demonstração MSTP">
+        <li data-mstp-stage-marker="1" aria-current="step">1 · Uma árvore</li>
+        <li data-mstp-stage-marker="2">2 · Segunda árvore</li>
+        <li data-mstp-stage-marker="3">3 · Simultâneas</li>
+        <li data-mstp-stage-marker="4">4 · Falha e recuperação</li>
+      </ol>
+      <div class="mstp-demo-controls" aria-label="Controles da demonstração">
+        <button type="button" data-mstp-prev disabled>Anterior</button>
+        <button type="button" data-mstp-next>Próxima etapa</button>
+        <button type="button" data-mstp-play>Reproduzir</button>
+        <button type="button" data-mstp-pause disabled>Pausar</button>
+        <label>Velocidade <select data-mstp-speed aria-label="Velocidade da animação"><option value="1">1×</option><option value="0.7">0,7×</option><option value="1.5">1,5×</option></select></label>
+        <button type="button" data-mstp-demo-reset>Reiniciar demonstração</button>
+      </div>
+      <div class="mstp-instance-switch" data-mstp-instance-switch hidden aria-label="Alternar árvore visível">
+        <span>Inspecionar:</span><button type="button" data-mstp-view="1" aria-pressed="true">VLAN 10 · MSTI 1</button><button type="button" data-mstp-view="2" aria-pressed="false">VLAN 20 · MSTI 2</button>
+      </div>
+      <div class="mstp-stage-copy" aria-live="polite" aria-atomic="true">
+        <p class="mstp-stage-kicker" data-mstp-stage-kicker>ETAPA 1 · VLAN 10 → MSTI 1</p>
+        <h3 data-mstp-stage-title>Uma árvore lógica sem ciclo</h3>
+        <p data-mstp-stage-description>O STP escolhe uma raiz e mantém um dos caminhos redundantes sem encaminhar dados. O cabo continua conectado e disponível como alternativa.</p>
+      </div>
+      <div class="mstp-topology-shell" tabindex="0" role="region" aria-label="Topologia MSTP: switches, portas, computadores e enlaces; role horizontalmente em telas estreitas">
+        <svg class="mstp-topology" data-mstp-topology viewBox="0 0 1000 560" role="img" aria-labelledby="mstp-svg-title mstp-svg-desc">
+          <title id="mstp-svg-title">Duas árvores MST sobre os mesmos três switches</title>
+          <desc id="mstp-svg-desc">SW1, SW2 e SW3 formam uma topologia triangular. Computadores das VLANs 10 e 20 conectam-se por portas de acesso. As cores indicam as árvores lógicas, enquanto o cabo permanece compartilhado.</desc>
+          <defs>
+            <marker id="mstp-arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path class="mstp-arrow-blue" d="M0 0L10 5L0 10z"/></marker>
+            <marker id="mstp-arrow-orange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path class="mstp-arrow-orange" d="M0 0L10 5L0 10z"/></marker>
+          </defs>
+          <!-- Physical cables stay neutral; colored overlays show each instance's logical forwarding tree. -->
+          <g class="mstp-physical-links" aria-hidden="true">
+            <path d="M370 206L630 206"/><path d="M315 270L447 370"/><path d="M685 270L553 370"/>
+            <path class="mstp-access-link" d="M153 132L215 170"/><path class="mstp-access-link" d="M153 427L215 248"/>
+            <path class="mstp-access-link" d="M847 132L785 170"/><path class="mstp-access-link" d="M847 427L785 248"/>
+            <path class="mstp-disconnect-mark" data-mstp-cut="sw1-sw2" d="M487 198L513 214M513 198L487 214"/>
+          </g>
+          <g class="mstp-logical-links" aria-hidden="true">
+            <path id="mstp-path-1-sw1-sw2" data-mst-instance-path="1" data-mst-link="sw1-sw2" d="M370 198L630 198" marker-end="url(#mstp-arrow-blue)"/>
+            <path id="mstp-path-2-sw1-sw2" data-mst-instance-path="2" data-mst-link="sw1-sw2" d="M370 214L630 214" marker-end="url(#mstp-arrow-orange)"/>
+            <path id="mstp-path-1-sw1-sw3" data-mst-instance-path="1" data-mst-link="sw1-sw3" d="M308 270L440 370" marker-end="url(#mstp-arrow-blue)"/>
+            <path id="mstp-path-2-sw1-sw3" data-mst-instance-path="2" data-mst-link="sw1-sw3" d="M322 260L454 360" marker-end="url(#mstp-arrow-orange)"/>
+            <path id="mstp-path-1-sw2-sw3" data-mst-instance-path="1" data-mst-link="sw2-sw3" d="M692 260L560 360" marker-end="url(#mstp-arrow-blue)"/>
+            <path id="mstp-path-2-sw2-sw3" data-mst-instance-path="2" data-mst-link="sw2-sw3" d="M678 270L546 370" marker-end="url(#mstp-arrow-orange)"/>
+          </g>
+          <g class="mstp-link-labels" aria-hidden="true">
+            <text x="500" y="185">Gi0/2 ↔ Gi0/1 · SW1—SW2</text><text x="337" y="326">Gi0/3 ↔ Gi0/1 · SW1—SW3</text><text x="663" y="326">Gi0/2 ↔ Gi0/2 · SW2—SW3</text>
+            <text x="188" y="150">Access · VLAN 10</text><text x="188" y="403">Access · VLAN 20</text><text x="812" y="150">Access · VLAN 10</text><text x="812" y="403">Access · VLAN 20</text>
+          </g>
+          <g class="mstp-port-dots" aria-hidden="true">
+            <circle data-mstp-port="sw1-sw2" data-mstp-switch="sw1" data-mstp-instance="1" cx="370" cy="198" r="8"/><circle data-mstp-port="sw1-sw2" data-mstp-switch="sw1" data-mstp-instance="2" cx="370" cy="214" r="8"/>
+            <circle data-mstp-port="sw1-sw3" data-mstp-switch="sw1" data-mstp-instance="1" cx="308" cy="270" r="8"/><circle data-mstp-port="sw1-sw3" data-mstp-switch="sw1" data-mstp-instance="2" cx="322" cy="260" r="8"/>
+            <circle data-mstp-port="sw2-sw3" data-mstp-switch="sw2" data-mstp-instance="1" cx="692" cy="260" r="8"/><circle data-mstp-port="sw2-sw3" data-mstp-switch="sw2" data-mstp-instance="2" cx="678" cy="270" r="8"/>
+            <circle data-mstp-port="sw1-sw2" data-mstp-switch="sw2" data-mstp-instance="1" cx="630" cy="198" r="8"/><circle data-mstp-port="sw1-sw2" data-mstp-switch="sw2" data-mstp-instance="2" cx="630" cy="214" r="8"/>
+            <circle data-mstp-port="sw1-sw3" data-mstp-switch="sw3" data-mstp-instance="1" cx="440" cy="370" r="8"/><circle data-mstp-port="sw1-sw3" data-mstp-switch="sw3" data-mstp-instance="2" cx="454" cy="360" r="8"/>
+            <circle data-mstp-port="sw2-sw3" data-mstp-switch="sw3" data-mstp-instance="1" cx="560" cy="360" r="8"/><circle data-mstp-port="sw2-sw3" data-mstp-switch="sw3" data-mstp-instance="2" cx="546" cy="370" r="8"/>
+          </g>
+          <g class="mstp-endpoints">
+            <g class="mstp-pc" data-mstp-pc data-vlan="10" transform="translate(28 92)"><rect width="125" height="78" rx="12"/><path d="M18 17h38v25H18zM30 48h14"/><text x="76" y="35">PC-A</text><text x="76" y="57">VLAN 10</text><text class="pc-state" x="62" y="72" data-mstp-pc-state="10">pronto</text></g>
+            <g class="mstp-pc" data-mstp-pc data-vlan="20" transform="translate(28 388)"><rect width="125" height="78" rx="12"/><path d="M18 17h38v25H18zM30 48h14"/><text x="76" y="35">PC-C</text><text x="76" y="57">VLAN 20</text><text class="pc-state" x="62" y="72" data-mstp-pc-state="20">pronto</text></g>
+            <g class="mstp-pc" data-mstp-pc data-vlan="10" transform="translate(847 92)"><rect width="125" height="78" rx="12"/><path d="M18 17h38v25H18zM30 48h14"/><text x="76" y="35">PC-B</text><text x="76" y="57">VLAN 10</text><text class="pc-state" x="62" y="72" data-mstp-pc-state="10">pronto</text></g>
+            <g class="mstp-pc" data-mstp-pc data-vlan="20" transform="translate(847 388)"><rect width="125" height="78" rx="12"/><path d="M18 17h38v25H18zM30 48h14"/><text x="76" y="35">PC-D</text><text x="76" y="57">VLAN 20</text><text class="pc-state" x="62" y="72" data-mstp-pc-state="20">pronto</text></g>
+          </g>
+          <g class="mstp-switches">
+            <g data-mst-switch="sw1" transform="translate(215 160)"><rect class="switch-body" width="155" height="110" rx="15"/><path class="switch-face" d="M18 18h119v27H18z"/><g class="switch-ports"><rect x="27" y="26" width="15" height="11"/><rect x="48" y="26" width="15" height="11"/><rect x="69" y="26" width="15" height="11"/><rect x="90" y="26" width="15" height="11"/></g><text class="switch-name" x="77" y="72">SW1</text><text class="switch-root" data-mstp-root-badge="sw1" x="77" y="93">ROOT · MSTI 1</text></g>
+            <g data-mst-switch="sw2" transform="translate(630 160)"><rect class="switch-body" width="155" height="110" rx="15"/><path class="switch-face" d="M18 18h119v27H18z"/><g class="switch-ports"><rect x="27" y="26" width="15" height="11"/><rect x="48" y="26" width="15" height="11"/><rect x="69" y="26" width="15" height="11"/><rect x="90" y="26" width="15" height="11"/></g><text class="switch-name" x="77" y="72">SW2</text><text class="switch-root" data-mstp-root-badge="sw2" x="77" y="93">—</text></g>
+            <g data-mst-switch="sw3" transform="translate(422 360)"><rect class="switch-body" width="155" height="110" rx="15"/><path class="switch-face" d="M18 18h119v27H18z"/><g class="switch-ports"><rect x="27" y="26" width="15" height="11"/><rect x="48" y="26" width="15" height="11"/><rect x="69" y="26" width="15" height="11"/><rect x="90" y="26" width="15" height="11"/></g><text class="switch-name" x="77" y="72">SW3</text><text class="switch-root" data-mstp-root-badge="sw3" x="77" y="93">—</text></g>
+          </g>
+          <g class="mstp-bubbles" aria-hidden="true">
+            <g data-mstp-bubble="sw1" transform="translate(400 16)"><rect width="205" height="42" rx="10"/><text x="102" y="26" data-mstp-bubble-text="sw1">Para a instância 1, minha raiz é SW1.</text></g>
+            <g data-mstp-bubble="sw3" transform="translate(515 480)"><rect width="230" height="42" rx="10"/><text x="115" y="26" data-mstp-bubble-text="sw3">Para a instância 2, minha raiz é SW3.</text></g>
+          </g>
+          <g class="mstp-frames" aria-hidden="true">
+            <circle class="mstp-frame mstp-frame-one" data-mstp-frame="1" r="9"><animateMotion data-mstp-motion="1" begin="indefinite" dur="3.6s" repeatCount="indefinite"><mpath href="#mstp-route-one"/></animateMotion></circle>
+            <circle class="mstp-frame mstp-frame-two" data-mstp-frame="2" r="9"><animateMotion data-mstp-motion="2" begin="indefinite" dur="3.2s" repeatCount="indefinite"><mpath href="#mstp-route-two"/></animateMotion></circle>
+            <path id="mstp-route-one" class="mstp-route-def" d="M153 131L215 186L370 198L500 214L630 198L785 186L847 131"/>
+            <path id="mstp-route-two" class="mstp-route-def" d="M153 427L215 248L308 270L440 370L499 415L560 370L692 270L785 248L847 427"/>
+          </g>
+        </svg>
+      </div>
+      <div class="mstp-legend" aria-label="Legenda da demonstração"><span><i class="mstp-key msti-one"></i>VLAN 10 · MSTI 1 · Forwarding</span><span><i class="mstp-key msti-two"></i>VLAN 20 · MSTI 2 · Forwarding</span><span><i class="mstp-key blocked"></i>porta bloqueada por instância · cabo conectado</span><span><i class="mstp-key disconnected"></i>falha física</span></div>
+      <div class="mstp-demo-bottom"><div class="mstp-instance-readout"><p><strong data-mstp-demo-roots>Raiz MSTI 1: SW1</strong></p><p data-mstp-demo-result>VLAN 10 · MSTI 1 · portas e caminho calculados pelo modelo STP existente.</p></div><p class="mstp-activity" data-mstp-activity role="status" aria-live="polite">PC-A prepara dados para PC-B pela árvore da VLAN 10.</p></div>
+      <p class="mstp-demo-conclusion" data-mstp-conclusion hidden><strong>Mesma infraestrutura física, diferentes árvores lógicas, redundância sem loops.</strong></p>
+    </div>
+
+    <div class="st-quick-check mstp-rapid" data-mstp-rapid>
+      <strong>Rapid Fire · uma pergunta rápida</strong>
+      <label for="mstp-prediction">Se VLANs 10 e 20 compartilham MSTI 1, há obrigatoriamente uma árvore para cada VLAN?</label>
+      <div><select id="mstp-prediction"><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select> <button type="button" data-mstp-check>Conferir</button></div>
+      <p role="status" aria-live="polite" data-mstp-prediction-feedback></p>
+    </div>
+
+    <details class="mstp-advanced" data-mstp-advanced>
+      <summary>Experimente você mesmo</summary>
+      <p>Altere o mapeamento, a raiz preferida por instância ou interrompa um enlace. O mesmo diagrama e o mesmo modelo determinístico mostram o resultado calculado.</p>
+      <div class="mstp-controls"><label>VLAN 10 usa <select data-mstp-map="10"><option value="1" selected>MSTI 1</option><option value="2">MSTI 2</option></select></label><label>VLAN 20 usa <select data-mstp-map="20"><option value="1">MSTI 1</option><option value="2" selected>MSTI 2</option></select></label>
+        <label>Raiz preferida · MSTI 1 <select data-mstp-root="1"><option value="sw1" selected>SW1</option><option value="sw2">SW2</option><option value="sw3">SW3</option></select></label><label>Raiz preferida · MSTI 2 <select data-mstp-root="2"><option value="sw1">SW1</option><option value="sw2">SW2</option><option value="sw3" selected>SW3</option></select></label>
+        <label>Falha manual <select data-mstp-failure><option value="">Nenhuma</option><option value="sw1-sw2">SW1—SW2</option><option value="sw1-sw3">SW1—SW3</option><option value="sw2-sw3">SW2—SW3</option></select></label><button type="button" data-mstp-reset>Restaurar topologia</button></div>
+      <div class="mstp-meta"><span>Região: <strong>NETSTUDY</strong></span><span>Revisão: <strong>1</strong></span><span>VLANs: <strong data-mstp-map-summary>10 → MSTI 1 · 20 → MSTI 2</strong></span><span>CIST: <strong>conecta a região ao contexto comum</strong></span></div>
+      <div class="mstp-results"><article><h3>MSTI 1 · VLANs <span data-mstp-vlans="1">10</span></h3><p>Root Bridge: <strong data-mstp-instance-root="1">—</strong></p><p>Enlaces Forwarding: <strong data-mstp-forwarding="1">—</strong></p><p>Enlaces Blocking: <strong data-mstp-blocked="1">—</strong></p></article><article><h3>MSTI 2 · VLANs <span data-mstp-vlans="2">20</span></h3><p>Root Bridge: <strong data-mstp-instance-root="2">—</strong></p><p>Enlaces Forwarding: <strong data-mstp-forwarding="2">—</strong></p><p>Enlaces Blocking: <strong data-mstp-blocked="2">—</strong></p></article></div>
+      <p class="mstp-feedback" data-mstp-feedback role="status" aria-live="polite">As configurações de nome, revisão e mapeamento precisam coincidir entre switches para fazerem parte da mesma região. O modelo visual compara instâncias locais e o CIST; não representa compatibilidade inter-vendor real.</p>
+    </details>
+  </section>
+
+  <section class="st-learning-area" aria-labelledby="protection-title" data-st-protection>
+    <p class="loop-index">05 · PORTAS DE BORDA E PROTEÇÕES</p><h2 id="protection-title">A porta reage ao papel e às BPDUs observadas</h2><p>Escolha uma cena, provoque o evento e observe a reação. Os rótulos de estado específicos abaixo seguem a representação Cisco indicada.</p>
+    <div class="protection-controls" role="group" aria-label="Escolher mecanismo"><button type="button" data-protection-scene="edge" aria-pressed="true">Edge / PortFast</button><button type="button" data-protection-scene="bpdu">BPDU Guard</button><button type="button" data-protection-scene="root">Root Guard</button><button type="button" data-protection-scene="loop">Loop Guard</button></div>
+    <div class="protection-stage" data-protection-stage data-state="normal"><div class="protection-device" data-protection-device="left">PC-A</div><div class="protection-link" aria-hidden="true"></div><div class="protection-device" data-protection-device="switch">SW1 · Gi0/1</div><div class="protection-link secondary" aria-hidden="true"></div><div class="protection-device" data-protection-device="right">SW2</div></div>
+    <h3 data-protection-title>Edge / PortFast</h3><p data-protection-explanation>Uma porta de borda voltada ao host pode chegar rapidamente a Forwarding. A configuração não deve ser usada sem proteção em enlaces que podem ligar switches.</p><div class="protection-actions"><button type="button" data-protection-trigger>Conectar / provocar evento</button><button type="button" data-protection-reset>Restaurar cena</button></div><p class="protection-event" data-protection-event role="status" aria-live="polite">Estado normal: PC-A ligado à porta de borda.</p>
+    <p class="protection-caution"><strong>Distinção:</strong> PortFast/Edge acelera a ativação para hosts; BPDU Guard reage a BPDUs inesperadas nessa porta; Root Guard rejeita informação superior no segmento protegido; Loop Guard evita encaminhamento indevido quando BPDUs esperadas deixam de chegar, mantendo a porta em estado de proteção como <code>loop-inconsistent</code> em algumas implementações.</p>
+  </section>
+
+  <section class="st-learning-area" aria-labelledby="st-summary-title"><p class="loop-index">06 · SÍNTESE</p><h2 id="st-summary-title">Escolher a árvore e proteger as bordas</h2><div class="st-model-chain"><span>STP · eleição e transição clássica</span><b aria-hidden="true">→</b><span>RSTP · transições rápidas negociadas</span><b aria-hidden="true">→</b><span>MSTP · árvores por grupos de VLANs</span></div><p>Redundância física → uma árvore lógica sem ciclos ativos por contexto → uma alternativa pode assumir após mudança. O tempo real depende da topologia, do protocolo, da interoperabilidade e da configuração.</p>
+    <div class="st-glossary">{% for term in terms %}<span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="st-tip-{{ term.0 }}" aria-describedby="st-tip-{{ term.0 }}">{{ term.1 }}</button><span id="st-tip-{{ term.0 }}" role="tooltip" hidden>{{ term.2 }}</span></span>{% endfor %}</div>
+    <div class="st-quick-check"><label for="st-association">Associe: que informação elege a Root Bridge?</label><select id="st-association"><option value="">Selecione</option><option value="bridge">Bridge ID</option><option value="cost">Root Path Cost</option></select><button type="button" data-st-association-check>Conferir</button><p data-st-association-feedback role="status" aria-live="polite"></p></div>
+    <h3>Checkpoint · {{ spanning_tree_questions|length }} situações</h3><section class="loop-checkpoint st-checkpoint" id="spanning-tree-checkpoint" data-st-checkpoint aria-label="Checkpoint Spanning Tree"><p data-count>Questão 1</p><progress max="{{ spanning_tree_questions|length }}" value="0" data-progress aria-label="Progresso do checkpoint Spanning Tree"></progress><p data-question></p><div data-options role="group" aria-label="Alternativas"></div><p data-feedback role="status" aria-live="polite"></p><button type="button" data-next disabled>Próxima situação</button><button type="button" data-restart hidden>Refazer checkpoint</button></section>
+  </section>
+</main>
+{{ spanning_tree_questions|json_script:"spanning-tree-questions" }}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/loops-stp-model.js' %}?v=classic-stp-model-2"></script><script src="{% static 'js/loops-stp-concept.js' %}?v=classic-stp-lesson-6"></script><script src="{% static 'js/spanning-tree-concept.js' %}?v=stp-split-1"></script><script src="{% static 'js/context-glossary.js' %}"></script>{% endblock %}

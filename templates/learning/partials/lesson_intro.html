@@ -1,0 +1,10 @@
+{% if lesson %}
+<aside class="lesson-intro" aria-label="Contexto na trilha">
+  <p class="eyebrow">Aula {{ lesson.number }} de {{ total }}</p>
+  <p>{{ introduction }}</p>
+  {% if prerequisites %}
+  <p><strong>Você já viu</strong> · {% for prerequisite in prerequisites %}<a href="{{ prerequisite.url }}">{{ prerequisite.title }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+  {% endif %}
+  <p><strong>Nesta aula você vai entender</strong> · {{ lesson.objective }}</p>
+</aside>
+{% endif %}

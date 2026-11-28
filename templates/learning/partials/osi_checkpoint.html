@@ -1,0 +1,52 @@
+<div class="osi-checkpoint-panel">
+  {% if not osi_checkpoint_started %}
+  <p class="eyebrow">Checkpoint · 10 situações</p>
+  <h2>Da camada à evidência</h2>
+  <p>Compare responsabilidades e decida o que cada observação permite afirmar.</p>
+  <form method="post" action="{% url 'learning:osi_checkpoint' 'iniciar' %}">{% csrf_token %}<button class="btn btn-primary">Iniciar checkpoint</button></form>
+  {% elif osi_checkpoint_complete %}
+  <h2>Checkpoint concluído</h2>
+  <p>{{ osi_checkpoint_immediate }} sem apoio · {{ osi_checkpoint_guided }} com orientação</p>
+  <h3>Capacidades praticadas</h3>
+  <ul>{% for skill in osi_checkpoint_capabilities %}<li>{{ skill }}</li>{% endfor %}</ul>
+  {% if osi_checkpoint_misconceptions %}
+  <h3>Pontos a revisar</h3>
+  <ul>{% for point in osi_checkpoint_misconceptions %}<li>{{ point }}</li>{% endfor %}</ul>
+  {% endif %}
+  <form method="post" action="{% url 'learning:osi_checkpoint' 'refazer' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
+  {% else %}
+  <p class="eyebrow">Checkpoint · {{ osi_checkpoint_activity.number }} / {{ osi_checkpoint_total }} · {{ osi_checkpoint_activity.category }}</p>
+  <h2>{{ osi_checkpoint_activity.title }}</h2>
+  <p>{{ osi_checkpoint_activity.scenario }}</p>
+  <form method="post" action="{% url 'learning:osi_checkpoint' 'responder' %}">
+    {% csrf_token %}
+    {% for field in osi_checkpoint_activity.fields %}
+    <fieldset{% if osi_checkpoint_result.complete %} disabled{% endif %}>
+      <legend>{{ field.label }}</legend>
+      {% for option in field.options %}
+      <label class="osi-answer">
+        <input type="radio" name="{{ field.name }}" value="{{ option|lower }}" required{% if osi_checkpoint_result.last_payload.conclusao == option|lower %} checked{% endif %}>
+        <span>{{ option }}</span>
+      </label>
+      {% endfor %}
+    </fieldset>
+    {% endfor %}
+    {% if not osi_checkpoint_result.complete %}<button class="btn btn-primary">Verificar resposta</button>{% endif %}
+  </form>
+  {% if osi_checkpoint_result.ui_error %}<p class="osi-feedback is-error">{{ osi_checkpoint_result.ui_error }}</p>{% endif %}
+  {% if osi_checkpoint_result.last_feedback %}
+  <p class="osi-feedback {% if not osi_checkpoint_result.complete %}is-error{% endif %}" data-checkpoint-feedback>
+    <strong>{% if osi_checkpoint_result.complete %}Correto{% else %}Revise sua resposta{% endif %}</strong> · {{ osi_checkpoint_result.last_feedback }}
+  </p>
+  {% endif %}
+  {% if osi_checkpoint_hint_text %}<p class="osi-note" data-checkpoint-hint><strong>Pista</strong> · {{ osi_checkpoint_hint_text }}</p>{% endif %}
+  <div class="osi-actions">
+    {% if osi_checkpoint_result.complete %}
+    <form method="post" action="{% url 'learning:osi_checkpoint' 'avancar' %}">{% csrf_token %}<button class="btn btn-primary">{% if osi_checkpoint_activity.number == osi_checkpoint_total %}Concluir{% else %}Próxima situação{% endif %}</button></form>
+    {% else %}
+    <form method="post" action="{% url 'learning:osi_checkpoint' 'pista' %}" data-checkpoint-keep-selection>{% csrf_token %}<button class="btn btn-outline-primary">Pedir pista</button></form>
+    {% endif %}
+    <form method="post" action="{% url 'learning:osi_checkpoint' 'rever' %}">{% csrf_token %}<button class="btn btn-outline-secondary">Refazer situação</button></form>
+  </div>
+  {% endif %}
+</div>

@@ -28,6 +28,62 @@ ACTIVITIES = [
 # lógico do enlace antes de concluir pela lista de VLANs permitidas.
 ACTIVITIES[-1]["required_actions"].insert(2, "trunk:inspect")
 
+ORIGINAL_ACTIVITY_COUNT = len(ACTIVITIES)
+ACTIVITIES += [
+    {
+        "id": "11", "number": 11, "primary": "PVID", "related": ["VLAN", "802.1Q"],
+        "category": "Interpretar", "difficulty_level": 3, "type": "ingress_pvid", "mode": "configuration",
+        "title": "A mesma porta, dois frames",
+        "symptom": "Uma porta General tem PVID 20, admite frames sem tag e participa das VLANs 10 e 20. Chegam um frame sem tag e outro com tag VLAN 10.",
+        "instruction": "Classifique cada frame na entrada.",
+        "slots": [slot("untagged", "FRAME SEM TAG"), slot("tagged", "FRAME COM TAG VLAN 10")],
+        "tokens": [token("vlan10", "Contexto VLAN 10"), token("vlan20", "Contexto VLAN 20"), token("none", "Sem contexto VLAN")],
+        "correct_map": {"vlan20": "untagged", "vlan10": "tagged"},
+        "feedback": {
+            "vlan10": "A VLAN 10 vem da tag do segundo frame. O primeiro usa o PVID 20.",
+            "vlan20": "O PVID 20 é a classificação do frame sem tag. O segundo conserva a VLAN 10 indicada pela tag admitida.",
+            "none": "O frame sem tag admitido recebe um contexto VLAN pelo PVID.",
+        },
+        "wrong_feedback": "Preencha os dois contextos de entrada.",
+        "hints": ["Procure um VLAN ID explícito em cada frame. Só o frame sem ele usa o PVID."],
+        "correct_feedback": "Correto. A tag admitida identifica a VLAN 10, enquanto o PVID atribui a VLAN 20 ao frame sem tag.",
+    },
+    {
+        "id": "12", "number": 12, "primary": "802.1Q", "related": ["PVID", "TRUNK"],
+        "category": "Prever", "difficulty_level": 4, "type": "egress_tagging", "mode": "configuration",
+        "title": "A tag no segundo enlace",
+        "symptom": "Um frame Tagged VLAN 20 foi aceito pela porta de entrada. Na porta General de saída, o PVID é 10 e a VLAN 20 está configurada como Untagged.",
+        "instruction": "Preveja o que sai dessa porta.",
+        "slots": [slot("wire", "FRAME NO ENLACE")],
+        "tokens": [token("tag20", "Com tag VLAN 20"), token("tag10", "Com tag VLAN 10"), token("strip", "Sem tag, após sair do contexto VLAN 20")],
+        "correct_map": {"strip": "wire"},
+        "feedback": {
+            "tag20": "A porta participa da VLAN 20 em modo Untagged. A tag é retirada para transmitir.",
+            "tag10": "O PVID da porta de saída se aplica ao tráfego que entra por ela. Ele não reclassifica este frame na saída.",
+        },
+        "wrong_feedback": "Use a regra da porta de saída para a VLAN em que o frame foi classificado.",
+        "hints": ["Leia a configuração da VLAN 20 na porta de saída."],
+        "correct_feedback": "Correto. O frame pertence à VLAN 20 dentro do switch. Sai sem tag pela regra Untagged dessa VLAN.",
+    },
+    {
+        "id": "13", "number": 13, "primary": "TRUNK", "related": ["PVID", "802.1Q"],
+        "category": "Diagnosticar", "difficulty_level": 5, "type": "native_general", "mode": "configuration",
+        "title": "Cisco Trunk encontra Dell General",
+        "symptom": "No trunk Cisco tradicional, a Native VLAN é 10 e o frame VLAN 10 sai sem tag. A porta General Dell admite frames sem tag, tem PVID 20 e participa das VLANs 10 e 20. O objetivo é preservar a VLAN 10 mantendo o envio sem tag.",
+        "instruction": "Escolha o ajuste de entrada para este sentido do tráfego.",
+        "slots": [slot("fix", "AJUSTE NA PONTA DELL")],
+        "tokens": [token("pvid10", "Ajustar o PVID para 10"), token("tag-egress", "Marcar VLAN 10 como Tagged somente na saída Dell"), token("keep", "Manter PVID 20 porque VLAN 10 já está permitida")],
+        "correct_map": {"pvid10": "fix"},
+        "feedback": {
+            "tag-egress": "Mudar o que a Dell envia não altera como ela classifica o frame recebido do Cisco.",
+            "keep": "A participação na VLAN 10 é necessária neste cenário, mas o frame chega sem tag e será classificado pelo PVID 20.",
+        },
+        "wrong_feedback": "Compare o que está no enlace com a regra de entrada no receptor.",
+        "hints": ["O receptor recebe um frame sem VLAN ID explícito. Qual configuração fornece esse contexto?"],
+        "correct_feedback": "Correto. O PVID 10 da Dell preserva o contexto VLAN 10 nesse sentido. Para validar o sentido inverso, confira também a regra de saída da Dell e a entrada no Cisco.",
+    },
+]
+
 ACTIVITY_MAP = {item["id"]: item for item in ACTIVITIES}
 CAPABILITIES = ["Distinguir Access e Trunk","Ler 802.1Q VLAN ID","Prever caminhos entre switches","Limitar broadcast por VLAN","Investigar allowed VLANs","Interpretar MAC Tables independentes","Comparar port modes","Diagnosticar allowed mismatch","Reconhecer native mismatch","Corrigir e retestar trunk"]
 MISCONCEPTION_LABELS = {

@@ -1,0 +1,64 @@
+{% load static %}
+<section aria-labelledby="enc-analogy-title">
+  <p class="enc-area-index">Área 01 · Enxergar</p>
+  <h2 id="enc-analogy-title">A mesma caneta, três embalagens</h2>
+  <p>Acompanhe o mesmo objeto da preparação até a abertura no destino.</p>
+  <ol class="enc-analogy">
+    {% for image, layer, action, network, alt in analogy %}
+    <li class="enc-analogy-step enc-{{ layer }}">
+      <img src="{% static 'images/concepts/encapsulamento/'|add:image|add:'.svg' %}" width="386" height="256" alt="{{ alt }}">
+      <div>
+        <p class="eyebrow">Passo {{ forloop.counter }} de {{ analogy|length }}</p>
+        <h3>{{ action }}</h3>
+        <p><strong>Na rede:</strong> {{ network }}</p>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+  <p class="enc-note"><strong>Limite da analogia.</strong> Os protocolos acrescentam informações em bits, em vez de recipientes físicos. No roteador, o frame de um enlace dá lugar a outro frame. O servidor recebe dados depois de interpretar as informações de cada camada.</p>
+</section>
+
+<section aria-labelledby="enc-associate-title">
+  <p class="enc-area-index">Área 02 · Associar</p>
+  <h2 id="enc-associate-title">Qual unidade cada objeto representa?</h2>
+  <p>Escolha a unidade que corresponde a cada imagem. Você pode corrigir a escolha na hora.</p>
+  <div class="enc-associations" data-enc-associations>
+    {% for image, layer, alt, feedback in associations %}
+    <div class="enc-association enc-{{ layer }}" data-enc-match="{{ layer }}" data-match-feedback="{{ feedback }}">
+      <img src="{% static 'images/concepts/encapsulamento/'|add:image|add:'.svg' %}" width="386" height="256" alt="{{ alt }}">
+      <div>
+        <label for="enc-match-{{ image }}">Imagem {{ forloop.counter }} · {{ image|capfirst }}</label>
+        <select class="form-select" id="enc-match-{{ image }}" aria-describedby="enc-match-feedback-{{ image }}">
+          <option value="">Escolha uma unidade</option>
+          {% for value, label in association_options %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+        </select>
+        <p id="enc-match-feedback-{{ image }}" class="enc-inline-feedback" data-match-result aria-live="polite"></p>
+      </div>
+    </div>
+    {% endfor %}
+    <p data-match-summary role="status"></p>
+    <button type="button" class="btn btn-outline-secondary" data-match-reset>Refazer associações</button>
+  </div>
+
+  <div class="enc-rapid" data-enc-rapid>
+    <h3>Rapid Fire · Leia os campos</h3>
+    <p>Agora use os nomes dos campos para interpretar a entrega.</p>
+    {% for prompt, options in rapid_fire %}
+    <div data-rapid-question{% if not forloop.first %} hidden{% endif %}>
+      <p class="eyebrow">{{ forloop.counter }} / {{ rapid_fire|length }}</p>
+      <h4 tabindex="-1" data-rapid-title>{{ prompt }}</h4>
+      <div class="enc-actions" role="group" aria-label="Respostas">
+        {% for label, correct, feedback in options %}
+        <button type="button" class="btn btn-outline-primary" data-rapid-option aria-pressed="false" data-correct="{{ correct|yesno:'true,false' }}" data-feedback="{{ feedback }}">{{ label }}</button>
+        {% endfor %}
+      </div>
+      <p class="enc-inline-feedback" data-rapid-result aria-live="polite"></p>
+    </div>
+    {% endfor %}
+    <p data-rapid-done role="status" tabindex="-1" hidden>Rapid Fire concluído. Agora confira onde cada campo aparece na estrutura.</p>
+    <div class="enc-actions">
+      <button type="button" class="btn btn-primary" data-rapid-next disabled>Próxima pergunta</button>
+      <button type="button" class="btn btn-outline-secondary" data-rapid-reset>Refazer Rapid Fire</button>
+    </div>
+  </div>
+</section>

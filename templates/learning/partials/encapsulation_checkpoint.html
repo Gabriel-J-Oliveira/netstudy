@@ -1,0 +1,50 @@
+<div class="enc-panel">
+  {% if not encapsulation_checkpoint_started %}
+  <p class="eyebrow">Checkpoint · 10 situações</p>
+  <h2>Do dado ao frame e de volta</h2>
+  <p>Monte as unidades e interprete o que as capturas mostram.</p>
+  <form method="post" action="{% url 'learning:encapsulation_checkpoint' 'iniciar' %}">{% csrf_token %}<button class="btn btn-primary">Iniciar checkpoint</button></form>
+  {% elif encapsulation_checkpoint_complete %}
+  <h2>Checkpoint concluído</h2>
+  <p>{{ encapsulation_checkpoint_immediate }} sem apoio · {{ encapsulation_checkpoint_guided }} com orientação</p>
+  <h3>Capacidades praticadas</h3>
+  <ul>{% for skill in encapsulation_checkpoint_capabilities %}<li>{{ skill }}</li>{% endfor %}</ul>
+  {% if encapsulation_checkpoint_misconceptions %}
+  <h3>Pontos a revisar</h3>
+  <ul>{% for point in encapsulation_checkpoint_misconceptions %}<li>{{ point }}</li>{% endfor %}</ul>
+  {% endif %}
+  <form method="post" action="{% url 'learning:encapsulation_checkpoint' 'refazer' %}">{% csrf_token %}<button class="btn btn-outline-primary">Refazer checkpoint</button></form>
+  {% else %}
+  <p class="eyebrow">Checkpoint · {{ encapsulation_checkpoint_activity.number }} / {{ encapsulation_checkpoint_total }}</p>
+  <h2>{{ encapsulation_checkpoint_activity.title }}</h2>
+  <p>{{ encapsulation_checkpoint_activity.scenario }}</p>
+  <form method="post" action="{% url 'learning:encapsulation_checkpoint' 'responder' %}">
+    {% csrf_token %}
+    <fieldset{% if encapsulation_checkpoint_result.complete %} disabled{% endif %}>
+      <legend>{{ encapsulation_checkpoint_activity.prompt }}</legend>
+      {% for option in encapsulation_checkpoint_activity.options %}
+      <label class="enc-answer">
+        <input type="radio" name="conclusao" value="{{ option|lower }}" required{% if encapsulation_checkpoint_result.last_payload.conclusao == option|lower %} checked{% endif %}>
+        <span>{{ option }}</span>
+      </label>
+      {% endfor %}
+    </fieldset>
+    {% if not encapsulation_checkpoint_result.complete %}<button class="btn btn-primary">Verificar resposta</button>{% endif %}
+  </form>
+  {% if encapsulation_checkpoint_result.ui_error %}<p class="enc-feedback is-error">{{ encapsulation_checkpoint_result.ui_error }}</p>{% endif %}
+  {% if encapsulation_checkpoint_result.last_feedback %}
+  <p class="enc-feedback {% if not encapsulation_checkpoint_result.complete %}is-error{% endif %}" data-checkpoint-feedback>
+    <strong>{% if encapsulation_checkpoint_result.complete %}Correto{% else %}Revise sua resposta{% endif %}</strong> · {{ encapsulation_checkpoint_result.last_feedback }}
+  </p>
+  {% endif %}
+  {% if encapsulation_checkpoint_hint_text %}<p class="enc-note" data-checkpoint-hint><strong>Pista</strong> · {{ encapsulation_checkpoint_hint_text }}</p>{% endif %}
+  <div class="enc-actions">
+    {% if encapsulation_checkpoint_result.complete %}
+    <form method="post" action="{% url 'learning:encapsulation_checkpoint' 'avancar' %}">{% csrf_token %}<button class="btn btn-primary">{% if encapsulation_checkpoint_activity.number == encapsulation_checkpoint_total %}Concluir{% else %}Próxima situação{% endif %}</button></form>
+    {% else %}
+    <form method="post" action="{% url 'learning:encapsulation_checkpoint' 'pista' %}" data-checkpoint-keep-selection>{% csrf_token %}<button class="btn btn-outline-primary">Pedir pista</button></form>
+    {% endif %}
+    <form method="post" action="{% url 'learning:encapsulation_checkpoint' 'rever' %}">{% csrf_token %}<button class="btn btn-outline-secondary">Refazer situação</button></form>
+  </div>
+  {% endif %}
+</div>

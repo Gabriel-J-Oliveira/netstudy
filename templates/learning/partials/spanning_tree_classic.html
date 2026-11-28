@@ -1,68 +1,172 @@
   <section class="stp-section" aria-labelledby="stp-title" data-stp-lab>
     <p class="loop-index">02 · STP CLÁSSICO</p>
-    <h2 id="stp-title">STP mantém a redundância sem deixar todos os caminhos encaminharem</h2>
-    <p>O <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="loop-tip-stp-inline" aria-describedby="loop-tip-stp-inline">STP</button><span id="loop-tip-stp-inline" role="tooltip" hidden>Spanning Tree Protocol: troca informações entre switches para organizar caminhos redundantes em uma árvore lógica.</span></span> troca BPDUs, elege uma Root Bridge e calcula quais portas encaminham. Uma porta Blocking continua conectada e recebe BPDUs, mas não encaminha dados de usuário. Nesta aula usamos somente o STP clássico.
-    <div class="stp-intro-note"><strong>O que observar:</strong> prioridade e Bridge ID → custos até a raiz → papel de cada porta → árvore sem ciclo ativo.</div>
-    <div class="stp-workbench" data-stp-workbench>
+    <h2 id="stp-title">Como manter caminhos de reserva sem criar um círculo?</h2>
+
+    <section class="stp-teaching-block" aria-labelledby="stp-roads-title">
+      <p class="stp-step-label">1 · PRIMEIRO, O PROBLEMA</p>
+      <h3 id="stp-roads-title">Como manter o caminho de reserva?</h3>
+      <div class="stp-road-pair">
+        <div class="stp-road-copy">
+          <p>Imagine três bairros ligados por estradas. Ter caminhos alternativos é ótimo quando uma estrada fica interditada. Na rede, porém, deixar todos os caminhos redundantes encaminhando frames pode criar um circuito sem fim.</p>
+          <p>O STP funciona como uma organização desse trânsito: mantém os caminhos necessários para a comunicação e deixa outros disponíveis para quando forem necessários.</p>
+          <p><strong>Nenhum cabo precisa ser removido.</strong></p>
+          <details class="st-analogy-limit"><summary>Onde a comparação com estradas termina</summary><p>Frames não são veículos, e o STP não escolhe uma rota individual para cada destino. Ele organiza uma árvore lógica de encaminhamento para evitar ciclos ativos.</p></details>
+        </div>
+        <div class="st-road-visual" role="img" aria-label="À esquerda, três bairros com caminhos alternativos; à direita, três switches em triângulo, com um enlace reservado pelo STP">
+          <div class="st-road-scene"><span class="road-place">Bairro A</span><span class="road-place">Bairro B</span><span class="road-place">Bairro C</span><svg viewBox="0 0 280 120" aria-hidden="true"><path d="M35 34 140 96 245 34M35 34h210"/><path class="st-road-reserve" d="M35 34h210"/><circle cx="35" cy="34" r="12"/><circle cx="140" cy="96" r="12"/><circle cx="245" cy="34" r="12"/></svg><small>estradas com alternativa</small></div>
+          <span class="st-road-transfer" aria-hidden="true">↔</span>
+          <div class="st-road-scene network"><span class="road-place">SW1</span><span class="road-place">SW2</span><span class="road-place">SW3</span><svg viewBox="0 0 280 120" aria-hidden="true"><path d="M35 34 140 96 245 34M35 34h210"/><path class="st-network-active" d="M35 34 140 96 245 34"/><path class="st-network-blocked" d="M35 34h210"/><circle cx="35" cy="34" r="12"/><circle cx="140" cy="96" r="12"/><circle cx="245" cy="34" r="12"/></svg><small>uma árvore lógica sem ciclo</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stp-teaching-block" aria-labelledby="stp-bpdu-title">
+      <p class="stp-step-label">2 · OS SWITCHES TROCAM INFORMAÇÕES</p>
+      <h3 id="stp-bpdu-title">Como os switches conversam?</h3>
+      <p>Antes de organizar os caminhos, os switches precisam trocar informações. Eles enviam pequenas mensagens de controle chamadas <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="st-tip-bpdu-inline" aria-describedby="st-tip-bpdu-inline">BPDUs</button><span id="st-tip-bpdu-inline" role="tooltip" hidden>Mensagens de controle trocadas pelos switches para compartilhar informações usadas no cálculo do Spanning Tree.</span></span>.</p>
+      <p>Pense nelas como bilhetes que dizem: “este sou eu, esta é a referência que conheço e este é o custo do meu caminho até ela”.</p>
+      <div class="st-bpdu-lesson" data-stp-bpdu-lesson>
+        <div class="st-bpdu-scene" aria-label="Dois switches trocam um bilhete de controle">
+          <div class="st-bpdu-switch" data-teaching-switch="sw1"><span class="switch-glyph" aria-hidden="true">▰ ▰ ▰ ▰</span><strong>SW1</strong><small>switch</small></div>
+          <div class="st-bpdu-wire" aria-hidden="true"><span class="st-bpdu-ticket">BPDU</span></div>
+          <div class="st-bpdu-switch" data-teaching-switch="sw2"><span class="switch-glyph" aria-hidden="true">▰ ▰ ▰ ▰</span><strong>SW2</strong><small>switch</small></div>
+        </div>
+        <div class="st-bpdu-actions"><button type="button" data-stp-bpdu-send>Trocar bilhete</button><button type="button" data-stp-bpdu-inspect aria-expanded="false" aria-controls="stp-bpdu-payload">Inspecionar BPDU simplificada</button></div>
+        <div id="stp-bpdu-payload" class="st-bpdu-payload" data-stp-bpdu-payload hidden>
+          <strong>Bilhete de controle · não é frame de dados</strong>
+          <dl><dt>Quem enviou</dt><dd>SW2 · Bridge ID 32768 / MAC final :02</dd><dt>Raiz que conhece</dt><dd>SW1 · Bridge ID 32768 / MAC final :01</dd><dt>Custo anunciado até ela</dt><dd>4</dd></dl>
+        </div>
+        <p class="st-teaching-feedback" data-stp-bpdu-feedback role="status" aria-live="polite">O botão envia um bilhete visual entre os switches; a animação representa uma troca de informação de controle.</p>
+      </div>
+    </section>
+
+    <section class="stp-teaching-block" aria-labelledby="stp-root-learning-title">
+      <p class="stp-step-label">3 · UM PONTO DE REFERÊNCIA</p>
+      <h3 id="stp-root-learning-title">Escolhendo a Root Bridge</h3>
+      <p>Para organizar os caminhos, todos os switches precisam concordar sobre um ponto de referência. Esse switch recebe o nome de <span class="context-glossary"><button type="button" data-context-glossary aria-expanded="false" aria-controls="st-tip-root-inline" aria-describedby="st-tip-root-inline">Root Bridge</button><span id="st-tip-root-inline" role="tooltip" hidden>Switch eleito como referência para o cálculo da árvore lógica do STP.</span></span>. Pense nele como o marco zero de um mapa; os outros switches comparam os caminhos até ele.</p>
+      <p>A Root Bridge não precisa ser o equipamento mais potente e nem todo tráfego precisa passar por ela.</p>
+      <p>Cada switch possui uma identidade usada pelo STP: o <strong>Bridge ID</strong>. Neste exemplo, vamos comparar primeiro a prioridade e, se houver empate, o endereço MAC.</p>
+      <div class="st-election-board" data-stp-election>
+        <div class="st-bridge-cards" aria-label="Cartões de identificação dos switches">
+          <article data-stp-bridge-card="sw1"><h4>SW1</h4><p>Prioridade <strong data-stp-card-priority="sw1">32768</strong></p><p>MAC final <strong>:01</strong></p><span data-stp-card-result>Cartão de identidade</span></article>
+          <article data-stp-bridge-card="sw2"><h4>SW2</h4><p>Prioridade <strong data-stp-card-priority="sw2">32768</strong></p><p>MAC final <strong>:02</strong></p><span data-stp-card-result>Cartão de identidade</span></article>
+          <article data-stp-bridge-card="sw3"><h4>SW3</h4><p>Prioridade <strong data-stp-card-priority="sw3">32768</strong></p><p>MAC final <strong>:03</strong></p><span data-stp-card-result>Cartão de identidade</span></article>
+        </div>
+        <div class="st-election-actions"><button type="button" data-stp-election-run>Comparar cartões</button><button type="button" data-stp-priority-toggle disabled>Alterar prioridade de SW3 para 4096</button></div>
+        <p class="st-teaching-feedback" data-stp-election-feedback role="status" aria-live="polite">Compare primeiro a prioridade. Se houver empate, compare o MAC. O menor Bridge ID vence.</p>
+        <details class="st-analogy-limit"><summary>Um detalhe do Bridge ID</summary><p>Neste exemplo, mostramos prioridade e MAC para visualizar a comparação. Em equipamentos reais, o identificador de sistema estendido também participa do Bridge ID. A prioridade padrão comum é 32768 e as configurações de prioridade normalmente avançam em intervalos de 4096.</p></details>
+      </div>
+      <p>Apesar do nome “prioridade”, o menor valor tem preferência. Se os três valores empatam, o menor MAC desempata.</p>
+    </section>
+
+    <section class="stp-teaching-block" aria-labelledby="stp-cost-title">
+      <p class="stp-step-label">4 · COMPARAR CAMINHOS</p>
+      <h3 id="stp-cost-title">O caminho mais curto nem sempre vence</h3>
+      <p>Agora que temos um ponto de referência, cada switch precisa descobrir qual caminho utilizar para chegar até ele. O STP soma o custo de cada enlace do caminho.</p>
+      <div class="st-cost-compare" data-stp-cost-lesson>
+        <article class="st-cost-route direct"><span>Direto · SW1 → SW3</span><strong>19</strong><svg viewBox="0 0 200 48" aria-hidden="true"><path d="M16 24H184"/><circle cx="16" cy="24" r="9"/><circle cx="184" cy="24" r="9"/></svg></article>
+        <article class="st-cost-route via"><span>Via SW2 · SW1 → SW2 → SW3</span><strong>4 + 4 = 8</strong><svg viewBox="0 0 200 48" aria-hidden="true"><path d="M16 24H100 184"/><circle cx="16" cy="24" r="9"/><circle cx="100" cy="24" r="9"/><circle cx="184" cy="24" r="9"/></svg></article>
+      </div>
+      <button type="button" data-stp-cost-compare>Comparar os dois percursos</button>
+      <p class="st-teaching-feedback" data-stp-cost-feedback role="status" aria-live="polite">Observe as duas somas e compare os caminhos antes de conferir.</p>
+      <p>O custo costuma estar relacionado à velocidade do enlace e também pode ser configurado. Ele não é uma leitura instantânea de congestionamento.</p>
+    </section>
+
+    <section class="stp-teaching-block" aria-labelledby="stp-roles-title">
+      <p class="stp-step-label">5 · ORGANIZAR AS PORTAS</p>
+      <h3 id="stp-roles-title">Cada porta tem uma função e um estado</h3>
+      <div class="st-port-role-cards">
+        <article><h4>Root Port</h4><p>Em cada switch que não é a raiz, é a porta que oferece o melhor caminho até ela.</p></article>
+        <article><h4>Designated Port</h4><p>É selecionada para oferecer a melhor informação de caminho até a raiz naquele segmento e encaminhar quando está em Forwarding.</p></article>
+        <article><h4>Porta não designada</h4><p>No cenário clássico desta aula, permanece em Blocking para impedir o ciclo de dados.</p></article>
+      </div>
+      <p><strong>Papel e estado são coisas diferentes:</strong> Blocking descreve um estado, não um papel de porta.</p>
+      <div class="st-port-state-grid">
+        <p><strong>Blocking</strong><span>Recebe informações STP, mas não encaminha dados de usuário.</span></p>
+        <p><strong>Listening</strong><span>Participa das decisões antes de aprender endereços MAC.</span></p>
+        <p><strong>Learning</strong><span>Aprende endereços MAC, mas ainda não encaminha dados.</span></p>
+        <p><strong>Forwarding</strong><span>Encaminha dados normalmente.</span></p>
+      </div>
+      <p class="st-disabled-note"><strong>Disabled</strong> é diferente: a porta está fora de operação, por exemplo porque o enlace físico foi desconectado.</p>
+      <div class="st-role-practice" data-stp-role-practice>
+        <h4>Associe o papel ao que acontece no caminho</h4>
+        <p>Selecione um rótulo e depois a interface correspondente. Você também pode usar Tab e Enter/Espaço.</p>
+        <div class="st-role-palette" role="group" aria-label="Papéis para associar">
+          <button type="button" data-stp-role-choice="Root Port" aria-pressed="false">Root Port</button>
+          <button type="button" data-stp-role-choice="Designated Port" aria-pressed="false">Designated Port</button>
+          <button type="button" data-stp-role-choice="Blocking" aria-pressed="false">Blocking</button>
+        </div>
+        <div class="st-role-targets" role="group" aria-label="Interfaces da topologia">
+          <button type="button" data-stp-role-target="sw2-root">SW2 · Gi0/1 <span data-stp-role-slot>Escolha um papel</span></button>
+          <button type="button" data-stp-role-target="sw1-designated">SW1 · Gi0/2 <span data-stp-role-slot>Escolha um papel</span></button>
+          <button type="button" data-stp-role-target="sw3-blocked">SW3 · Gi0/1 <span data-stp-role-slot>Escolha um papel</span></button>
+        </div>
+        <p class="st-teaching-feedback" data-stp-role-feedback role="status" aria-live="polite">Selecione um papel e depois a interface que você acredita corresponder a ele.</p>
+        <button type="button" data-stp-role-reset>Refazer associação</button>
+      </div>
+    </section>
+
+    <div class="stp-demo-brief">
+      <p class="stp-step-label">DEMONSTRAÇÃO · VEJA O STP ORGANIZANDO A REDE</p>
+      <h3>Agora acompanhe os três switches</h3>
+      <p>Agora que você conhece os recados, a eleição e os custos, vamos acompanhar os três switches organizando a rede. Observe como eles chegam a uma solução sem remover nenhum cabo.</p>
+    </div>
+    <div class="stp-lab" aria-label="Demonstração manual de STP">
+      <div class="stp-controls">
+        <button type="button" data-stp-next>Iniciar troca de BPDUs</button>
+        <button type="button" data-stp-fail disabled>Desconectar enlace ativo escolhido</button>
+        <label for="stp-failure-link">Enlace ativo</label><select id="stp-failure-link" data-stp-failure-link></select>
+        <button type="button" data-stp-restore hidden>Restaurar enlace físico</button>
+        <button type="button" data-stp-reset>Reiniciar demonstração</button>
+      </div>
+      <ol class="stp-stage-strip" aria-label="Etapas da demonstração STP">
+        <li data-stp-stage-marker="1">1 · BPDUs</li><li data-stp-stage-marker="2">2 · Eleição</li><li data-stp-stage-marker="3">3 · Custos</li><li data-stp-stage-marker="4">4 · Papéis</li><li data-stp-stage-marker="5">5 · Dados</li><li data-stp-stage-marker="6">6 · Falha física</li><li data-stp-stage-marker="7">7 · Reconvergência</li><li data-stp-stage-marker="8">8 · Recuperada</li>
+      </ol>
+      <div class="stp-topology-scroll" tabindex="0" role="region" aria-label="Topologia STP de três switches. Role horizontalmente em telas pequenas.">
+        <svg class="stp-topology" data-stp-topology viewBox="0 0 760 390" role="img" aria-labelledby="stp-svg-title stp-svg-desc">
+          <title id="stp-svg-title">Três switches conectados em triângulo para aprender como o STP organiza os caminhos</title><desc id="stp-svg-desc">SW1, SW2 e SW3 estão conectados em triângulo. Avance manualmente para ver os bilhetes de controle, a eleição, a comparação de custos, os papéis das portas, o tráfego de dados e a recuperação de uma falha.</desc>
+          <path data-stp-link="sw1-sw2" d="M190 115 L550 115"/><path data-stp-link="sw1-sw3" d="M190 135 L370 285"/><path data-stp-link="sw2-sw3" d="M550 135 L390 285"/>
+          <text x="370" y="95" data-stp-link-label="sw1-sw2">Gi0/2 ↔ Gi0/1</text><text x="265" y="220" data-stp-link-label="sw1-sw3">Gi0/3 ↔ Gi0/1</text><text x="485" y="220" data-stp-link-label="sw2-sw3">Gi0/2 ↔ Gi0/2</text>
+          <g data-stp-switch="sw1"><rect x="95" y="85" width="110" height="82" rx="12"/><text x="150" y="122">SW1</text><text class="stp-node-meta" x="150" y="147" data-stp-node-meta="sw1">32768 · MAC ...:01</text></g>
+          <g data-stp-switch="sw2"><rect x="535" y="85" width="110" height="82" rx="12"/><text x="590" y="122">SW2</text><text class="stp-node-meta" x="590" y="147" data-stp-node-meta="sw2">32768 · MAC ...:02</text></g>
+          <g data-stp-switch="sw3"><rect x="315" y="270" width="110" height="82" rx="12"/><text x="370" y="307">SW3</text><text class="stp-node-meta" x="370" y="332" data-stp-node-meta="sw3">32768 · MAC ...:03</text></g>
+          <g data-stp-bpdu="sw1-sw2" class="stp-bpdu"><circle cx="370" cy="115" r="9"/></g><g data-stp-bpdu="sw1-sw3" class="stp-bpdu"><circle cx="280" cy="210" r="9"/></g><g data-stp-bpdu="sw2-sw3" class="stp-bpdu"><circle cx="470" cy="210" r="9"/></g><circle class="stp-data-frame" data-stp-data-frame r="10" cx="370" cy="115"/><text class="stp-data-label" data-stp-data-label x="370" y="65">frame de dados · Forwarding</text>
+        </svg>
+      </div>
+      <div class="stp-legend"><span><i class="is-forwarding"></i> Forwarding</span><span><i class="is-blocking"></i> Blocking · cabo conectado</span><span><i class="is-disconnected"></i> enlace fisicamente desconectado</span></div>
+      <div class="loop-event stp-event" aria-atomic="true"><p class="loop-event-kicker" data-stp-event-stage>INÍCIO · TRÊS SWITCHES CONECTADOS</p><h3 data-stp-event-title>Os switches ainda vão comparar as informações</h3><p data-stp-observation>Os três switches estão ligados em triângulo. Os cabos continuam conectados; o STP ainda precisa comparar as informações para organizar os caminhos.</p><p data-stp-explanation>Avance uma etapa por vez. A topologia mostra o resultado somente quando a etapa correspondente é apresentada.</p></div>
+      <p data-stp-status role="status" aria-live="polite">Pronto para observar a troca de BPDUs. Avance manualmente.</p>
+      <div class="stp-result-grid"><div><h4>O que os switches concluíram</h4><p>Root Bridge: <strong data-stp-root>ainda não comparada</strong></p><p>Custos até a raiz: <strong data-stp-costs>ainda não comparados</strong></p><p>Transição clássica: <strong data-stp-transition>sem falha simulada</strong></p><p data-stp-data-status>Os frames de usuário ainda não estão sendo apresentados.</p></div><div><h4>Papéis das portas</h4><table><thead><tr><th>Switch</th><th>Interface</th><th>Papel</th><th>Estado</th></tr></thead><tbody data-stp-port-table><tr><td colspan="4">Avance pelas decisões antes de revelar os papéis.</td></tr></tbody></table></div></div>
+      <p class="stp-classic-states"><strong>Na transição clássica:</strong> Listening → Learning → Forwarding. Uma porta em Blocking não encaminha dados e continua recebendo BPDUs. Disabled é uma interface fora de operação. <strong>Uma porta bloqueada não é um cabo desconectado.</strong></p>
+      <div class="stp-failure-note" data-stp-failure-note hidden></div>
+    </div>
+
+    <details class="stp-experiment" data-stp-experiment>
+      <summary>Experimente você mesmo</summary>
+      <p>Agora altere uma prioridade ou um custo e recalcule. Registre sua previsão antes de avançar; depois compare a explicação com o resultado calculado.</p>
       <div class="stp-config" aria-labelledby="stp-config-title">
-        <h3 id="stp-config-title">Preparar e prever</h3>
-        <p>Altere prioridades ou custos e recalcule. O resultado é determinístico: menor Bridge ID vence; os custos e identificadores de porta desempatarão os caminhos.</p>
+        <h3 id="stp-config-title">Configuração e previsões</h3>
         <div class="stp-config-grid">
           <label>SW1 · prioridade <select data-stp-priority="sw1"><option>0</option><option>4096</option><option>8192</option><option>12288</option><option>16384</option><option>20480</option><option>24576</option><option>28672</option><option selected>32768</option><option>36864</option><option>40960</option><option>45056</option><option>49152</option><option>53248</option><option>57344</option><option>61440</option></select></label>
           <label>SW2 · prioridade <select data-stp-priority="sw2"><option>0</option><option>4096</option><option>8192</option><option>12288</option><option>16384</option><option>20480</option><option>24576</option><option>28672</option><option selected>32768</option><option>36864</option><option>40960</option><option>45056</option><option>49152</option><option>53248</option><option>57344</option><option>61440</option></select></label>
           <label>SW3 · prioridade <select data-stp-priority="sw3"><option>0</option><option>4096</option><option>8192</option><option>12288</option><option>16384</option><option>20480</option><option>24576</option><option>28672</option><option selected>32768</option><option>36864</option><option>40960</option><option>45056</option><option>49152</option><option>53248</option><option>57344</option><option>61440</option></select></label>
           <label>SW1—SW2 · custo <select data-stp-cost="sw1-sw2"><option selected>4</option><option>10</option><option>19</option><option>100</option></select></label>
-          <label>SW1—SW3 · custo <select data-stp-cost="sw1-sw3"><option selected>4</option><option>10</option><option>19</option><option>100</option></select></label>
-          <label>SW2—SW3 · custo <select data-stp-cost="sw2-sw3"><option>4</option><option>10</option><option selected>19</option><option>100</option></select></label>
+          <label>SW1—SW3 · custo <select data-stp-cost="sw1-sw3"><option>4</option><option>10</option><option selected>19</option><option>100</option></select></label>
+          <label>SW2—SW3 · custo <select data-stp-cost="sw2-sw3"><option selected>4</option><option>10</option><option>19</option><option>100</option></select></label>
         </div>
         <button type="button" data-stp-recalculate>Recalcular STP</button>
         <div class="stp-predictions">
-          <label for="stp-root-prediction">Antes de revelar: qual switch será a Root Bridge?</label>
+          <label for="stp-root-prediction">Com esses Bridge IDs, quem você espera que seja a raiz?</label>
           <select id="stp-root-prediction" data-stp-root-prediction><option value="">Escolha SW1, SW2 ou SW3</option><option value="sw1">SW1</option><option value="sw2">SW2</option><option value="sw3">SW3</option></select>
           <button type="button" data-stp-check-root>Conferir previsão</button>
           <p data-stp-prediction-feedback role="status" aria-live="polite"></p>
-          <label for="stp-port-prediction">Qual será o papel de SW3 Gi0/2 na configuração atual?</label>
-          <select id="stp-port-prediction" data-stp-port-prediction><option value="">Escolha um papel</option><option value="Root Port">Root Port</option><option value="Designated Port">Designated Port</option><option value="Blocking">Blocking</option></select>
+          <label for="stp-port-prediction">Qual será o estado de SW3 Gi0/1 nesta topologia?</label>
+          <select id="stp-port-prediction" data-stp-port-prediction><option value="">Escolha um papel/estado</option><option value="Root Port">Root Port</option><option value="Designated Port">Designated Port</option><option value="Blocking">Blocking</option></select>
           <button type="button" data-stp-check-port>Conferir previsão da porta</button>
           <p data-stp-port-feedback role="status" aria-live="polite"></p>
         </div>
+        <div class="stp-experiment-challenges"><strong>Desafios orientados</strong><ul><li>Faça SW3 se tornar a Root Bridge sem alterar nenhum MAC.</li><li>Faça o caminho indireto ser preferido ao caminho direto.</li><li>Identifique uma porta em Blocking e observe o que acontece quando um enlace ativo falha.</li></ul><p>Após mudar os valores, use “Recalcular STP” e percorra a demonstração novamente para comparar o resultado.</p></div>
+        <button type="button" data-stp-reset>Restaurar configuração e demonstração</button>
       </div>
-      <div class="stp-lab" aria-label="Demonstração manual de STP">
-        <div class="stp-controls">
-          <button type="button" data-stp-next>Avançar etapa</button>
-          <button type="button" data-stp-fail disabled>Desconectar enlace ativo escolhido</button>
-          <label for="stp-failure-link">Enlace ativo</label><select id="stp-failure-link" data-stp-failure-link></select>
-          <button type="button" data-stp-restore hidden>Restaurar enlace físico</button>
-          <button type="button" data-stp-reset>Reiniciar demonstração</button>
-        </div>
-        <ol class="stp-stage-strip" aria-label="Etapas STP">
-          <li data-stp-stage-marker="1">1 · BPDUs</li><li data-stp-stage-marker="2">2 · Eleição</li><li data-stp-stage-marker="3">3 · Custos</li><li data-stp-stage-marker="4">4 · Papéis</li><li data-stp-stage-marker="5">5 · Estável</li><li data-stp-stage-marker="6">6 · Falha física</li><li data-stp-stage-marker="7">7 · Reconvergência</li><li data-stp-stage-marker="8">8 · Recuperada</li>
-        </ol>
-        <div class="stp-topology-scroll" tabindex="0" role="region" aria-label="Topologia STP de três switches. Role horizontalmente em telas pequenas.">
-          <svg class="stp-topology" data-stp-topology viewBox="0 0 760 390" role="img" aria-labelledby="stp-svg-title stp-svg-desc">
-            <title id="stp-svg-title">Três switches em topologia triangular com STP</title><desc id="stp-svg-desc">SW1, SW2 e SW3 estão conectados em triângulo. O STP calcula a Root Bridge, os custos e os papéis das portas. Um enlace ativo pode ser desconectado manualmente para observar reconvergência.</desc>
-            <path data-stp-link="sw1-sw2" d="M190 115 L550 115"/><path data-stp-link="sw1-sw3" d="M190 135 L370 285"/><path data-stp-link="sw2-sw3" d="M550 135 L390 285"/>
-            <text x="370" y="95" data-stp-link-label="sw1-sw2">Gi0/2 ↔ Gi0/1</text><text x="265" y="220" data-stp-link-label="sw1-sw3">Gi0/3 ↔ Gi0/1</text><text x="485" y="220" data-stp-link-label="sw2-sw3">Gi0/2 ↔ Gi0/2</text>
-            <g data-stp-switch="sw1"><rect x="95" y="85" width="110" height="82" rx="12"/><text x="150" y="122">SW1</text><text class="stp-node-meta" x="150" y="147" data-stp-node-meta="sw1">32768 · MAC ...:01</text></g>
-            <g data-stp-switch="sw2"><rect x="535" y="85" width="110" height="82" rx="12"/><text x="590" y="122">SW2</text><text class="stp-node-meta" x="590" y="147" data-stp-node-meta="sw2">32768 · MAC ...:02</text></g>
-            <g data-stp-switch="sw3"><rect x="315" y="270" width="110" height="82" rx="12"/><text x="370" y="307">SW3</text><text class="stp-node-meta" x="370" y="332" data-stp-node-meta="sw3">32768 · MAC ...:03</text></g>
-            <g data-stp-bpdu="sw1-sw2" class="stp-bpdu"><circle cx="370" cy="115" r="9"/></g><g data-stp-bpdu="sw1-sw3" class="stp-bpdu"><circle cx="280" cy="210" r="9"/></g><g data-stp-bpdu="sw2-sw3" class="stp-bpdu"><circle cx="470" cy="210" r="9"/></g><circle class="stp-data-frame" data-stp-data-frame r="10" cx="370" cy="115"/><text class="stp-data-label" data-stp-data-label x="370" y="65">frame de usuário · Forwarding</text>
-          </svg>
-        </div>
-        <div class="stp-legend"><span><i class="is-forwarding"></i> Forwarding</span><span><i class="is-blocking"></i> Blocking, cabo conectado</span><span><i class="is-disconnected"></i> cabo fisicamente desconectado</span></div>
-        <div class="loop-event stp-event" aria-atomic="true"><p class="loop-event-kicker" data-stp-event-stage>INÍCIO · TOPOLOGIA CONECTADA</p><h3 data-stp-event-title>Preveja a raiz e os papéis das portas</h3><p data-stp-observation>Os três switches estão conectados em triângulo. A redundância física existe; a tabela abaixo será calculada a partir dos Bridge IDs e custos configurados.</p><p data-stp-explanation>O desenho usa três bridges e três enlaces para tornar visíveis a eleição e o caminho que o STP mantém sem encaminhamento de dados.</p></div>
-        <p data-stp-status role="status" aria-live="polite">Configure prioridades/custos, registre suas previsões e avance manualmente para observar o STP.</p>
-        <div class="stp-result-grid"><div><h4>Estado calculado</h4><p>Root Bridge: <strong data-stp-root>não revelada</strong></p><p>Custos até a raiz: <strong data-stp-costs>não revelados</strong></p><p>Transição clássica: <strong data-stp-transition>aguardando</strong></p><p data-stp-data-status>Dados de usuário: ainda não apresentados.</p></div><div><h4>Papéis das portas</h4><table><thead><tr><th>Switch</th><th>Interface</th><th>Papel</th><th>Estado</th></tr></thead><tbody data-stp-port-table><tr><td colspan="4">Avance até a eleição para revelar os papéis.</td></tr></tbody></table></div></div>
-        <p class="stp-classic-states"><strong>Estados clássicos:</strong> Blocking → Listening → Learning → Forwarding. Disabled indica uma porta fora de operação; após uma falha física, uma porta recuperada não é tratada como Forwarding antes das etapas transitórias.</p>
-        <div class="stp-failure-note" data-stp-failure-note hidden></div>
-      </div>
-      <div class="stp-learning-checks">
-        <h3>Associar e conferir</h3>
-        <label for="stp-association">Qual relação liga o identificador da bridge à escolha da Root Bridge?</label>
-        <select id="stp-association" data-stp-association><option value="">Selecione</option><option value="bridge">Bridge ID → eleição da raiz</option><option value="cost">Root Path Cost → raiz sempre</option></select>
-        <p data-stp-association-feedback role="status" aria-live="polite"></p>
-        <div class="stp-rapid" data-stp-rapid><p><strong>Rapid Fire:</strong> uma porta Blocking ainda recebe BPDUs?</p><button type="button" data-stp-rapid-answer="yes" aria-pressed="false">Sim</button><button type="button" data-stp-rapid-answer="no" aria-pressed="false">Não</button><p data-stp-rapid-feedback role="status" aria-live="polite"></p><button type="button" data-stp-rapid-reset>Refazer</button></div>
-      </div>
-      <p class="stp-safety-note">Modelo visual determinístico de STP clássico: não mede uma rede real. Os tempos são etapas didáticas e não cronômetros de convergência. A porta Blocking continua conectada e troca BPDUs; cabo desconectado representa uma falha física diferente.</p>
-    </div>
+    </details>
   </section>

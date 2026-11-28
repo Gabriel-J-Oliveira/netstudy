@@ -3,6 +3,10 @@
   const root = document.querySelector("[data-stp-lab]");
   const model = window.NetStudyStpModel;
   if (!root || !model) return;
+  const bpduStatus = root.querySelector("[data-stp-bpdu-feedback]");
+  if (bpduStatus) {
+    bpduStatus.textContent = "Pronto para observar uma troca de informação de controle entre SW2 e SW1.";
+  }
   const $ = (selector) => root.querySelector(selector);
   const switches = [
     { id: "sw1", name: "SW1", mac: "00:00:00:00:00:01", priority: 32768 },
@@ -11,8 +15,8 @@
   ];
   const links = [
     { id: "sw1-sw2", a: { switchId: "sw1", portId: "Gi0/2" }, b: { switchId: "sw2", portId: "Gi0/1" }, cost: 4 },
-    { id: "sw1-sw3", a: { switchId: "sw1", portId: "Gi0/3" }, b: { switchId: "sw3", portId: "Gi0/1" }, cost: 4 },
-    { id: "sw2-sw3", a: { switchId: "sw2", portId: "Gi0/2" }, b: { switchId: "sw3", portId: "Gi0/2" }, cost: 19 },
+    { id: "sw1-sw3", a: { switchId: "sw1", portId: "Gi0/3" }, b: { switchId: "sw3", portId: "Gi0/1" }, cost: 19 },
+    { id: "sw2-sw3", a: { switchId: "sw2", portId: "Gi0/2" }, b: { switchId: "sw3", portId: "Gi0/2" }, cost: 4 },
   ];
   const messages = {
     0: ["INÍCIO · TOPOLOGIA CONECTADA", "Preveja a raiz e os papéis das portas", "Os três switches estão conectados em triângulo. A redundância física existe; avance para observar os BPDUs e os cálculos.", "O cenário usa prioridades iguais e MACs distintos. A topologia tem até três enlaces; o modelo calcula as decisões sem animação automática."],
@@ -25,7 +29,7 @@
     7: ["ETAPA 7 · RECONVERGÊNCIA", "Uma porta pode passar por estados transitórios", "No STP clássico, uma porta selecionada para recuperar conectividade percorre Listening e Learning antes de Forwarding.", "Os estados aparecem como sequência didática, sem temporizador nem promessa de tempo exato. O caminho de dados não é tratado como recuperado antes de Forwarding."],
     8: ["ETAPA 8 · CAMINHO RECUPERADO", "A árvore lógica se estabilizou após a mudança", "O caminho redundante disponível pode encaminhar após o recálculo e a transição de estados. A falha física continua visível até você restaurar o cabo.", "Ao restaurar o enlace, o STP deve recalcular novamente; a simulação exige outro avanço manual."],
   };
-  const state = { stage: 0, failedLinkId: null, result: null, recoveryPort: null, predictionChecked: false, restoring: false };
+  const state = { stage: 0, failedLinkId: null, result: null, recoveryPort: null, predictionChecked: false, restoring: false, frameAnimationKey: null };
 
   function readConfiguration() {
     const configuredSwitches = switches.map((sw) => ({ ...sw, priority: Number($(`[data-stp-priority="${sw.id}"]`).value) }));
@@ -68,10 +72,11 @@
       const found = links.find((link) => link.id === id);
       const blocked = state.result.blockedLinkIds?.includes(id);
       const forwarding = state.result.forwardingLinkIds?.includes(id);
-      line.classList.toggle("forwarding", Boolean(forwarding));
-      line.classList.toggle("blocking", Boolean(blocked));
+      const rolesVisible = state.stage >= 4;
+      line.classList.toggle("forwarding", rolesVisible && Boolean(forwarding));
+      line.classList.toggle("blocking", rolesVisible && Boolean(blocked));
       line.classList.toggle("disconnected", id === state.failedLinkId);
-      line.classList.toggle("stp-current", state.stage >= 1 && state.stage <= 5 && Boolean(forwarding));
+      line.classList.toggle("stp-current", state.stage >= 4 && state.stage <= 5 && Boolean(forwarding));
       line.setAttribute("aria-label", `${id}: ${id === state.failedLinkId ? "fisicamente desconectado" : blocked ? "Blocking, cabo conectado" : forwarding ? "Forwarding" : "indisponível"}`);
       if (found && state.stage >= 4) {
         const left = portRoles[found.a.switchId]?.[found.a.portId];
@@ -119,18 +124,41 @@
     const dataFrame = $(`[data-stp-data-frame]`);
     const dataLabel = $(`[data-stp-data-label]`);
     const dataPoints = { "sw1-sw2": [370, 115], "sw1-sw3": [280, 210], "sw2-sw3": [470, 210] };
+    const dataPaths = { "sw1-sw2": "M205 115 L535 115", "sw1-sw3": "M205 147 L315 255", "sw2-sw3": "M535 147 L425 255" };
     const dataVisible = (state.stage === 5 || state.stage === 8) && state.result.forwardingLinkIds?.length;
     const dataLinkId = state.result.forwardingLinkIds?.[0];
     if (dataVisible && dataPoints[dataLinkId]) {
       dataFrame.setAttribute("cx", dataPoints[dataLinkId][0]);
       dataFrame.setAttribute("cy", dataPoints[dataLinkId][1]);
       dataFrame.classList.add("visible");
+      const animationKey = `${state.stage}:${dataLinkId}`;
+      if (state.frameAnimationKey !== animationKey) {
+        dataFrame.querySelector("animateMotion")?.remove();
+        state.frameAnimationKey = animationKey;
+        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          dataFrame.setAttribute("cx", "0");
+          dataFrame.setAttribute("cy", "0");
+          const motion = document.createElementNS("http://www.w3.org/2000/svg", "animateMotion");
+          motion.setAttribute("path", dataPaths[dataLinkId]);
+          motion.setAttribute("dur", "1.1s");
+          motion.setAttribute("fill", "freeze");
+          dataFrame.append(motion);
+          motion.beginElement();
+        } else {
+          dataFrame.setAttribute("cx", dataPoints[dataLinkId][0]);
+          dataFrame.setAttribute("cy", dataPoints[dataLinkId][1]);
+        }
+      }
       dataLabel.setAttribute("x", dataPoints[dataLinkId][0]);
       dataLabel.setAttribute("y", dataPoints[dataLinkId][1] - 22);
       dataLabel.classList.add("visible");
       $(`[data-stp-data-status]`).textContent = `Amostra de frame de usuário em ${dataLinkId.toUpperCase().replaceAll("-", " ↔ ")} · enlace Forwarding.`;
     } else {
       dataFrame.classList.remove("visible");
+      dataFrame.querySelector("animateMotion")?.remove();
+      dataFrame.setAttribute("cx", dataPoints[dataLinkId]?.[0] ?? "370");
+      dataFrame.setAttribute("cy", dataPoints[dataLinkId]?.[1] ?? "115");
+      state.frameAnimationKey = null;
       dataLabel.classList.remove("visible");
       $(`[data-stp-data-status]`).textContent = "Dados de usuário: ainda não apresentados.";
     }
@@ -185,8 +213,8 @@
   });
   $(`[data-stp-check-port]`).addEventListener("click", () => {
     const answer = $(`[data-stp-port-prediction]`).value;
-    const actual = state.result.ports.sw3?.["Gi0/2"]?.role;
-    $(`[data-stp-port-feedback]`).textContent = !answer ? "Escolha um papel antes de conferir." : answer === actual ? "Previsão correta para esta configuração. Avance até os papéis para observar os critérios." : "Não corresponde aos custos e identificadores atuais; use a comparação de Root Path Cost e Bridge ID e tente novamente.";
+    const actual = state.result.ports.sw3?.["Gi0/1"]?.role;
+    $(`[data-stp-port-feedback]`).textContent = !answer ? "Escolha um papel antes de conferir." : answer === actual ? "Isso: SW3 Gi0/1 é Blocking porque o caminho direto custa 19, enquanto o caminho via SW2 soma 8." : answer === "Root Port" ? "A Root Port de SW3 é Gi0/2: por ela o custo acumulado até SW1 é 4 + 4 = 8." : "SW1 já oferece uma informação melhor para esse segmento; a porta de SW3 fica em Blocking, mas o cabo continua conectado.";
   });
   $(`[data-stp-fail]`).addEventListener("click", () => {
     const id = $(`[data-stp-failure-link]`).value;
@@ -224,18 +252,110 @@
     $(`[data-stp-observation]`).textContent = "O cabo voltou à topologia. A árvore não é declarada estabilizada automaticamente; avance para concluir o recálculo e observar se o enlace retorna a Blocking.";
     $(`[data-stp-transition]`).textContent = "restaurado · aguardando recálculo";
   });
-  const association = $(`[data-stp-association]`);
-  association.addEventListener("change", () => {
-    $(`[data-stp-association-feedback]`).textContent = association.value === "bridge" ? "Correto. O Bridge ID, formado por prioridade e MAC, participa da eleição da Root Bridge." : association.value === "cost" ? "Root Path Cost compara caminhos até a raiz; a eleição da Root Bridge compara Bridge IDs." : "";
-  });
-  const rapid = $(`[data-stp-rapid]`);
-  rapid.querySelectorAll("[data-stp-rapid-answer]").forEach((button) => button.addEventListener("click", () => {
-    rapid.querySelectorAll("[data-stp-rapid-answer]").forEach((choice) => choice.setAttribute("aria-pressed", String(choice === button)));
-    $(`[data-stp-rapid-feedback]`).textContent = button.dataset.stpRapidAnswer === "yes" ? "Correto. Blocking impede dados de usuário, mas a porta continua recebendo BPDUs." : "A porta continua conectada e recebe BPDUs para acompanhar informações de controle.";
-  }));
-  $(`[data-stp-rapid-reset]`).addEventListener("click", () => {
-    rapid.querySelectorAll("[data-stp-rapid-answer]").forEach((button) => button.setAttribute("aria-pressed", "false"));
-    $(`[data-stp-rapid-feedback]`).textContent = "";
-  });
+  const teaching = root;
+  if (teaching) {
+    const bpduFeedback = teaching.querySelector("[data-stp-bpdu-feedback]");
+    const bpduScene = teaching.querySelector("[data-stp-bpdu-lesson]");
+    bpduFeedback.textContent = "Pronto para observar uma troca de informação de controle entre SW2 e SW1.";
+    teaching.querySelector("[data-stp-bpdu-send]").addEventListener("click", () => {
+      bpduScene.classList.remove("is-sent");
+      void bpduScene.offsetWidth;
+      bpduScene.classList.add("is-sent");
+      bpduFeedback.textContent = "SW2 compartilhou sua mensagem de controle com SW1. Esse bilhete carrega informações para o cálculo do STP; não é um frame de dados do usuário.";
+    });
+    teaching.querySelector("[data-stp-bpdu-inspect]").addEventListener("click", (event) => {
+      const button = event.currentTarget;
+      const payload = teaching.querySelector("[data-stp-bpdu-payload]");
+      const open = payload.hidden;
+      payload.hidden = !open;
+      button.setAttribute("aria-expanded", String(open));
+      if (open) bpduFeedback.textContent = "Na BPDU simplificada, observe o emissor, a raiz conhecida e o custo anunciado até ela.";
+    });
+
+    const election = teaching.querySelector("[data-stp-election]");
+    const electionFeedback = election.querySelector("[data-stp-election-feedback]");
+    let sw3Priority = 32768;
+    let electionRevealed = false;
+    const renderElection = () => {
+      election.querySelector('[data-stp-card-priority="sw3"]').textContent = String(sw3Priority);
+      const cards = [...election.querySelectorAll("[data-stp-bridge-card]")];
+      const values = cards.map((card) => ({
+        id: card.dataset.stpBridgeCard,
+        priority: card.dataset.stpBridgeCard === "sw3" ? sw3Priority : 32768,
+        mac: card.dataset.stpBridgeCard === "sw1" ? "01" : card.dataset.stpBridgeCard === "sw2" ? "02" : "03",
+      }));
+      values.sort((a, b) => a.priority - b.priority || a.mac.localeCompare(b.mac));
+      const winner = values[0];
+      cards.forEach((card) => {
+        const wins = electionRevealed && card.dataset.stpBridgeCard === winner.id;
+        card.classList.toggle("is-root-candidate", wins);
+        card.querySelector("[data-stp-card-result]").textContent = !electionRevealed ? "Cartão de identidade" : wins ? "Root Bridge eleita" : "Não foi eleita";
+      });
+      const toggle = election.querySelector("[data-stp-priority-toggle]");
+      toggle.disabled = !electionRevealed;
+      toggle.textContent = sw3Priority === 32768 ? "Alterar prioridade de SW3 para 4096" : "Restaurar prioridade de SW3 para 32768";
+      if (electionRevealed) {
+        electionFeedback.textContent = sw3Priority < 32768
+          ? `SW3 vence: sua prioridade ${sw3Priority} é menor. O MAC é comparado depois da prioridade.`
+          : "SW1 vence: as três prioridades empataram em 32768, então o MAC final :01 desempata.";
+      }
+    };
+    election.querySelector("[data-stp-election-run]").addEventListener("click", () => {
+      electionRevealed = true;
+      renderElection();
+    });
+    election.querySelector("[data-stp-priority-toggle]").addEventListener("click", () => {
+      sw3Priority = sw3Priority === 32768 ? 4096 : 32768;
+      renderElection();
+    });
+
+    const costLesson = teaching.querySelector("[data-stp-cost-lesson]");
+    teaching.querySelector("[data-stp-cost-compare]").addEventListener("click", () => {
+      costLesson.classList.add("is-compared");
+      teaching.querySelector("[data-stp-cost-feedback]").textContent = "8 é menor que 19. Por isso, neste exemplo, SW3 alcança SW1 passando por SW2.";
+    });
+
+    const rolePractice = teaching.querySelector("[data-stp-role-practice]");
+    const roleFeedback = rolePractice.querySelector("[data-stp-role-feedback]");
+    const expectedRoles = { "sw2-root": "Root Port", "sw1-designated": "Designated Port", "sw3-blocked": "Blocking" };
+    let selectedRole = "";
+    const resetRoles = () => {
+      selectedRole = "";
+      rolePractice.querySelectorAll("[data-stp-role-choice]").forEach((button) => button.setAttribute("aria-pressed", "false"));
+      rolePractice.querySelectorAll("[data-stp-role-target]").forEach((button) => {
+        button.classList.remove("is-correct", "is-incorrect");
+        button.querySelector("[data-stp-role-slot]").textContent = "Escolha um papel";
+      });
+      roleFeedback.textContent = "Selecione um rótulo e depois uma interface.";
+    };
+    rolePractice.querySelectorAll("[data-stp-role-choice]").forEach((button) => button.addEventListener("click", () => {
+      selectedRole = button.dataset.stpRoleChoice;
+      rolePractice.querySelectorAll("[data-stp-role-choice]").forEach((choice) => choice.setAttribute("aria-pressed", String(choice === button)));
+      roleFeedback.textContent = `${selectedRole} selecionada. Agora escolha a interface.`;
+    }));
+    rolePractice.querySelectorAll("[data-stp-role-target]").forEach((target) => target.addEventListener("click", () => {
+      if (!selectedRole) {
+        roleFeedback.textContent = "Primeiro escolha um papel na linha acima; depois selecione uma interface.";
+        return;
+      }
+      const id = target.dataset.stpRoleTarget;
+      const correct = selectedRole === expectedRoles[id];
+      target.classList.toggle("is-correct", correct);
+      target.classList.toggle("is-incorrect", !correct);
+      target.querySelector("[data-stp-role-slot]").textContent = selectedRole;
+      roleFeedback.textContent = correct
+        ? `Correto. ${target.firstChild.textContent.trim()} recebe o papel ${selectedRole}.`
+        : id === "sw3-blocked" && selectedRole === "Root Port"
+          ? "A porta bloqueada não é o melhor caminho. SW3 Gi0/2 oferece custo acumulado 8; Gi0/1 fica em Blocking porque o caminho direto custa 19."
+          : id === "sw3-blocked" && selectedRole === "Designated Port"
+            ? "Neste segmento, a informação de SW1 é melhor: SW1 tem custo 0 até a raiz. SW3 Gi0/1 fica em Blocking."
+            : `Revise quem oferece o menor custo até a raiz neste segmento; ${target.firstChild.textContent.trim()} não é ${selectedRole}.`;
+      selectedRole = "";
+      rolePractice.querySelectorAll("[data-stp-role-choice]").forEach((choice) => choice.setAttribute("aria-pressed", "false"));
+    }));
+    rolePractice.querySelector("[data-stp-role-reset]").addEventListener("click", resetRoles);
+    resetRoles();
+    renderElection();
+  }
   render();
 })();

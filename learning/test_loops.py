@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 from django.conf import settings
 from django.test import TestCase
@@ -62,6 +63,45 @@ class NetworkLoopsLessonTests(TestCase):
         self.assertContains(response, 'id="spanning-tree-checkpoint"')
         self.assertContains(response, 'id="spanning-tree-questions"')
         self.assertEqual(len(response.context["spanning_tree_questions"]), 18)
+        self.assertIn("prefers-reduced-motion", (Path(settings.BASE_DIR) / "static/css/spanning-tree-concept.css").read_text(encoding="utf-8"))
+
+    def test_classic_stp_has_progressive_concepts_before_guided_demo_and_collapsed_controls(self):
+        response = self.client.get(reverse("learning:spanning_tree_concept"))
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        overview = html.index('class="st-problem-review"')
+        roads = html.index('aria-labelledby="stp-roads-title"')
+        bpdu = html.index('aria-labelledby="stp-bpdu-title"')
+        root = html.index('aria-labelledby="stp-root-learning-title"')
+        costs = html.index('aria-labelledby="stp-cost-title"')
+        roles = html.index('aria-labelledby="stp-roles-title"')
+        demo = html.index('class="stp-demo-brief"')
+        advanced = html.index('<details class="stp-experiment" data-stp-experiment>')
+        self.assertLess(overview, roads)
+        self.assertLess(roads, bpdu)
+        self.assertLess(bpdu, root)
+        self.assertLess(root, costs)
+        self.assertLess(costs, roles)
+        self.assertLess(roles, demo)
+        self.assertLess(demo, advanced)
+        for fragment in (
+            "Um cabo extra cria um caminho de reserva",
+            "O mesmo cabo extra pode ser solução ou problema",
+            "Inspecionar BPDU simplificada",
+            "32768",
+            "4 + 4 = 8",
+            "Disabled",
+            "Uma porta bloqueada não é um cabo desconectado",
+            "data-stp-role-choice",
+            "data-stp-role-target",
+            "data-stp-next",
+        ):
+            self.assertIn(fragment, html)
+        self.assertRegex(html, re.compile(r'data-stp-cost="sw1-sw2"[^>]*>.*?<option selected>4</option>', re.S))
+        self.assertRegex(html, re.compile(r'data-stp-cost="sw1-sw3"[^>]*>.*?<option selected>19</option>', re.S))
+        self.assertRegex(html, re.compile(r'data-stp-cost="sw2-sw3"[^>]*>.*?<option selected>4</option>', re.S))
+        self.assertIn('aria-live="polite"', html)
+        self.assertIn('aria-controls="stp-bpdu-payload"', html)
         self.assertIn("prefers-reduced-motion", (Path(settings.BASE_DIR) / "static/css/spanning-tree-concept.css").read_text(encoding="utf-8"))
 
     def test_stp_questions_move_to_distinct_checkpoint_and_keep_existing_items(self):

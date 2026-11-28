@@ -70,7 +70,7 @@
       const designated = leftIsDesignated ? link.a : link.b;
       const other = leftIsDesignated ? link.b : link.a;
       const otherIsRootPort = predecessor[other.switchId]?.linkId === link.id;
-      const otherRole = otherIsRootPort ? "Root Port" : "Blocking";
+      const otherRole = otherIsRootPort ? "Root Port" : "Non-designated Port";
       ports[designated.switchId][designated.portId] = { role: "Designated Port", state: "Forwarding", linkId: link.id };
       ports[other.switchId][other.portId] = { role: otherRole, state: otherIsRootPort ? "Forwarding" : "Blocking", linkId: link.id };
       rolesByLink[link.id] = { active: true, designated, other, blocked: otherIsRootPort ? null : other, rootPort: otherIsRootPort ? other : null };

@@ -21,7 +21,7 @@ test("elege menor Bridge ID, calcula Root Ports e bloqueia caminho redundante", 
   assert.deepEqual(result.costs, { sw1: 0, sw2: 4, sw3: 8 });
   assert.deepEqual(result.rootPorts, { sw2: "Gi0/1", sw3: "Gi0/2" });
   assert.deepEqual(result.blockedLinkIds, ["sw1-sw3"]);
-  assert.equal(result.ports.sw3["Gi0/1"].role, "Blocking");
+  assert.equal(result.ports.sw3["Gi0/1"].role, "Non-designated Port");
   assert.equal(result.ports.sw3["Gi0/1"].state, "Blocking");
   assert.equal(result.forwardingLinkIds.length, 2);
 });
@@ -36,11 +36,11 @@ test("prioridade precede MAC e recalcula raiz e custos", () => {
   assert.equal(result.rootPorts.sw2, "Gi0/2");
 });
 
-test("custos empatados usam Bridge ID e enlace redundante ganha papel Blocking", () => {
+test("custos empatados usam Bridge ID e enlace redundante recebe papel não designado", () => {
   const equalCosts = links.map((link) => ({ ...link, cost: 4 }));
   const result = calculate(switches, equalCosts);
   assert.equal(result.rootId, "sw1");
-  assert.equal(result.ports.sw3["Gi0/2"].role, "Blocking");
+  assert.equal(result.ports.sw3["Gi0/2"].role, "Non-designated Port");
 });
 
 test("escolhe caminho indireto quando a soma de custos é menor", () => {
@@ -51,7 +51,7 @@ test("escolhe caminho indireto quando a soma de custos é menor", () => {
   const result = calculate(switches, asymmetric);
   assert.equal(result.costs.sw3, 8);
   assert.equal(result.rootPorts.sw3, "Gi0/2");
-  assert.equal(result.ports.sw3["Gi0/1"].role, "Blocking");
+  assert.equal(result.ports.sw3["Gi0/1"].role, "Non-designated Port");
 });
 
 test("falha física marca interfaces Disabled e recalcula árvore por caminho restante", () => {

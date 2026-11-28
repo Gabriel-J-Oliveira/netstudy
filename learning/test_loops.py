@@ -85,24 +85,45 @@ class NetworkLoopsLessonTests(TestCase):
         self.assertLess(roles, demo)
         self.assertLess(demo, advanced)
         for fragment in (
-            "Um cabo extra cria um caminho de reserva",
+            "Dois caminhos mantêm uma alternativa",
             "O mesmo cabo extra pode ser solução ou problema",
-            "Inspecionar BPDU simplificada",
-            "32768",
+            "Enviar BPDU de SW2 para SW1",
+            "data-stp-election-priority",
+            "data-stp-election-mac",
+            "4096",
             "4 + 4 = 8",
             "Disabled",
             "Uma porta bloqueada não é um cabo desconectado",
             "data-stp-role-choice",
             "data-stp-role-target",
+            "Non-designated Port",
+            "data-stp-port-state",
             "data-stp-next",
+            "data-stp-prev",
+            "data-stp-play",
+            "data-stp-pause",
+            "Rapid Fire",
+            "data-stp-rapid-item",
         ):
             self.assertIn(fragment, html)
         self.assertRegex(html, re.compile(r'data-stp-cost="sw1-sw2"[^>]*>.*?<option selected>4</option>', re.S))
         self.assertRegex(html, re.compile(r'data-stp-cost="sw1-sw3"[^>]*>.*?<option selected>19</option>', re.S))
         self.assertRegex(html, re.compile(r'data-stp-cost="sw2-sw3"[^>]*>.*?<option selected>4</option>', re.S))
         self.assertIn('aria-live="polite"', html)
-        self.assertIn('aria-controls="stp-bpdu-payload"', html)
+        self.assertIn('data-stp-bpdu-payload', html)
+        self.assertIn('data-stp-election-predict="sw3"', html)
+        self.assertIn('data-stp-cost-choice="via"', html)
+        self.assertIn('data-stp-state-feedback', html)
+        self.assertEqual(html.count('data-stp-rapid-item'), 6)
         self.assertIn("prefers-reduced-motion", (Path(settings.BASE_DIR) / "static/css/spanning-tree-concept.css").read_text(encoding="utf-8"))
+
+    def test_classic_stp_model_roles_are_not_confused_with_blocking_state(self):
+        model = (Path(settings.BASE_DIR) / "static/js/loops-stp-model.js").read_text(encoding="utf-8")
+        tests = (Path(settings.BASE_DIR) / "static/js/loops-stp-model.test.js").read_text(encoding="utf-8")
+        self.assertIn('role: otherRole', model)
+        self.assertIn('"Non-designated Port"', model)
+        self.assertIn('role, "Non-designated Port"', tests)
+        self.assertIn('state, "Blocking"', tests)
 
     def test_stp_questions_move_to_distinct_checkpoint_and_keep_existing_items(self):
         self.assertEqual(len(SPANNING_TREE_QUESTIONS), 18)

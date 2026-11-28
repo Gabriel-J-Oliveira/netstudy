@@ -1,7 +1,7 @@
 {% extends "learning/base.html" %}
 {% load static %}
 {% block title %}Spanning Tree — STP, RSTP e MSTP · NetStudy{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/context-glossary.css' %}"><link rel="stylesheet" href="{% static 'css/loops-concept.css' %}"><link rel="stylesheet" href="{% static 'css/spanning-tree-concept.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/context-glossary.css' %}"><link rel="stylesheet" href="{% static 'css/loops-concept.css' %}"><link rel="stylesheet" href="{% static 'css/spanning-tree-concept.css' %}?v=classic-stp-visual-7">{% endblock %}
 {% block content %}
 <main class="loops-lesson spanning-tree-lesson" data-spanning-tree>
   <header class="loops-hero"><p class="eyebrow">CAMADA 2 · REDUNDÂNCIA</p><h1>Spanning Tree — STP, RSTP e MSTP</h1><p>Na aula anterior, um enlace redundante fechou um caminho circular. Spanning Tree organiza os caminhos ativos para manter alternativas sem deixar a topologia formar um ciclo de encaminhamento.</p></header>
@@ -10,21 +10,19 @@
     <p class="loop-index">01 · RETOMAR O PROBLEMA</p>
     <h2 id="st-overview-title">Um caminho extra ajuda — até todos encaminharem</h2>
     <p>Antes de falar do protocolo, vamos retomar o que acontece quando existem caminhos alternativos entre switches.</p>
-    <div class="st-problem-triangle">
-      <article class="st-problem-card">
-        <svg viewBox="0 0 96 58" aria-hidden="true"><path d="M8 29h80"/><path class="reserve-road" d="M8 43h80"/><circle cx="10" cy="29" r="6"/><circle cx="86" cy="29" r="6"/><path d="m77 22 9 7-9 7"/></svg>
-        <h3>Enlace redundante</h3>
-        <p>Um cabo extra cria um caminho de reserva. Se um enlace falhar, ainda existe outro por onde a comunicação pode passar.</p>
+    <div class="st-problem-map" aria-label="Caminho visual: redundância, risco de loop e bloqueio lógico pelo STP">
+      <svg class="st-problem-connectors" viewBox="0 0 1000 230" aria-hidden="true" focusable="false"><path class="st-map-connector" d="M190 52 500 170 810 52"/><path class="st-map-connector st-map-loop" d="M190 52h620"/><path class="st-map-cut" d="M490 45v15m20-15v15"/></svg>
+      <article class="st-problem-node st-problem-node-redundancy">
+        <svg class="st-mini-network" viewBox="0 0 150 54" role="img" aria-label="Três switches com dois caminhos conectados entre si"><path class="mini-link" d="M24 12 75 42 126 12M24 12h102"/><path class="mini-link mini-reserve" d="M24 12h102"/><g class="mini-switch"><rect x="10" y="3" width="28" height="18" rx="5"/><path d="M15 12h18m-13-4v8m8-8v8"/></g><g class="mini-switch"><rect x="61" y="33" width="28" height="18" rx="5"/><path d="M66 42h18m-13-4v8m8-8v8"/></g><g class="mini-switch"><rect x="112" y="3" width="28" height="18" rx="5"/><path d="M117 12h18m-13-4v8m8-8v8"/></g></svg>
+        <h3>Redundância</h3><p>Dois caminhos mantêm uma alternativa se um enlace falhar.</p>
       </article>
-      <article class="st-problem-card">
-        <svg viewBox="0 0 96 58" aria-hidden="true"><path d="M48 6 88 48H8Z"/><path class="loop-arrow" d="m68 25 9 10-13 2"/><path class="loop-arrow" d="m27 35-7 10 13 1"/></svg>
-        <h3>Risco de loop</h3>
-        <p>Se todos os caminhos encaminharem ao mesmo tempo, os frames podem ficar circulando em círculo e comprometer a comunicação.</p>
+      <article class="st-problem-node st-problem-node-loop">
+        <svg class="st-mini-network" viewBox="0 0 150 54" role="img" aria-label="Três switches ligados em círculo e um frame seguindo o circuito"><path class="mini-link mini-loop" d="M24 12 75 42 126 12 24 12"/><path class="mini-direction" d="m47 25 8 4-8 4m42 0 8-4-8-4m-20-13 0 9"/><circle class="mini-frame" cx="50" cy="27" r="5"/><g class="mini-switch"><rect x="10" y="3" width="28" height="18" rx="5"/><path d="M15 12h18m-13-4v8m8-8v8"/></g><g class="mini-switch"><rect x="61" y="33" width="28" height="18" rx="5"/><path d="M66 42h18m-13-4v8m8-8v8"/></g><g class="mini-switch"><rect x="112" y="3" width="28" height="18" rx="5"/><path d="M117 12h18m-13-4v8m8-8v8"/></g></svg>
+        <h3>Loop</h3><p>Se todos encaminham, frames podem circular indefinidamente.</p>
       </article>
-      <article class="st-problem-card">
-        <svg viewBox="0 0 96 58" aria-hidden="true"><path d="M48 6 88 48H8Z"/><path class="tree-road" d="M48 6 8 48M48 6 88 48"/><path class="blocked-road" d="M8 48h80"/><path class="blocked-mark" d="M44 43h8"/></svg>
-        <h3>STP</h3>
-        <p>O STP organiza os caminhos para que a rede mantenha alternativas sem formar um ciclo ativo.</p>
+      <article class="st-problem-node st-problem-node-stp">
+        <svg class="st-mini-network" viewBox="0 0 150 54" role="img" aria-label="Árvore STP com um enlace conectado, porém bloqueado"><path class="mini-link mini-tree" d="M24 12 75 42 126 12"/><path class="mini-link mini-reserve" d="M24 12h102"/><path class="mini-block-mark" d="M70 7v10m10-10v10"/><g class="mini-switch"><rect x="10" y="3" width="28" height="18" rx="5"/><path d="M15 12h18m-13-4v8m8-8v8"/></g><g class="mini-switch"><rect x="61" y="33" width="28" height="18" rx="5"/><path d="M66 42h18m-13-4v8m8-8v8"/></g><g class="mini-switch"><rect x="112" y="3" width="28" height="18" rx="5"/><path d="M117 12h18m-13-4v8m8-8v8"/></g></svg>
+        <h3>STP</h3><p>Uma porta para de encaminhar; o cabo segue conectado como alternativa.</p>
       </article>
     </div>
     <p class="st-problem-key"><strong>O mesmo cabo extra pode ser solução ou problema. Tudo depende de como a rede organiza seus caminhos.</strong></p>
@@ -170,4 +168,4 @@
 </main>
 {{ spanning_tree_questions|json_script:"spanning-tree-questions" }}
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/loops-stp-model.js' %}"></script><script src="{% static 'js/loops-stp-concept.js' %}?v=classic-stp-lesson-2"></script><script src="{% static 'js/spanning-tree-concept.js' %}?v=stp-split-1"></script><script src="{% static 'js/context-glossary.js' %}"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/loops-stp-model.js' %}?v=classic-stp-model-2"></script><script src="{% static 'js/loops-stp-concept.js' %}?v=classic-stp-lesson-6"></script><script src="{% static 'js/spanning-tree-concept.js' %}?v=stp-split-1"></script><script src="{% static 'js/context-glossary.js' %}"></script>{% endblock %}
